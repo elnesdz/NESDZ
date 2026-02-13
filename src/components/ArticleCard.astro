@@ -1,0 +1,18 @@
+---
+const { href, title, description, date, category, tags } = Astro.props;
+const d = new Date(date);
+const pretty = d.toLocaleDateString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric' });
+---
+<a class="item" href={href}>
+  <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px;">
+    <div>
+      <div class="t">{title}</div>
+      <div class="s">{description}</div>
+    </div>
+    <span class="pill">{pretty}</span>
+  </div>
+  <div class="row" style="margin-top:10px;flex-wrap:wrap;">
+    <span class="badge">{category}</span>
+    {(tags ?? []).slice(0,3).map((t) => <span class="pill">{t}</span>)}
+  </div>
+</a>

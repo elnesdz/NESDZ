@@ -1,0 +1,61 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "public/uploads"
+public_folder: "/uploads"
+
+collections:
+  - name: "articles"
+    label: "Articles"
+    folder: "src/content/articles"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "Titre", name: "title", widget: "string" }
+      - { label: "Description", name: "description", widget: "text" }
+      - { label: "Date", name: "date", widget: "datetime" }
+      - { label: "Catégorie", name: "category", widget: "string", default: "Journal" }
+      - { label: "Tags", name: "tags", widget: "list", default: [] }
+      - { label: "Auteur", name: "author", widget: "string", default: "Rédaction NESDZ" }
+      - { label: "À la une", name: "featured", widget: "boolean", default: false }
+      - { label: "Contenu", name: "body", widget: "markdown" }
+
+  - name: "modeles"
+    label: "Modèles ULM"
+    folder: "src/content/models"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Nom", name: "name", widget: "string" }
+      - { label: "Constructeur", name: "manufacturer", widget: "string", required: false }
+      - label: "Catégorie"
+        name: "category"
+        widget: "select"
+        options: ["Multiaxe","Pendulaire","Paramoteur","Autogire","HydroULM","Autre"]
+        default: "Multiaxe"
+      - { label: "Places", name: "seats", widget: "number", value_type: "int", default: 2 }
+      - { label: "Masse à vide (kg)", name: "emptyWeightKg", widget: "number", required: false }
+      - { label: "MTOW (kg)", name: "mtowKg", widget: "number", required: false }
+      - { label: "Croisière (km/h)", name: "cruiseKmh", widget: "number", required: false }
+      - { label: "Décrochage (km/h)", name: "stallKmh", widget: "number", required: false }
+      - { label: "Autonomie (km)", name: "rangeKm", widget: "number", required: false }
+      - { label: "Moteur", name: "engine", widget: "string", required: false }
+      - { label: "Année", name: "year", widget: "number", required: false }
+      - { label: "Pays", name: "country", widget: "string", required: false }
+      - { label: "Tags", name: "tags", widget: "list", default: [] }
+      - label: "YouTube"
+        name: "youtube"
+        widget: "object"
+        required: false
+        fields:
+          - { label: "URL", name: "url", widget: "string", required: false }
+          - { label: "Titre", name: "title", widget: "string", required: false }
+      - label: "Liens"
+        name: "links"
+        widget: "list"
+        required: false
+        fields:
+          - { label: "Label", name: "label", widget: "string" }
+          - { label: "URL", name: "url", widget: "string" }
+      - { label: "Notes / description", name: "body", widget: "markdown" }

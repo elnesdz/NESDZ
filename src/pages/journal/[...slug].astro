@@ -1,0 +1,46 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("articles");
+  return entries.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+const d = entry.data.date.toLocaleDateString('fr-FR', { year:'numeric', month:'long', day:'numeric' });
+---
+<BaseLayout title={entry.data.title} description={entry.data.description}>
+  <article class="container" style="padding: 28px 0 26px;">
+    <div class="card">
+      <div class="pad">
+        <div class="row" style="justify-content:space-between;flex-wrap:wrap;">
+          <div class="row" style="gap:10px;flex-wrap:wrap;">
+            <span class="badge">{entry.data.category}</span>
+            {(entry.data.tags ?? []).map((t) => <span class="pill">{t}</span>)}
+          </div>
+          <span class="pill">{d}</span>
+        </div>
+
+        <h1 style="margin-top:14px;">{entry.data.title}</h1>
+        <p class="lead" style="margin-top:6px;">{entry.data.description}</p>
+
+        <hr class="sep" />
+
+        <div style="max-width: 78ch;">
+          <Content />
+        </div>
+
+        <hr class="sep" />
+        <div class="row" style="justify-content:space-between;flex-wrap:wrap;">
+          <a class="btn" href="/journal/">← Retour au journal</a>
+          <span class="pill">Auteur : {entry.data.author}</span>
+        </div>
+      </div>
+    </div>
+  </article>
+</BaseLayout>

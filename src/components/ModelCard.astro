@@ -1,0 +1,19 @@
+---
+const { href, name, manufacturer, category, seats, engine, cruiseKmh, tags } = Astro.props;
+---
+<a class="item" href={href}>
+  <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px;">
+    <div>
+      <div class="t">{name}</div>
+      <div class="s">
+        {(manufacturer ? `${manufacturer} · ` : '')}{category} · {seats} place{seats>1?'s':''}
+        {engine ? ` · ${engine}` : ''}
+        {cruiseKmh ? ` · Croisière ~${cruiseKmh} km/h` : ''}
+      </div>
+    </div>
+    <span class="pill">Fiche</span>
+  </div>
+  <div class="row" style="margin-top:10px;flex-wrap:wrap;">
+    {(tags ?? []).slice(0,4).map((t) => <span class="pill">{t}</span>)}
+  </div>
+</a>

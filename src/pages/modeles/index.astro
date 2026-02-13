@@ -1,0 +1,120 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+const entries = (await getCollection("models")).sort((a,b)=> a.data.name.localeCompare(b.data.name, 'fr'));
+
+const data = entries.map(e => ({
+  slug: e.slug,
+  name: e.data.name,
+  manufacturer: e.data.manufacturer ?? "",
+  category: e.data.category,
+  seats: e.data.seats,
+  engine: e.data.engine ?? "",
+  cruiseKmh: e.data.cruiseKmh ?? null,
+  mtowKg: e.data.mtowKg ?? null,
+  tags: e.data.tags ?? [],
+}));
+const categories = Array.from(new Set(data.map(d => d.category))).sort();
+---
+<BaseLayout title="Annuaire ULM" description="Annuaire des modèles ULM : fiches techniques, liens, vidéos YouTube.">
+  <section class="container" style="padding: 28px 0 10px;">
+    <div class="row" style="justify-content:space-between;align-items:flex-end;flex-wrap:wrap;">
+      <div>
+        <h1 style="margin:0 0 8px;">Annuaire des modèles</h1>
+        <p class="lead">Recherche + filtres. Une fiche par modèle, avec specs et vidéos.</p>
+      </div>
+      <div class="row" style="gap:8px;flex-wrap:wrap;">
+        <span class="pill">Astuce : <span class="kbd">Ctrl</span>+<span class="kbd">F</span> ne suffit pas — ici c’est mieux 😄</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="container" style="padding: 10px 0 26px;">
+    <div class="card">
+      <div class="pad">
+        <div class="grid grid-3" style="align-items:end;">
+          <div class="stack" style="gap:8px;">
+            <label style="color:var(--muted);font-size:12px;">Recherche</label>
+            <input id="q" class="btn" style="width:100%;text-align:left;" placeholder="Nom, constructeur, moteur, tags…" />
+          </div>
+          <div class="stack" style="gap:8px;">
+            <label style="color:var(--muted);font-size:12px;">Catégorie</label>
+            <select id="cat" class="btn" style="width:100%;text-align:left;">
+              <option value="">Toutes</option>
+              {categories.map(c => <option value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div class="stack" style="gap:8px;">
+            <label style="color:var(--muted);font-size:12px;">Places</label>
+            <select id="seats" class="btn" style="width:100%;text-align:left;">
+              <option value="">Toutes</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
+          </div>
+        </div>
+
+        <hr class="sep" />
+        <div class="row" style="justify-content:space-between;flex-wrap:wrap;">
+          <span class="pill">Résultats : <strong id="count" style="color:var(--text);">0</strong></span>
+          <button class="btn" id="reset" type="button">Réinitialiser</button>
+        </div>
+
+        <div class="list" id="list" style="margin-top:12px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" define:vars={{ models: data }}>
+    const $ = (s) => document.querySelector(s);
+    const q = $("#q"), cat = $("#cat"), seats = $("#seats"), list = $("#list"), count = $("#count"), reset = $("#reset");
+
+    const normalize = (s) => (s ?? "").toString().toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu,"");
+    const makeItem = (m) => {
+      const a = document.createElement("a");
+      a.className = "item";
+      a.href = `/modeles/${m.slug}/`;
+      a.innerHTML = `
+        <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px;">
+          <div>
+            <div class="t">${m.name}</div>
+            <div class="s">
+              ${(m.manufacturer ? m.manufacturer + " · " : "")}${m.category} · ${m.seats} place${m.seats>1?"s":""}
+              ${(m.engine ? " · " + m.engine : "")}
+              ${(m.cruiseKmh ? " · Croisière ~" + m.cruiseKmh + " km/h" : "")}
+            </div>
+          </div>
+          <span class="pill">Fiche</span>
+        </div>
+        <div class="row" style="margin-top:10px;flex-wrap:wrap;">
+          ${(m.tags||[]).slice(0,4).map(t=>`<span class="pill">${t}</span>`).join("")}
+        </div>
+      `;
+      return a;
+    };
+
+    const render = () => {
+      const nq = normalize(q.value);
+      const c = cat.value;
+      const s = seats.value ? Number(seats.value) : null;
+
+      const filtered = models.filter(m => {
+        if (c && m.category !== c) return false;
+        if (s && m.seats !== s) return false;
+        if (!nq) return true;
+        const hay = normalize([m.name, m.manufacturer, m.engine, ...(m.tags||[])].join(" "));
+        return hay.includes(nq);
+      });
+
+      list.innerHTML = "";
+      filtered.forEach(m => list.appendChild(makeItem(m)));
+      count.textContent = String(filtered.length);
+    };
+
+    [q,cat,seats].forEach(el => el.addEventListener("input", render));
+    reset.addEventListener("click", () => { q.value=""; cat.value=""; seats.value=""; render(); });
+    render();
+  </script>
+</BaseLayout>

@@ -1,0 +1,129 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ArticleCard from "../components/ArticleCard.astro";
+import ModelCard from "../components/ModelCard.astro";
+import { getCollection } from "astro:content";
+
+const articles = (await getCollection("articles"))
+  .sort((a,b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const featured = articles.find(a => a.data.featured) ?? articles[0];
+const latest = articles.slice(0,5);
+
+const models = (await getCollection("models")).slice(0,4);
+---
+<BaseLayout
+  title="Accueil"
+  description="NESDZ : édito, articles et annuaire des ULM (fiches techniques + vidéos)."
+>
+  <section class="hero">
+    <div class="container hero-grid">
+      <article class="card hero-card">
+        <div class="meta">
+          <span class="pill">Journal</span>
+          <span class="pill">Annuaire ULM</span>
+          <span class="pill">Vidéos</span>
+          <span class="pill">Sécurité</span>
+        </div>
+        <h1>ULM & ultra‑léger : le journal qui vole au ras des nuages.</h1>
+        <p class="lead">
+          NESDZ est un carnet de vol collectif : édito, articles et fiches modèles,
+          pour apprendre, comparer, rêver… et garder la tête froide quand le vent se lève.
+        </p>
+        <div class="actions">
+          <a class="btn" href="/journal/">Lire le journal</a>
+          <a class="btn" href="/modeles/">Explorer l’annuaire</a>
+        </div>
+        <hr class="sep" />
+        {featured && (
+          <div>
+            <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;">
+              <div class="row" style="gap:10px;flex-wrap:wrap;">
+                <span class="badge">À la une</span>
+                <span class="pill">{featured.data.category}</span>
+              </div>
+              <span class="pill">{featured.data.date.toLocaleDateString('fr-FR')}</span>
+            </div>
+            <h2 style="margin-top:10px;">{featured.data.title}</h2>
+            <p>{featured.data.description}</p>
+            <a class="btn" href={`/journal/${featured.slug}/`}>Ouvrir l’article</a>
+          </div>
+        )}
+      </article>
+
+      <aside class="hero-aside">
+        <div class="card">
+          <div class="pad">
+            <div class="row" style="justify-content:space-between;align-items:center;">
+              <h2 style="margin:0;">Derniers articles</h2>
+              <span class="pill">5</span>
+            </div>
+            <div class="list" style="margin-top:12px;">
+              {latest.map((a) => (
+                <ArticleCard
+                  href={`/journal/${a.slug}/`}
+                  title={a.data.title}
+                  description={a.data.description}
+                  date={a.data.date}
+                  category={a.data.category}
+                  tags={a.data.tags}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="pad">
+            <div class="row" style="justify-content:space-between;align-items:center;">
+              <h2 style="margin:0;">Modèles en vedette</h2>
+              <span class="pill">{models.length}</span>
+            </div>
+            <div class="list" style="margin-top:12px;">
+              {models.map((m) => (
+                <ModelCard
+                  href={`/modeles/${m.slug}/`}
+                  name={m.data.name}
+                  manufacturer={m.data.manufacturer}
+                  category={m.data.category}
+                  seats={m.data.seats}
+                  engine={m.data.engine}
+                  cruiseKmh={m.data.cruiseKmh}
+                  tags={m.data.tags}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="container" style="padding: 8px 0 26px;">
+    <div class="card">
+      <div class="pad">
+        <h2>La promesse NESDZ</h2>
+        <div class="grid grid-3" style="margin-top:12px;">
+          <div class="card" style="box-shadow:none;">
+            <div class="pad">
+              <h3>Clarté</h3>
+              <p>Des fiches techniques lisibles, des articles structurés, des sources quand c’est nécessaire.</p>
+            </div>
+          </div>
+          <div class="card" style="box-shadow:none;">
+            <div class="pad">
+              <h3>Sécurité</h3>
+              <p>Le style, c’est bien. Les marges, c’est mieux. On garde toujours un œil sur les bonnes pratiques.</p>
+            </div>
+          </div>
+          <div class="card" style="box-shadow:none;">
+            <div class="pad">
+              <h3>Plaisir</h3>
+              <p>Parce que l’ULM est une école de liberté — et une excuse légale pour parler météo au café.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

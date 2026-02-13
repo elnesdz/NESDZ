@@ -1,0 +1,118 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("models");
+  return entries.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+
+const d = entry.data;
+const spec = [
+  ["Catégorie", d.category],
+  ["Constructeur", d.manufacturer ?? "—"],
+  ["Places", String(d.seats)],
+  ["Moteur", d.engine ?? "—"],
+  ["Masse à vide (kg)", d.emptyWeightKg ? String(d.emptyWeightKg) : "—"],
+  ["MTOW / masse max (kg)", d.mtowKg ? String(d.mtowKg) : "—"],
+  ["Vitesse de croisière (km/h)", d.cruiseKmh ? String(d.cruiseKmh) : "—"],
+  ["Vitesse de décrochage (km/h)", d.stallKmh ? String(d.stallKmh) : "—"],
+  ["Autonomie (km)", d.rangeKm ? String(d.rangeKm) : "—"],
+  ["Année", d.year ? String(d.year) : "—"],
+  ["Pays", d.country ?? "—"],
+];
+
+const youtubeId = d.youtube?.url
+  ? (() => {
+      try {
+        const u = new URL(d.youtube.url);
+        if (u.hostname.includes("youtu.be")) return u.pathname.slice(1);
+        if (u.searchParams.get("v")) return u.searchParams.get("v");
+        const m = u.pathname.match(/\/embed\/([^/?]+)/);
+        return m?.[1] ?? null;
+      } catch { return null; }
+    })()
+  : null;
+---
+<BaseLayout title={d.name} description={`Fiche ULM : ${d.name} — specs, liens et vidéo.`}>
+  <article class="container" style="padding: 28px 0 26px;">
+    <div class="card">
+      <div class="pad">
+        <div class="row" style="justify-content:space-between;flex-wrap:wrap;">
+          <div class="row" style="gap:10px;flex-wrap:wrap;">
+            <span class="badge">{d.category}</span>
+            {(d.tags ?? []).map((t) => <span class="pill">{t}</span>)}
+          </div>
+          <a class="btn" href="/modeles/">← Annuaire</a>
+        </div>
+
+        <h1 style="margin-top:14px;">{d.name}</h1>
+        <p class="lead">
+          {(d.manufacturer ? `${d.manufacturer} · ` : "")}{d.seats} place{d.seats>1?'s':''}
+          {d.engine ? ` · ${d.engine}` : ""}
+        </p>
+
+        <div class="grid grid-2" style="margin-top: 14px;">
+          <div class="card" style="box-shadow:none;">
+            <div class="pad">
+              <h2>Fiche technique</h2>
+              <div class="stack" style="gap:10px;">
+                {spec.map(([k,v]) => (
+                  <div class="row" style="justify-content:space-between;gap:14px;">
+                    <span style="color:var(--muted);">{k}</span>
+                    <strong style="text-align:right;">{v}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="box-shadow:none;">
+            <div class="pad">
+              <h2>Vidéo</h2>
+              {youtubeId ? (
+                <div style="position:relative;padding-top:56.25%;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.03);">
+                  <iframe
+                    style="position:absolute;inset:0;width:100%;height:100%;"
+                    src={`https://www.youtube-nocookie.com/embed/${youtubeId}`}
+                    title={d.youtube?.title ?? `Vidéo sur ${d.name}`}
+                    loading="lazy"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen
+                  ></iframe>
+                </div>
+              ) : (
+                <p>Ajoute une URL YouTube dans la fiche pour afficher la vidéo ici.</p>
+              )}
+
+              <hr class="sep" />
+              <h3>Liens</h3>
+              <div class="stack" style="gap:10px;">
+                {(d.links ?? []).length ? d.links.map((l) => (
+                  <a class="btn" href={l.url} rel="noopener noreferrer" target="_blank">{l.label}</a>
+                )) : <p>Aucun lien externe pour l’instant.</p>}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="sep" />
+        <div class="card" style="box-shadow:none;">
+          <div class="pad" style="max-width: 80ch;">
+            <h2>Notes & description</h2>
+            <Content />
+            <p style="font-size:12px;margin-top:14px;">
+              Avertissement : cette fiche est une synthèse. Pour une décision d’achat / exploitation, vérifie toujours les docs constructeur et la réglementation applicable.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+</BaseLayout>

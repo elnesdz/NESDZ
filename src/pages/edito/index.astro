@@ -1,0 +1,26 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+const all = (await getCollection("articles")).sort((a,b)=>b.data.date.valueOf()-a.data.date.valueOf());
+const edito = all.find(a => a.data.category.toLowerCase().includes("édito")) ?? all[0];
+const { Content } = await edito.render();
+---
+<BaseLayout title="Édito" description="L’édito NESDZ : l’esprit du journal et la vision ultra-légère.">
+  <section class="container" style="padding: 28px 0 26px;">
+    <div class="card">
+      <div class="pad">
+        <div class="row" style="justify-content:space-between;flex-wrap:wrap;">
+          <span class="badge">Édito</span>
+          <span class="pill">{edito.data.date.toLocaleDateString('fr-FR')}</span>
+        </div>
+        <h1 style="margin-top:14px;">{edito.data.title}</h1>
+        <p class="lead">{edito.data.description}</p>
+        <hr class="sep" />
+        <div style="max-width: 78ch;">
+          <Content />
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
