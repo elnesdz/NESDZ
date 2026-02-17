@@ -5,6 +5,13 @@ category: "Multiaxe"
 seats: 2
 engine: "Rotax 912/914 (selon versions)"
 tags: ["voyage", "rapide", "composite"]
+emptyWeightKg: 325
+mtowKg: 600
+cruiseKmh: 240
+stallKmh: 65
+rangeKm: 1300
+year: 2004
+country: Slovaquie
 youtube:
   url: "https://www.youtube.com/results?search_query=Aerospool+WT9+Dynamic+ULM"
   title: "Vidéos sur Aerospool WT9 Dynamic"
