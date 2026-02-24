@@ -192,3 +192,7 @@ p.lead{ font-size: 18px; color: rgba(231,238,247,.85); }
   margin-top: 34px;
 }
 .footer small{ color: var(--muted); }
+.logo {
+  height: 52px;
+  width: auto;
+}
