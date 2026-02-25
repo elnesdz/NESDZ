@@ -6,7 +6,7 @@ category: "Édito"
 tags: ["culture", "sécurité", "pilotage"]
 featured: true
 ---
-![L'Esprit ULM]( /edito-esprit-ulm.jpg )
+![L'Esprit ULM]( /edito-esprit-ulm.png )
 
 On a souvent tendance à réduire l’envol à une simple équation de transport, une trajectoire froide tracée entre deux points cardinaux. Mais pour nous, qui habitons ces structures de carbone ou de toile, s’élever dans l’éther relève d’une tout autre métaphysique : l’ultra-léger n’est pas qu’une catégorie de machines, c’est un déshabillage du rêve d’Icare.
 
