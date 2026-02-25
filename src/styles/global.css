@@ -200,3 +200,40 @@ p.lead{ font-size: 18px; color: rgba(231,238,247,.85); }
   max-width: 72ch;
   margin: 0 auto;
 }
+/* Lecture type "magazine" pour les pages d'articles */
+.card .pad {
+  max-width: 72ch;
+  margin: 0 auto;
+}
+
+/* texte long : lisibilité */
+.card .pad p {
+  line-height: 1.75;
+  font-size: 18px;
+  color: rgba(231, 238, 247, 0.86);
+  margin: 0 0 16px;
+}
+
+/* titres un poil plus majestueux */
+.card .pad h1 {
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+/* intertitres */
+.card .pad h2,
+.card .pad h3 {
+  margin-top: 26px;
+  margin-bottom: 10px;
+}
+
+/* listes */
+.card .pad ul,
+.card .pad ol {
+  margin: 0 0 16px;
+  padding-left: 22px;
+}
+
+.card .pad li {
+  margin: 6px 0;
+}
