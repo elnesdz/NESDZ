@@ -253,3 +253,7 @@ p.lead{ font-size: 18px; color: rgba(231,238,247,.85); }
 .card .pad p {
   margin: 0 0 18px;
 }
+.card .pad img {
+  border-radius: 18px;
+  margin: 24px 0 32px;
+}
