@@ -237,3 +237,19 @@ p.lead{ font-size: 18px; color: rgba(231,238,247,.85); }
 .card .pad li {
   margin: 6px 0;
 }
+/* Lead (le texte juste sous le titre) : plus lisible et plus “magazine” */
+.card .pad .lead {
+  font-size: 20px;
+  line-height: 1.7;
+  color: rgba(231, 238, 247, 0.92);
+}
+
+/* Le titre principal de l’article : un peu plus “pro” */
+.card .pad h1 {
+  max-width: 18ch;
+}
+
+/* Plus d’air entre les paragraphes */
+.card .pad p {
+  margin: 0 0 18px;
+}
