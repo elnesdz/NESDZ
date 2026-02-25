@@ -196,3 +196,7 @@ p.lead{ font-size: 18px; color: rgba(231,238,247,.85); }
   height: 56px;
   width: auto;
 }
+.card .pad {
+  max-width: 72ch;
+  margin: 0 auto;
+}
