@@ -1,9 +1,10 @@
 ---
-title: "Choisir son ULM : une méthode simple (et anti‑auto‑mensonge)"
+title: "Choisir son ULM : une méthode simple (et anti-auto-mensonge)"
 description: "Avant de regarder les photos, regarde ton usage : terrain, météo, budget, maintenance, objectifs."
 date: 2026-02-02
 category: "Guide"
 tags: ["achat", "méthode", "maintenance"]
+image: "/articles/bienchoisirsonulm.png"
 ---
 La tentation : choisir un ULM comme on choisirait une moto.  
 La réalité : tu choisis aussi un **terrain**, un **réseau de pièces**, une **charge mentale**, et une **marge météo**.
