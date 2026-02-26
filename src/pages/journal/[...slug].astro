@@ -1,4 +1,8 @@
+
 ---
+{entry.data.image && (
+  <img src={entry.data.image} alt={entry.data.title} class="cover" />
+)}
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 
@@ -28,6 +32,9 @@ const d = entry.data.date.toLocaleDateString('fr-FR', { year:'numeric', month:'l
 
         <h1 style="margin-top:14px;">{entry.data.title}</h1>
         <p class="lead" style="margin-top:6px;">{entry.data.description}</p>
+{entry.data.image && (
+  <img src={entry.data.image} alt={entry.data.title} class="cover" loading="lazy" />
+)}
 
         <hr class="sep" />
 
