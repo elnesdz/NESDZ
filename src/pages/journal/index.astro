@@ -33,6 +33,7 @@ const categories = Array.from(new Set(articles.map(a => a.data.category))).sort(
               date={a.data.date}
               category={a.data.category}
               tags={a.data.tags}
+image={a.data.image}
             />
           ))}
         </div>
