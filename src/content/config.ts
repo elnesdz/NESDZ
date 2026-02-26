@@ -9,6 +9,7 @@ const articles = defineCollection({
     author: z.string().default('Rédaction NESDZ'),
     tags: z.array(z.string()).default([]),
     cover: z.string().optional(),
+    image: z.string().optional(),
     category: z.string().default('Journal'),
     featured: z.boolean().default(false),
   }),
