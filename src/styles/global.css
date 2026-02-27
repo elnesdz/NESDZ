@@ -279,3 +279,10 @@ p.lead{ font-size: 18px; color: rgba(231,238,247,.85); }
 .meta .sep{
   opacity: 0.6;
 }
+.hero-cover{
+  width:100%;
+  height:260px;
+  object-fit:cover;
+  border-radius:16px;
+  margin-bottom:14px;
+}
