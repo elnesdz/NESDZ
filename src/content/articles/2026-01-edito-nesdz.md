@@ -1,4 +1,5 @@
 ---
+updated: 2026-02-27
 title: "L’Esprit ULM : Manifeste pour un ciel libre et responsable"
 description: "Pour le lancement de ce nouveau journal, nous explorons ce qui définit l’essence profonde de l’aviation ultralégère. Entre prouesses technologiques et héritage des pionniers, découvrez pourquoi l’ULM est bien plus qu’un loisir : c’est une école de la responsabilité et une quête de liberté absolue, portée par le souvenir de figures inspirantes comme Thierry Barbier."
 date: 2026-02-25
