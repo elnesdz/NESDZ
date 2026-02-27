@@ -30,6 +30,15 @@ const d = entry.data.date.toLocaleDateString('fr-FR', { year:'numeric', month:'l
 
         <h1 style="margin-top:14px;">{entry.data.title}</h1>
         <p class="lead" style="margin-top:6px;">{entry.data.description}</p>
+<div class="meta">
+  <span>Publié le {new Date(entry.data.date).toLocaleDateString("fr-FR")}</span>
+  {entry.data.updated && (
+    <span class="sep">•</span>
+  )}
+  {entry.data.updated && (
+    <span>Mis à jour le {new Date(entry.data.updated).toLocaleDateString("fr-FR")}</span>
+  )}
+</div>
 {entry.data.image && (
   <img src={entry.data.image} alt={entry.data.title} class="cover" loading="lazy" />
 )}
