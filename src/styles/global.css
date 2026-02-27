@@ -286,3 +286,24 @@ p.lead{ font-size: 18px; color: rgba(231,238,247,.85); }
   border-radius:16px;
   margin-bottom:14px;
 }
+.prose {
+  max-width: 72ch;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.prose h2 {
+  margin-top: 32px;
+  font-size: 26px;
+}
+
+.prose h3 {
+  margin-top: 24px;
+  font-size: 22px;
+}
+
+.prose img {
+  width: 100%;
+  border-radius: 14px;
+  margin: 18px 0;
+}
