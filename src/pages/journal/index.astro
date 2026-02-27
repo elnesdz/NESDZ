@@ -8,6 +8,7 @@ const articles = (await getCollection("articles"))
   .sort((a,b) => b.data.date.valueOf() - a.data.date.valueOf());
 
 const categories = Array.from(new Set(articles.map(a => a.data.category))).sort();
+const DEFAULT_ARTICLE_IMAGE = "/logo.png";
 ---
 <BaseLayout title="Journal" description="Articles ULM : essais, sécurité, réglementation, voyages, technique.">
   <section class="container" style="padding: 28px 0 10px;">
@@ -34,7 +35,7 @@ const categories = Array.from(new Set(articles.map(a => a.data.category))).sort(
               date={a.data.date}
               category={a.data.category}
               tags={a.data.tags}
-image={a.data.image}
+image={a.data.image ?? DEFAULT_ARTICLE_IMAGE}
             />
           ))}
         </div>
