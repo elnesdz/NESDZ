@@ -48,6 +48,13 @@ const models = (await getCollection("models")).slice(0,4);
               </div>
               <span class="pill">{featured.data.date.toLocaleDateString('fr-FR')}</span>
             </div>
+{featured.data.image && (
+  <img
+    src={featured.data.image}
+    alt={featured.data.title}
+    class="hero-cover"
+  />
+)}
             <h2 style="margin-top:10px;">{featured.data.title}</h2>
             <p>{featured.data.description}</p>
             <a class="btn" href={`/journal/${featured.slug}/`}>Ouvrir l’article</a>
