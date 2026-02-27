@@ -6,10 +6,8 @@ date: 2026-02-25
 category: "Édito"
 tags: ["culture", "sécurité", "pilotage"]
 featured: true
-image: "/edito-esprit-ulm.png"
+image: "articles/edito-esprit-ulm.png"
 ---
-![L'Esprit ULM]( /edito-esprit-ulm.png )
-
 On a souvent tendance à réduire l’envol à une simple équation de transport, une trajectoire froide tracée entre deux points cardinaux. Mais pour nous, qui habitons ces structures de carbone ou de toile, s’élever dans l’éther relève d’une tout autre métaphysique : l’ultra-léger n’est pas qu’une catégorie de machines, c’est un déshabillage du rêve d’Icare.
 
 Que l’on ne s’y trompe pas : si nos racines plongent dans le souvenir des structures de tubes et de toiles, notre ciel s’est aujourd’hui peuplé de merveilles technologiques. L’ULM a parcouru un chemin fulgurant, passant des « trapanelles » de fortune à des fuseaux profilés capables de croiser à des vitesses impressionnantes avec une efficacité redoutable. Ce journal s’adresse à tous : aussi bien au pilote de pendulaire qui cherche le contact pur avec les éléments qu’à celui qui commande un multiaxe de haute performance doté d’une avionique digne d’un avion de ligne.
