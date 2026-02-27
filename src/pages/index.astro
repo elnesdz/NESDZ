@@ -5,7 +5,11 @@ import ModelCard from "../components/ModelCard.astro";
 import { getCollection } from "astro:content";
 
 const articles = (await getCollection("articles"))
-  .sort((a,b) => b.data.date.valueOf() - a.data.date.valueOf());
+  .sort((a, b) => {
+    const dateA = a.data.updated ?? a.data.date;
+    const dateB = b.data.updated ?? b.data.date;
+    return dateB.valueOf() - dateA.valueOf();
+  });
 
 const featured = articles.find(a => a.data.featured) ?? articles[0];
 const latest = articles.slice(0,5);
