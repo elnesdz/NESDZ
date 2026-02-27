@@ -6,6 +6,7 @@ date: 2026-02-25
 category: "Édito"
 tags: ["culture", "sécurité", "pilotage"]
 featured: true
+image: "/edito-esprit-ulm.png"
 ---
 ![L'Esprit ULM]( /edito-esprit-ulm.png )
 
