@@ -266,3 +266,16 @@ p.lead{ font-size: 18px; color: rgba(231,238,247,.85); }
   background: rgba(255,255,255,.03);
   flex: 0 0 auto;
 }
+.meta{
+  margin-top: 10px;
+  font-size: 14px;
+  opacity: 0.75;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.meta .sep{
+  opacity: 0.6;
+}
