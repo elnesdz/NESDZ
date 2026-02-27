@@ -6,11 +6,13 @@ const articles = defineCollection({
     title: z.string(),
     description: z.string(),
     date: z.coerce.date(),
+    updated: z.coerce.date().optional(),
     author: z.string().default('Rédaction NESDZ'),
     tags: z.array(z.string()).default([]),
     cover: z.string().optional(),
     image: z.string().optional(),
     category: z.string().default('Journal'),
+    draft: z.boolean().default(false),
     featured: z.boolean().default(false),
   }),
 });
