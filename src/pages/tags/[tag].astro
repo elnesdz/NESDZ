@@ -1,1 +1,41 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ArticleCard from "../../components/ArticleCard.astro";
+import { getCollection } from "astro:content";
 
+export async function getStaticPaths() {
+  const articles = await getCollection("articles");
+
+  const tags = [...new Set(articles.flatMap(a => a.data.tags || []))];
+
+  return tags.map(tag => ({
+    params: { tag },
+  }));
+}
+
+const { tag } = Astro.params;
+
+const articles = (await getCollection("articles")).filter(a =>
+  a.data.tags?.includes(tag)
+);
+---
+
+<BaseLayout title={`Tag : ${tag}`}>
+  <section class="container">
+    <h1>Articles : {tag}</h1>
+
+    <div class="grid">
+      {articles.map(a => (
+        <ArticleCard
+          href={`/journal/${a.slug}/`}
+          title={a.data.title}
+          description={a.data.description}
+          date={a.data.date}
+          category={a.data.category}
+          tags={a.data.tags}
+          image={a.data.image}
+        />
+      ))}
+    </div>
+  </section>
+</BaseLayout>
