@@ -3,23 +3,19 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import ArticleCard from "../../components/ArticleCard.astro";
 import { getCollection } from "astro:content";
 
-// slugify DOIT être défini AVANT getStaticPaths
-function slugify(input) {
-  return String(input)
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")                 // sépare les accents
-    .replace(/[\u0300-\u036f]/g, "")  // supprime les accents
-    .replace(/[^a-z0-9]+/g, "-")      // remplace le reste par "-"
-    .replace(/^-+|-+$/g, "");         // trim des "-"
-}
-
 export async function getStaticPaths() {
-  const articles = await getCollection("articles");
+  // helper LOCAL = zéro risque "not defined"
+  const slugify = (input) =>
+    String(input)
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
 
-  const allTags = [
-    ...new Set(articles.flatMap((a) => a.data.tags ?? [])),
-  ];
+  const articles = await getCollection("articles");
+  const allTags = [...new Set(articles.flatMap((a) => a.data.tags ?? []))];
 
   return allTags.map((tagOriginal) => ({
     params: { tag: slugify(tagOriginal) },
@@ -27,8 +23,19 @@ export async function getStaticPaths() {
   }));
 }
 
-const { tag } = Astro.params;              // ex: "securite"
-const { tagOriginal } = Astro.props;       // ex: "sécurité"
+// pour l'affichage
+const { tag } = Astro.params;        // ex: "securite"
+const { tagOriginal } = Astro.props; // ex: "sécurité"
+
+// même slugify ici aussi (tu peux le dupliquer, c'est OK)
+const slugify = (input) =>
+  String(input)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 const articles = await getCollection("articles");
 const filtered = articles.filter((a) =>
