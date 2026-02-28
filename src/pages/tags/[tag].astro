@@ -39,7 +39,7 @@ const filtered = articles.filter((a) =>
     <h1>Articles : {tag}</h1>
 
     <div class="grid">
-      {articles.map(a => (
+      {filtered.map(a => (
         <ArticleCard
           href={`/journal/${a.slug}/`}
           title={a.data.title}
