@@ -14,10 +14,15 @@ const slugify = (s) =>
 export async function getStaticPaths() {
   const articles = await getCollection("articles");
 
-  const tags = [...new Set(articles.flatMap(a => a.data.tags || []))];
+  const allTags = [
+    ...new Set(
+      articles.flatMap((a) => a.data.tags ?? [])
+    ),
+  ];
 
-  return tags.map(tag => ({
-    params: { tag },
+  return allTags.map((tagOriginal) => ({
+    params: { tag: slugify(tagOriginal) }, // URL propre
+    props: { tagOriginal },                // label humain
   }));
 }
 
