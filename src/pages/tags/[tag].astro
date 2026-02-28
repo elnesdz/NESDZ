@@ -3,30 +3,34 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import ArticleCard from "../../components/ArticleCard.astro";
 import { getCollection } from "astro:content";
 
-// Helper slug: "Sécurité" -> "securite"
-const slugify = (s: string) =>
-  s
+// ✅ fonction "hoistée" (disponible même si appelée avant dans le fichier)
+function slugify(s: string) {
+  return s
     .toString()
     .trim()
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/[\u0300-\u036f]/g, "") // supprime les accents
+    .replace(/[^a-z0-9]+/g, "-")     // remplace le reste par "-"
+    .replace(/^-+|-+$/g, "");        // trim des "-"
+}
 
 export async function getStaticPaths() {
   const articles = await getCollection("articles");
-  const tags = [...new Set(articles.flatMap((a) => a.data.tags ?? []))];
 
-  return tags.map((tagOriginal) => ({
+  const allTags = [
+    ...new Set(
+      articles.flatMap((a) => a.data.tags ?? [])
+    ),
+  ];
+
+  return allTags.map((tagOriginal) => ({
     params: { tag: slugify(tagOriginal) },
     props: { tagOriginal },
   }));
 }
 
 const { tag } = Astro.params; // ex: "securite"
-const { tagOriginal } = Astro.props; // ex: "Sécurité"
-
 const articles = await getCollection("articles");
 
 const filtered = articles.filter((a) =>
@@ -34,9 +38,9 @@ const filtered = articles.filter((a) =>
 );
 ---
 
-<BaseLayout title={`Articles : ${tagOriginal}`} description={`Articles taggés : ${tagOriginal}`}>
+<BaseLayout title={`Tag : ${tag}`}>
   <section class="container">
-    <h1>Articles : {tagOriginal}</h1>
+    <h1>Articles : {tag}</h1>
 
     <div class="grid">
       {filtered.map((a) => (
