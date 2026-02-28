@@ -26,10 +26,11 @@ export async function getStaticPaths() {
   }));
 }
 
-const { tag } = Astro.params;
+const { tag } = Astro.params; // tag = "securite"
+const articles = await getCollection("articles");
 
-const articles = (await getCollection("articles")).filter(a =>
-  a.data.tags?.includes(tag)
+const filtered = articles.filter((a) =>
+  (a.data.tags ?? []).some((t) => slugify(t) === tag)
 );
 ---
 
