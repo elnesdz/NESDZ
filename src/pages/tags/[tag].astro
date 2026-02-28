@@ -2,7 +2,15 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import ArticleCard from "../../components/ArticleCard.astro";
 import { getCollection } from "astro:content";
-
+const slugify = (s) =>
+  s
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")                 // sépare les accents
+    .replace(/[\u0300-\u036f]/g, "")   // supprime les accents
+    .replace(/[^a-z0-9]+/g, "-")       // tout le reste -> "-"
+    .replace(/^-+|-+$/g, "");          // trim des "-"
 export async function getStaticPaths() {
   const articles = await getCollection("articles");
 
