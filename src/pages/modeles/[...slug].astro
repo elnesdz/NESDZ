@@ -54,9 +54,9 @@ const youtubeId = d.youtube?.url
 
         <h1 style="margin-top:14px;">{d.name}</h1>
         <p class="lead">
-{d.image && (
+{d.heroImage && (
   <div class="model-hero">
-    <img src={d.image} alt={d.name} loading="lazy" />
+    <img src={d.heroImage} alt={d.name} loading="lazy" />
   </div>
 )}
           {(d.manufacturer ? `${d.manufacturer} · ` : "")}{d.seats} place{d.seats>1?'s':''}
