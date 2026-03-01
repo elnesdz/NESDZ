@@ -152,32 +152,37 @@ const categories = Array.from(new Set(data.map(d => d.category))).sort();
     const q = $("#q"), cat = $("#cat"), seats = $("#seats"), list = $("#list"), count = $("#count"), reset = $("#reset");
 
     const normalize = (s) => (s ?? "").toString().toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu,"");
-    const makeItem = (m) => {
-      const a = document.createElement("a");
-      a.className = "item";
-      a.href = `/modeles/${m.slug}/`;
-a.innerHTML = `
-  <div class="row" style="align-items:flex-start;gap:12px;">
-    <img class="thumb" src="${m.image}" alt="${m.name}" loading="lazy" />
+const makeItem = (m) => {
+  const a = document.createElement("a");
+  a.className = "item";
+  a.href = `/modeles/${m.slug}/`;
 
-    <div style="flex:1;min-width:0;">
-      <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px;">
-        <div>
-          <div class="t">${m.name}</div>
+  a.innerHTML = `
+    <div class="row" style="align-items:flex-start;gap:12px;">
+      <img class="thumb" src="${m.image}" alt="${m.name}" loading="lazy" />
+
+      <div style="flex:1;min-width:0;">
+        <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px;">
+          <div>
+            <div class="t">${m.name}</div>
             <div class="s">
-              ${(m.manufacturer ? m.manufacturer + " · " : "")}${m.category} · ${m.seats} place${m.seats>1?"s":""}
+              ${(m.manufacturer ? m.manufacturer + " · " : "")}${m.category} · ${m.seats} place${m.seats > 1 ? "s" : ""}
               ${(m.engine ? " · " + m.engine : "")}
               ${(m.cruiseKmh ? " · Croisière ~" + m.cruiseKmh + " km/h" : "")}
             </div>
           </div>
           <span class="pill">Fiche</span>
         </div>
+
         <div class="row" style="margin-top:10px;flex-wrap:wrap;">
-          ${(m.tags||[]).slice(0,4).map(t=>`<span class="pill">${t}</span>`).join("")}
+          ${(m.tags || []).slice(0, 4).map(t => `<span class="pill">${t}</span>`).join("")}
         </div>
-      `;
-      return a;
-    };
+      </div>
+    </div>
+  `;
+
+  return a;
+};
 
     const render = () => {
       const nq = normalize(q.value);
