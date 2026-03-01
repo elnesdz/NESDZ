@@ -4,6 +4,7 @@ manufacturer: "Aerospool"
 category: "Multiaxe"
 seats: 2
 engine: "Rotax 912/914 (selon versions)"
+image: "/images/ulm/aerospool-wt9.jpg"
 tags: ["voyage", "rapide", "composite"]
 emptyWeightKg: 325
 mtowKg: 600
