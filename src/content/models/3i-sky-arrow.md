@@ -4,6 +4,7 @@ manufacturer: "Iniziative Industriali Italiane"
 category: "Multiaxe"
 seats: 2
 engine: "Rotax 912 (selon versions)"
+heroImage: "/images/ulm/SkyArrowLSA.jpg"
 tags: ["surveillance", "tube-toile"]
 youtube:
   url: "https://www.youtube.com/results?search_query=3I+Sky+Arrow+ULM"
