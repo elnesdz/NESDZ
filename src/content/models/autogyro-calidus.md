@@ -4,6 +4,7 @@ manufacturer: "AutoGyro GmbH"
 category: "Autogire"
 seats: 2
 engine: "Rotax 912/914 (selon versions)"
+heroImage: "/images/ulm/AutoGyroCalidus.jpg"
 tags: ["autogire", "cockpit fermé"]
 youtube:
   url: "https://www.youtube.com/results?search_query=AutoGyro+Calidus+ULM"
