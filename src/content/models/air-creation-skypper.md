@@ -4,6 +4,7 @@ manufacturer: "Air Création"
 category: "Pendulaire"
 seats: 2
 engine: "Rotax 582/912 (selon versions)"
+heroImage: "/images/ulm/AirCréationSkypper.jpg"
 tags: ["pendulaire", "polyvalent"]
 youtube:
   url: "https://www.youtube.com/results?search_query=Air+Création+Skypper+ULM"
