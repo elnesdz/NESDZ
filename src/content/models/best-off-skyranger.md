@@ -4,6 +4,7 @@ manufacturer: "Best Off / Skyranger"
 category: "Multiaxe"
 seats: 2
 engine: "Rotax 912 (selon versions)"
+heroImage: "/images/ulm/BestOffSkyranger.jpg"
 tags: ["STOL", "tube-toile", "club"]
 youtube:
   url: "https://www.youtube.com/results?search_query=Best+Off+Skyranger+ULM"
