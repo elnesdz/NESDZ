@@ -4,6 +4,7 @@ manufacturer: "Aeroprakt"
 category: "Multiaxe"
 seats: 2
 engine: "Rotax 912 (selon versions)"
+heroImage: "/images/ulm/AeroPrakt-A24-Viking.jpg"
 tags: ["voyage", "tout métal"]
 youtube:
   url: "https://www.youtube.com/results?search_query=Aeroprakt+A-24+Viking+ULM"
