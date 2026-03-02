@@ -4,6 +4,7 @@ manufacturer: "BRM Aero"
 category: "Multiaxe"
 seats: 2
 engine: "Rotax 912/915 (selon versions)"
+heroImage: "/images/ulm/BRMAeroBristell.jpg"
 tags: ["voyage", "LSA"]
 youtube:
   url: "https://www.youtube.com/results?search_query=BRM+Aero+Bristell+ULM"
