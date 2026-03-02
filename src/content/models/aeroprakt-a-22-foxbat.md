@@ -4,6 +4,7 @@ manufacturer: "Aeroprakt"
 category: "Multiaxe"
 seats: 2
 engine: "Rotax 912 (selon versions)"
+heroImage: "/images/ulm/AeroPrakt-A22-Foxbat.jpg"
 tags: ["STOL", "tout métal", "robuste"]
 youtube:
   url: "https://www.youtube.com/results?search_query=Aeroprakt+A-22+(Foxbat)+ULM"
