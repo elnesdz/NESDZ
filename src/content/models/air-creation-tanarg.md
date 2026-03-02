@@ -4,7 +4,7 @@ manufacturer: "Air Création"
 category: "Pendulaire"
 seats: 2
 engine: "Rotax 582/912 (selon versions)"
-heroImage: "/images/ulm/irCréationTanarg.jpg"
+heroImage: "/images/ulm/AirCréationTanarg.jpg"
 tags: ["voyage", "pendulaire", "cockpit ouvert"]
 youtube:
   url: "https://www.youtube.com/results?search_query=Air+Création+Tanarg+ULM"
