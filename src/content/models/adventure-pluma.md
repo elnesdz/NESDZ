@@ -4,6 +4,7 @@ manufacturer: "Adventure Paramotors"
 category: "Paramoteur"
 seats: 1
 engine: "Vittorazi/Polini (selon config)"
+heroImage: "/images/ulm/AdventurePluma.jpg"
 tags: ["polyvalent"]
 youtube:
   url: "https://www.youtube.com/results?search_query=Adventure+Pluma+ULM"
