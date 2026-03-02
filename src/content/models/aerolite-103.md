@@ -4,6 +4,7 @@ manufacturer: "Aerolite"
 category: "Multiaxe"
 seats: 1
 engine: "2-temps (selon versions)"
+heroImage: "/images/ulm/AeroLite103.jpg"
 tags: ["monoplace", "ultra-léger"]
 youtube:
   url: "https://www.youtube.com/results?search_query=Aerolite+103+ULM"
