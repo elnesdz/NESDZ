@@ -4,6 +4,7 @@ manufacturer: "Aventura"
 category: "Autre"
 seats: 2
 engine: "Rotax 912/914 (selon versions)"
+heroImage: "/images/ulm/AventuraII.jpg"
 tags: ["amphibie", "voyage"]
 youtube:
   url: "https://www.youtube.com/results?search_query=Aventura+II+ULM"
