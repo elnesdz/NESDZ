@@ -4,6 +4,7 @@ manufacturer: "AutoGyro GmbH"
 category: "Autogire"
 seats: 2
 engine: "Rotax 914/915/916 (selon versions)"
+heroImage: "/images/ulm/AutoGyroCavalon.jpg"
 tags: ["autogire", "cockpit fermé", "voyage"]
 youtube:
   url: "https://www.youtube.com/results?search_query=AutoGyro+Cavalon+ULM"
