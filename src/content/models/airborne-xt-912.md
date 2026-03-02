@@ -4,6 +4,7 @@ manufacturer: "Airborne Windsports"
 category: "Pendulaire"
 seats: 2
 engine: "Rotax 912"
+heroImage: "/images/ulm/AirBorneXT-912.jpg"
 tags: ["pendulaire", "robuste"]
 youtube:
   url: "https://www.youtube.com/results?search_query=AirBorne+XT-912+ULM"
