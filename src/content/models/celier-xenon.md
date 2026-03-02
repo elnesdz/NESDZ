@@ -4,6 +4,7 @@ manufacturer: "Celier Aviation"
 category: "Autogire"
 seats: 2
 engine: "Rotax 912/914 (selon versions)"
+heroImage: "/images/ulm/CelierXenon.jpg"
 tags: ["autogire", "cabine"]
 youtube:
   url: "https://www.youtube.com/results?search_query=Celier+Xenon+ULM"
