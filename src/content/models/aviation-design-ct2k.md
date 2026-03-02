@@ -4,6 +4,7 @@ manufacturer: "Aviation Design"
 category: "Multiaxe"
 seats: 2
 engine: "Rotax 912 (selon versions)"
+heroImage: "/images/ulm/AviationDesignCT2K.jpg"
 tags: ["école", "train tricycle"]
 youtube:
   url: "https://www.youtube.com/results?search_query=Aviation+Design+CT2K+ULM"
