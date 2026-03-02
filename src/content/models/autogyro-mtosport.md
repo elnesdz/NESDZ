@@ -4,6 +4,7 @@ manufacturer: "AutoGyro GmbH"
 category: "Autogire"
 seats: 2
 engine: "Rotax 912/914 (selon versions)"
+heroImage: "/images/ulm/AutoGyroMTOsport.jpg"
 tags: ["autogire", "cockpit ouvert"]
 youtube:
   url: "https://www.youtube.com/results?search_query=AutoGyro+MTOsport+ULM"
