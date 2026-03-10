@@ -1,14 +1,35 @@
 ---
 const { href, title, description, date, category, tags, image } = Astro.props;
+
 const d = new Date(date);
-const pretty = d.toLocaleDateString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric' });
+const pretty = d.toLocaleDateString("fr-FR", {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+});
+
+function slugify(input) {
+  return String(input)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+const tagLinks = (tags ?? [])
+  .slice(0, 3)
+  .map((label) => ({ label, slug: slugify(label) }))
+  .filter((t) => t.slug);
 ---
 
-<a class="item" href={href}>
-  <div class="row" style="gap:12px; align-items:flex-start;">
-    {image ? (
-      <img class="thumb" src={image} alt={title} loading="lazy" />
-    ) : null}
+<article class="item">
+  <!-- Hitbox: toute la card ouvre l’article -->
+  <a class="itemLink" href={href} aria-label={`Ouvrir l’article : ${title}`}></a>
+
+  <div class="row itemContent" style="gap:12px; align-items:flex-start;">
+    {image ? <img class="thumb" src={image} alt={title} loading="lazy" /> : null}
 
     <div style="flex:1; min-width:0;">
       <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px;">
@@ -21,8 +42,41 @@ const pretty = d.toLocaleDateString('fr-FR', { year: 'numeric', month: 'short', 
 
       <div class="row" style="margin-top:10px;flex-wrap:wrap;">
         <span class="badge">{category}</span>
-        {(tags ?? []).slice(0,3).map((t) => <span class="pill">{t}</span>)}
+
+        {tagLinks.map((t) => (
+          <a class="pill tagLink" href={`/tags/${t.slug}/`} title={`Tag : ${t.label}`}>
+            {t.label}
+          </a>
+        ))}
       </div>
     </div>
   </div>
-</a>
+</article>
+
+<style>
+  .item {
+    position: relative;
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Lien “hitbox” au-dessus de la card */
+  .itemLink {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  /* Contenu en dessous de la hitbox */
+  .itemContent {
+    position: relative;
+    z-index: 0;
+  }
+
+  /* Les tags passent au-dessus de la hitbox pour rester cliquables */
+  .tagLink {
+    position: relative;
+    z-index: 2;
+  }
+</style>
