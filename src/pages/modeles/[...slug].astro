@@ -50,16 +50,53 @@ const youtubeId = d.youtube?.url
       }
     })()
   : null;
+
+// URL absolue du site
+const SITE = "https://nesdz.com";
+const canonicalUrl = `${SITE}/modeles/${entry.slug}/`;
+
+// --- JSON-LD BreadcrumbList (SEO)
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Accueil",
+      item: `${SITE}/`,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Modèles",
+      item: `${SITE}/modeles/`,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: d.name,
+      item: canonicalUrl,
+    },
+  ],
+};
 ---
 
 <BaseLayout
   title={d.name}
   description={`Fiche ULM : ${d.name} — specs, liens et vidéo.`}
   image={d.heroImage}
+  canonical={canonicalUrl}
 >
   <article class="container" style="padding: 28px 0 26px;">
     <div class="card">
       <div class="pad">
+        <!-- JSON-LD (SEO) -->
+        <script
+          type="application/ld+json"
+          set:html={JSON.stringify(breadcrumbJsonLd)}
+        ></script>
+
         <!-- Fil d'Ariane (Option A) -->
         <nav
           class="meta"
