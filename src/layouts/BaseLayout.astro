@@ -30,7 +30,10 @@ const looksLikeFile = path.includes("."); // /sitemap.xml, /og.png, etc.
 if (!looksLikeFile && !path.endsWith("/")) canonicalURL.pathname = `${path}/`;
 
 // OG image : toujours absolue
-const ogImagePath = image ?? "/og.png";
+// Si une page fournit son image, on la garde.
+// Sinon, fallback safe vers /logo.png (plus fiable que /og.png vide)
+const ogImagePath =
+  typeof image === "string" && image.trim().length > 0 ? image : "/logo.png";
 const ogImageUrl = new URL(ogImagePath, base).href;
 
 // OG type : article sur les pages /journal/<slug>/
