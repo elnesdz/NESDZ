@@ -1,11 +1,10 @@
-
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import ModelCard from "../../components/ModelCard.astro";
 import { getCollection } from "astro:content";
 
 export async function getStaticPaths() {
-  const entries = (await getCollection("articles"))
-  .filter((a) => !a.data.draft);
+  const entries = (await getCollection("articles")).filter((a) => !a.data.draft);
   return entries.map((entry) => ({
     params: { slug: entry.slug },
     props: { entry },
@@ -14,7 +13,13 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await entry.render();
-const d = entry.data.date.toLocaleDateString('fr-FR', { year:'numeric', month:'long', day:'numeric' });
+
+const d = entry.data.date.toLocaleDateString("fr-FR", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+
 const updated = entry.data.updated
   ? entry.data.updated.toLocaleDateString("fr-FR", {
       year: "numeric",
@@ -22,7 +27,38 @@ const updated = entry.data.updated
       day: "numeric",
     })
   : null;
+
+const slugify = (input) =>
+  String(input)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+// Modèles liés = modèles partageant au moins 1 tag avec l’article
+const models = await getCollection("models");
+const articleTagSlugs = new Set(
+  (entry.data.tags ?? []).map((t) => slugify(t)).filter(Boolean)
+);
+
+const relatedModels = models
+  .map((m) => {
+    const modelTagSlugs = (m.data.tags ?? []).map((t) => slugify(t)).filter(Boolean);
+    const score = modelTagSlugs.filter((s) => articleTagSlugs.has(s)).length;
+    return { m, score };
+  })
+  .filter((x) => x.score > 0)
+  .sort(
+    (a, b) =>
+      b.score - a.score ||
+      a.m.data.name.localeCompare(b.m.data.name, "fr", { sensitivity: "base" })
+  )
+  .slice(0, 4)
+  .map((x) => x.m);
 ---
+
 <BaseLayout title={entry.data.title} description={entry.data.description}>
   <article class="container" style="padding: 28px 0 26px;">
     <div class="card">
@@ -32,36 +68,72 @@ const updated = entry.data.updated
             <span class="badge">{entry.data.category}</span>
             {(entry.data.tags ?? []).map((t) => <span class="pill">{t}</span>)}
           </div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-  <span class="pill">{d}</span>
 
-  {updated && (
-    <span class="pill">Mis à jour : {updated}</span>
-  )}
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <span class="pill">{d}</span>
+            {updated && <span class="pill">Mis à jour : {updated}</span>}
+          </div>
         </div>
 
         <h1 style="margin-top:14px;">{entry.data.title}</h1>
         <p class="lead" style="margin-top:6px;">{entry.data.description}</p>
-<div class="meta">
-  <span>Publié le {new Date(entry.data.date).toLocaleDateString("fr-FR")}</span>
-  {entry.data.updated && (
-    <span class="sep">•</span>
-  )}
-  {entry.data.updated && (
-    <span>Mis à jour le {new Date(entry.data.updated).toLocaleDateString("fr-FR")}</span>
-  )}
-</div>
-{entry.data.image && (
-  <img src={entry.data.image} alt={entry.data.title} class="cover" loading="lazy" />
-)}
+
+        <div class="meta">
+          <span>Publié le {new Date(entry.data.date).toLocaleDateString("fr-FR")}</span>
+          {entry.data.updated && <span class="sep">•</span>}
+          {entry.data.updated && (
+            <span>Mis à jour le {new Date(entry.data.updated).toLocaleDateString("fr-FR")}</span>
+          )}
+        </div>
+
+        {entry.data.image && (
+          <img
+            src={entry.data.image}
+            alt={entry.data.title}
+            class="cover"
+            loading="lazy"
+          />
+        )}
 
         <hr class="sep" />
 
-<div class="prose">
-  <Content />
-</div>
+        <div class="prose">
+          <Content />
+        </div>
+
+        {relatedModels.length > 0 && (
+          <div style="margin-top:18px;">
+            <div
+              class="row"
+              style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;"
+            >
+              <h2 style="margin:0;">Modèles liés</h2>
+              <span class="pill">{relatedModels.length}</span>
+            </div>
+
+            <p style="margin:8px 0 0; color:var(--muted);">
+              Des fiches ULM en lien avec les thèmes de cet article.
+            </p>
+
+            <div class="list" style="margin-top:12px;">
+              {relatedModels.map((m) => (
+                <ModelCard
+                  href={`/modeles/${m.slug}/`}
+                  name={m.data.name}
+                  manufacturer={m.data.manufacturer}
+                  category={m.data.category}
+                  seats={m.data.seats}
+                  engine={m.data.engine}
+                  cruiseKmh={m.data.cruiseKmh}
+                  tags={m.data.tags}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         <hr class="sep" />
+
         <div class="row" style="justify-content:space-between;flex-wrap:wrap;">
           <a class="btn" href="/journal/">← Retour au journal</a>
           <span class="pill">Auteur : {entry.data.author}</span>
