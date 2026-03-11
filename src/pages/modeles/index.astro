@@ -1,6 +1,16 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
+import { MODEL_TAGS } from "../../lib/tags";
+
+const slugify = (input) =>
+  String(input)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 const entries = (await getCollection("models")).sort((a, b) =>
   a.data.name.localeCompare(b.data.name, "fr")
@@ -20,6 +30,19 @@ const data = entries.map((e) => ({
 }));
 
 const categories = Array.from(new Set(data.map((d) => d.category))).sort();
+
+const explorerTags = MODEL_TAGS
+  .map((tag) => {
+    const count = data.filter((model) =>
+      (model.tags ?? []).some((t) => slugify(t) === tag.key)
+    ).length;
+
+    return {
+      ...tag,
+      count,
+    };
+  })
+  .filter((tag) => tag.count > 0);
 ---
 
 <BaseLayout
@@ -37,6 +60,36 @@ const categories = Array.from(new Set(data.map((d) => d.category))).sort();
       </div>
     </div>
   </section>
+
+  {explorerTags.length > 0 && (
+    <section class="container" style="padding: 6px 0 14px;">
+      <div class="card">
+        <div class="pad">
+          <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <h2 style="margin:0;">Explorer par tags</h2>
+            <span class="pill">{explorerTags.length} tags</span>
+          </div>
+
+          <p style="margin:8px 0 0; color:var(--muted);">
+            Parcours l’annuaire par usages, matériaux ou profils de machines.
+          </p>
+
+          <div class="row" style="gap:10px;flex-wrap:wrap;margin-top:14px;">
+            {explorerTags.map((tag) => (
+              <a
+                class="pill"
+                href={`/tags/${tag.key}/`}
+                title={`Voir le tag ${tag.label}`}
+                style="text-decoration:none;"
+              >
+                {tag.label} · {tag.count}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
 
   <section class="container" style="padding: 10px 0 26px;">
     <div class="card">
