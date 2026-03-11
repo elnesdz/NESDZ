@@ -101,6 +101,19 @@ const relatedArticles = articles
   )
   .slice(0, 4)
   .map((x) => x.a);
+
+// --- Précédent / Suivant (ordre alphabétique par nom)
+const modelsAll = (await getCollection("models")).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name, "fr", { sensitivity: "base" })
+);
+
+const currentIndex = modelsAll.findIndex((m) => m.slug === entry.slug);
+
+const prevModel = currentIndex > 0 ? modelsAll[currentIndex - 1] : null;
+const nextModel =
+  currentIndex >= 0 && currentIndex < modelsAll.length - 1
+    ? modelsAll[currentIndex + 1]
+    : null;
 ---
 
 <BaseLayout
@@ -118,7 +131,7 @@ const relatedArticles = articles
           set:html={JSON.stringify(breadcrumbJsonLd)}
         ></script>
 
-        <!-- Fil d'Ariane (Option A) -->
+        <!-- Fil d'Ariane -->
         <nav
           class="meta"
           aria-label="Fil d’Ariane"
@@ -265,6 +278,46 @@ const relatedArticles = articles
                     </a>
                   );
                 })}
+              </div>
+            </div>
+          </>
+        )}
+
+        {(prevModel || nextModel) && (
+          <>
+            <hr class="sep" />
+
+            <div style="margin-top:22px;">
+              <h2 style="margin:0 0 10px;">Continuer l’exploration</h2>
+
+              <div class="grid grid-2" style="gap:12px;">
+                {prevModel ? (
+                  <a class="card" style="text-decoration:none;" href={`/modeles/${prevModel.slug}/`}>
+                    <div class="pad">
+                      <div class="pill" style="display:inline-flex;margin-bottom:10px;">← Précédent</div>
+                      <div class="t">{prevModel.data.name}</div>
+                      <div class="s" style="margin-top:6px;">
+                        {prevModel.data.manufacturer ?? "Constructeur non renseigné"} · {prevModel.data.category}
+                      </div>
+                    </div>
+                  </a>
+                ) : (
+                  <div></div>
+                )}
+
+                {nextModel ? (
+                  <a class="card" style="text-decoration:none;" href={`/modeles/${nextModel.slug}/`}>
+                    <div class="pad">
+                      <div class="pill" style="display:inline-flex;margin-bottom:10px;">Suivant →</div>
+                      <div class="t">{nextModel.data.name}</div>
+                      <div class="s" style="margin-top:6px;">
+                        {nextModel.data.manufacturer ?? "Constructeur non renseigné"} · {nextModel.data.category}
+                      </div>
+                    </div>
+                  </a>
+                ) : (
+                  <div></div>
+                )}
               </div>
             </div>
           </>
