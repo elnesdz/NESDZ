@@ -1,19 +1,66 @@
 ---
 const { href, name, manufacturer, category, seats, engine, cruiseKmh, tags } = Astro.props;
+
+const slugify = (input) =>
+  String(input)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 ---
-<a class="item" href={href}>
-  <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px;">
-    <div>
-      <div class="t">{name}</div>
-      <div class="s">
-        {(manufacturer ? `${manufacturer} · ` : '')}{category} · {seats} place{seats>1?'s':''}
-        {engine ? ` · ${engine}` : ''}
-        {cruiseKmh ? ` · Croisière ~${cruiseKmh} km/h` : ''}
+
+<article class="item">
+  <!-- Hitbox : cliquer n’importe où ouvre la fiche -->
+  <a class="itemLink" href={href} aria-label={`Ouvrir la fiche modèle : ${name}`}></a>
+
+  <div class="itemContent">
+    <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px;">
+      <div>
+        <div class="t">{name}</div>
+        <div class="s">
+          {(manufacturer ? `${manufacturer} · ` : "")}{category} · {seats} place{seats > 1 ? "s" : ""}
+          {engine ? ` · ${engine}` : ""}
+          {cruiseKmh ? ` · Croisière ~${cruiseKmh} km/h` : ""}
+        </div>
       </div>
+      <span class="pill">Fiche</span>
     </div>
-    <span class="pill">Fiche</span>
+
+    <div class="row" style="margin-top:10px;flex-wrap:wrap;">
+      {(tags ?? []).slice(0, 4).map((t) => (
+        <a class="pill tagLink" href={"/tags/" + slugify(t) + "/"} title={"Tag : " + t}>
+          {t}
+        </a>
+      ))}
+    </div>
   </div>
-  <div class="row" style="margin-top:10px;flex-wrap:wrap;">
-    {(tags ?? []).slice(0,4).map((t) => <span class="pill">{t}</span>)}
-  </div>
-</a>
+</article>
+
+<style>
+  .item {
+    position: relative;
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Lien “hitbox” au-dessus de la card */
+  .itemLink {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  /* Contenu : ne pas mettre de z-index ici (sinon stacking context) */
+  .itemContent {
+    position: relative;
+  }
+
+  /* Les tags doivent passer au-dessus de la hitbox */
+  .tagLink {
+    position: relative;
+    z-index: 2;
+  }
+</style>
