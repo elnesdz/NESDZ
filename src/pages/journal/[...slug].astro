@@ -116,6 +116,32 @@ if (entry.data.updated) {
 if (imageAbs) {
   jsonLd.image = [imageAbs];
 }
+
+// --- JSON-LD BreadcrumbList (SEO)
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Accueil",
+      item: `${SITE}/`,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Journal",
+      item: `${SITE}/journal/`,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: entry.data.title,
+      item: canonicalUrl,
+    },
+  ],
+};
 ---
 
 <BaseLayout
@@ -129,6 +155,10 @@ if (imageAbs) {
       <div class="pad">
         <!-- JSON-LD (SEO) -->
         <script type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
+        <script
+          type="application/ld+json"
+          set:html={JSON.stringify(breadcrumbJsonLd)}
+        ></script>
 
         <!-- Fil d'Ariane (Option A) -->
         <nav class="meta" aria-label="Fil d’Ariane" style="margin:0 0 10px; flex-wrap:wrap;">
@@ -179,7 +209,10 @@ if (imageAbs) {
 
         {relatedModels.length > 0 && (
           <div style="margin-top:18px;">
-            <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <div
+              class="row"
+              style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;"
+            >
               <h2 style="margin:0;">Modèles liés</h2>
               <span class="pill">{relatedModels.length}</span>
             </div>
