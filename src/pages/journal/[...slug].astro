@@ -69,9 +69,6 @@ const articlesAll = (await getCollection("articles"))
 
 const currentIndex = articlesAll.findIndex((a) => a.slug === entry.slug);
 
-// liste du plus récent au plus ancien :
-// - précédent = plus récent
-// - suivant = plus ancien
 const prevArticle = currentIndex > 0 ? articlesAll[currentIndex - 1] : null;
 const nextArticle =
   currentIndex >= 0 && currentIndex < articlesAll.length - 1
@@ -83,6 +80,19 @@ const nextArticle =
   <article class="container" style="padding: 28px 0 26px;">
     <div class="card">
       <div class="pad">
+        <!-- Fil d'Ariane (Option A) -->
+        <nav
+          class="meta"
+          aria-label="Fil d’Ariane"
+          style="margin:0 0 10px; flex-wrap:wrap;"
+        >
+          <a href="/" style="color:inherit;text-decoration:none;opacity:.9;">Accueil</a>
+          <span class="sep" style="opacity:.7;">›</span>
+          <a href="/journal/" style="color:inherit;text-decoration:none;opacity:.9;">Journal</a>
+          <span class="sep" style="opacity:.7;">›</span>
+          <span style="opacity:.85;">{entry.data.title}</span>
+        </nav>
+
         <div class="row" style="justify-content:space-between;flex-wrap:wrap;">
           <div class="row" style="gap:10px;flex-wrap:wrap;">
             <span class="badge">{entry.data.category}</span>
