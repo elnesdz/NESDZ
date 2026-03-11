@@ -52,7 +52,11 @@ const youtubeId = d.youtube?.url
   : null;
 ---
 
-<BaseLayout title={d.name} description={`Fiche ULM : ${d.name} — specs, liens et vidéo.`}>
+<BaseLayout
+  title={d.name}
+  description={`Fiche ULM : ${d.name} — specs, liens et vidéo.`}
+  image={d.heroImage}
+>
   <article class="container" style="padding: 28px 0 26px;">
     <div class="card">
       <div class="pad">
