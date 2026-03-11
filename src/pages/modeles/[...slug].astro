@@ -80,6 +80,27 @@ const breadcrumbJsonLd = {
     },
   ],
 };
+
+// --- Articles liés (tags modèle ↔ tags articles)
+const articles = (await getCollection("articles")).filter((a) => !a.data.draft);
+const modelTagSlugs = new Set((d.tags ?? []).map((t) => slugify(t)).filter(Boolean));
+
+const relatedArticles = articles
+  .map((a) => {
+    const articleTagSlugs = (a.data.tags ?? []).map((t) => slugify(t)).filter(Boolean);
+    const score = articleTagSlugs.filter((s) => modelTagSlugs.has(s)).length;
+    const freshness = (a.data.updated ?? a.data.date).valueOf();
+    return { a, score, freshness };
+  })
+  .filter((x) => x.score > 0)
+  .sort(
+    (a, b) =>
+      b.score - a.score ||
+      b.freshness - a.freshness ||
+      a.a.data.title.localeCompare(b.a.data.title, "fr", { sensitivity: "base" })
+  )
+  .slice(0, 4)
+  .map((x) => x.a);
 ---
 
 <BaseLayout
@@ -195,6 +216,59 @@ const breadcrumbJsonLd = {
             </p>
           </div>
         </div>
+
+        {relatedArticles.length > 0 && (
+          <>
+            <hr class="sep" />
+
+            <div style="margin-top:18px;">
+              <div
+                class="row"
+                style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;"
+              >
+                <h2 style="margin:0;">Articles liés</h2>
+                <span class="pill">{relatedArticles.length}</span>
+              </div>
+
+              <p style="margin:8px 0 0; color:var(--muted);">
+                Des articles du journal en lien avec cette fiche, selon les tags partagés.
+              </p>
+
+              <div class="grid grid-2" style="gap:12px; margin-top:12px;">
+                {relatedArticles.map((a) => {
+                  const articleDate = a.data.updated ?? a.data.date;
+                  const articleDateLabel = articleDate.toLocaleDateString("fr-FR", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  });
+
+                  return (
+                    <a class="card" style="text-decoration:none;" href={`/journal/${a.slug}/`}>
+                      <div class="pad">
+                        <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                          <span class="badge">{a.data.category}</span>
+                          <span class="pill">{articleDateLabel}</span>
+                        </div>
+
+                        <h3 style="margin:12px 0 8px;">{a.data.title}</h3>
+                        <p class="s" style="margin:0 0 12px;">{a.data.description}</p>
+
+                        {(a.data.tags ?? []).length > 0 && (
+                          <div class="row" style="gap:8px;flex-wrap:wrap;">
+                            {(a.data.tags ?? []).slice(0, 3).map((tag) => (
+                              <span class="pill">{tag}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   </article>
