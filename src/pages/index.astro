@@ -11,11 +11,34 @@ const articles = (await getCollection("articles"))
     return dateB.valueOf() - dateA.valueOf();
   });
 
-const featured = articles.find(a => a.data.featured) ?? articles[0];
-const latest = articles.slice(0,5);
+const featured = articles.find((a) => a.data.featured) ?? articles[0];
+const latest = articles.slice(0, 5);
 
-const models = (await getCollection("models")).slice(0,4);
+const models = (await getCollection("models")).slice(0, 4);
+
+function slugify(input) {
+  return String(input)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+// Tags existants (pour éviter de créer des liens vers des pages qui n'existent pas)
+const tagSlugs = new Set();
+for (const a of articles) {
+  for (const t of a.data.tags ?? []) tagSlugs.add(slugify(t));
+}
+
+const featuredCategorySlug = featured ? slugify(featured.data.category) : "";
+const featuredCategoryIsTag = featuredCategorySlug ? tagSlugs.has(featuredCategorySlug) : false;
+
+const securiteSlug = slugify("Sécurité");
+const securiteIsTag = tagSlugs.has(securiteSlug);
 ---
+
 <BaseLayout
   title="Accueil"
   description="NESDZ : édito, articles et annuaire des ULM (fiches techniques + vidéos)."
@@ -24,37 +47,55 @@ const models = (await getCollection("models")).slice(0,4);
     <div class="container hero-grid">
       <article class="card hero-card">
         <div class="meta">
-          <span class="pill">Journal</span>
-          <span class="pill">Annuaire ULM</span>
+          <a class="pill" href="/journal/">Journal</a>
+          <a class="pill" href="/modeles/">Annuaire ULM</a>
           <span class="pill">Vidéos</span>
-          <span class="pill">Sécurité</span>
+
+          {securiteIsTag ? (
+            <a class="pill" href={`/tags/${securiteSlug}/`}>Sécurité</a>
+          ) : (
+            <span class="pill">Sécurité</span>
+          )}
         </div>
-        <h1>ULM & ultra‑léger : le journal qui vole au ras des nuages.</h1>
+
+        <h1>ULM & ultra-léger : le journal qui vole au ras des nuages.</h1>
+
         <p class="lead">
           NESDZ est un carnet de vol collectif : édito, articles et fiches modèles,
           pour apprendre, comparer, rêver… et garder la tête froide quand le vent se lève.
         </p>
+
         <div class="actions">
           <a class="btn" href="/journal/">Lire le journal</a>
           <a class="btn" href="/modeles/">Explorer l’annuaire</a>
         </div>
+
         <hr class="sep" />
+
         {featured && (
           <div>
             <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;">
               <div class="row" style="gap:10px;flex-wrap:wrap;">
                 <span class="badge">À la une</span>
-                <span class="pill">{featured.data.category}</span>
+
+                {featuredCategoryIsTag ? (
+                  <a class="pill" href={`/tags/${featuredCategorySlug}/`}>{featured.data.category}</a>
+                ) : (
+                  <span class="pill">{featured.data.category}</span>
+                )}
               </div>
-              <span class="pill">{featured.data.date.toLocaleDateString('fr-FR')}</span>
+
+              <span class="pill">{featured.data.date.toLocaleDateString("fr-FR")}</span>
             </div>
-{featured.data.image && (
-  <img
-    src={featured.data.image}
-    alt={featured.data.title}
-    class="hero-cover"
-  />
-)}
+
+            {featured.data.image && (
+              <img
+                src={featured.data.image}
+                alt={featured.data.title}
+                class="hero-cover"
+              />
+            )}
+
             <h2 style="margin-top:10px;">{featured.data.title}</h2>
             <p>{featured.data.description}</p>
             <a class="btn" href={`/journal/${featured.slug}/`}>Ouvrir l’article</a>
@@ -69,6 +110,7 @@ const models = (await getCollection("models")).slice(0,4);
               <h2 style="margin:0;">Derniers articles</h2>
               <span class="pill">5</span>
             </div>
+
             <div class="list" style="margin-top:12px;">
               {latest.map((a) => (
                 <ArticleCard
@@ -90,6 +132,7 @@ const models = (await getCollection("models")).slice(0,4);
               <h2 style="margin:0;">Modèles en vedette</h2>
               <span class="pill">{models.length}</span>
             </div>
+
             <div class="list" style="margin-top:12px;">
               {models.map((m) => (
                 <ModelCard
@@ -114,23 +157,32 @@ const models = (await getCollection("models")).slice(0,4);
     <div class="card">
       <div class="pad">
         <h2>La promesse NESDZ</h2>
+
         <div class="grid grid-3" style="margin-top:12px;">
           <div class="card" style="box-shadow:none;">
             <div class="pad">
               <h3>Clarté</h3>
-              <p>Des fiches techniques lisibles, des articles structurés, des sources quand c’est nécessaire.</p>
+              <p>
+                Des fiches techniques lisibles, des articles structurés, des sources quand c’est nécessaire.
+              </p>
             </div>
           </div>
+
           <div class="card" style="box-shadow:none;">
             <div class="pad">
               <h3>Sécurité</h3>
-              <p>Le style, c’est bien. Les marges, c’est mieux. On garde toujours un œil sur les bonnes pratiques.</p>
+              <p>
+                Le style, c’est bien. Les marges, c’est mieux. On garde toujours un œil sur les bonnes pratiques.
+              </p>
             </div>
           </div>
+
           <div class="card" style="box-shadow:none;">
             <div class="pad">
               <h3>Plaisir</h3>
-              <p>Parce que l’ULM est une école de liberté — et une excuse légale pour parler météo au café.</p>
+              <p>
+                Parce que l’ULM est une école de liberté — et une excuse légale pour parler météo au café.
+              </p>
             </div>
           </div>
         </div>
