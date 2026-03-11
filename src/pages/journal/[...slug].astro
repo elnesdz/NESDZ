@@ -76,7 +76,11 @@ const nextArticle =
     : null;
 ---
 
-<BaseLayout title={entry.data.title} description={entry.data.description}>
+<BaseLayout
+  title={entry.data.title}
+  description={entry.data.description}
+  image={entry.data.image}
+>
   <article class="container" style="padding: 28px 0 26px;">
     <div class="card">
       <div class="pad">
