@@ -2,27 +2,70 @@
 import "../styles/global.css";
 
 const { title, description, image, canonical } = Astro.props;
-const siteTitle = title ? `${title} · NESDZ` : "NESDZ · Journal ULM & Aviation Ultra-Légère";
-const siteDescription = description ?? "Journal et annuaire des modèles d’ULM : édito, articles, fiches techniques et vidéos.";
-const ogImage = image ?? "/og.png";
-const canonicalUrl = canonical ?? Astro.url;
+
+const siteTitle = title
+  ? `${title} · NESDZ`
+  : "NESDZ · Journal ULM & Aviation Ultra-Légère";
+
+const siteDescription =
+  description ??
+  "Journal et annuaire des modèles d’ULM : édito, articles, fiches techniques et vidéos.";
+
+// Base absolue du site (Astro.site si configuré, sinon origine de l’URL courante)
+const base = (Astro.site ? Astro.site.href : Astro.url.origin) as string;
+
+// Canonical : toujours absolu, sans query/hash, et avec / si c’est une “route dossier”
+const rawCanonical = canonical ?? Astro.url;
+const canonicalURL =
+  typeof rawCanonical === "string"
+    ? new URL(rawCanonical, base)
+    : new URL(rawCanonical.toString());
+
+canonicalURL.search = "";
+canonicalURL.hash = "";
+
+// Ajoute un trailing slash si c’est une route “dossier” (pas un fichier .xml/.png/...)
+const path = canonicalURL.pathname;
+const looksLikeFile = path.includes("."); // /sitemap.xml, /og.png, etc.
+if (!looksLikeFile && !path.endsWith("/")) canonicalURL.pathname = `${path}/`;
+
+// OG image : toujours absolue
+const ogImagePath = image ?? "/og.png";
+const ogImageUrl = new URL(ogImagePath, base).href;
+
+// OG type : article sur les pages /journal/<slug>/
+const pathname = Astro.url.pathname;
+const isArticlePage = pathname.startsWith("/journal/") && pathname !== "/journal/";
+const ogType = isArticlePage ? "article" : "website";
 ---
 <!doctype html>
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>{siteTitle}</title>
     <meta name="description" content={siteDescription} />
-    <link rel="canonical" href={canonicalUrl} />
     <meta name="theme-color" content="#0b0f14" />
+
+    <link rel="canonical" href={canonicalURL.href} />
+
+    <!-- OpenGraph -->
+    <meta property="og:site_name" content="NESDZ" />
+    <meta property="og:locale" content="fr_FR" />
     <meta property="og:title" content={siteTitle} />
     <meta property="og:description" content={siteDescription} />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content={canonicalUrl} />
-    <meta property="og:image" content={ogImage} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonicalURL.href} />
+    <meta property="og:image" content={ogImageUrl} />
+
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={siteTitle} />
+    <meta name="twitter:description" content={siteDescription} />
+    <meta name="twitter:image" content={ogImageUrl} />
   </head>
+
   <body>
     <header class="nav">
       <div class="container nav-inner">
@@ -30,7 +73,9 @@ const canonicalUrl = canonical ?? Astro.url;
           <img src="/logo.png" alt="Logo NESDZ" class="logo" />
           <div class="stack" style="gap:2px">
             <strong>NESDZ</strong>
-            <span style="font-size:12px;color:var(--muted);margin-top:-2px;">ULM · Ultra-léger · Passion</span>
+            <span style="font-size:12px;color:var(--muted);margin-top:-2px;">
+              ULM · Ultra-léger · Passion
+            </span>
           </div>
         </a>
         <nav class="navlinks" aria-label="Navigation principale">
