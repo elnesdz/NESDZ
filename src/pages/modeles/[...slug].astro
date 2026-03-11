@@ -1,7 +1,14 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
-
+const slugify = (input) =>
+  String(input)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 export async function getStaticPaths() {
   const entries = await getCollection("models");
   return entries.map((entry) => ({
@@ -47,7 +54,11 @@ const youtubeId = d.youtube?.url
         <div class="row" style="justify-content:space-between;flex-wrap:wrap;">
           <div class="row" style="gap:10px;flex-wrap:wrap;">
             <span class="badge">{d.category}</span>
-            {(d.tags ?? []).map((t) => <span class="pill">{t}</span>)}
+   {(d.tags ?? []).map((t) => (
+  <a class="pill" href={"/tags/" + slugify(t) + "/"} title={"Tag : " + t}>
+    {t}
+  </a>
+))}
           </div>
           <a class="btn" href="/modeles/">← Annuaire</a>
         </div>
