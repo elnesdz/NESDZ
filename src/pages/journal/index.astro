@@ -15,7 +15,11 @@ const slugify = (input) =>
 
 const articles = (await getCollection("articles"))
   .filter((a) => !a.data.draft)
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  .sort((a, b) => {
+    const dateA = a.data.updated ?? a.data.date;
+    const dateB = b.data.updated ?? b.data.date;
+    return dateB.valueOf() - dateA.valueOf();
+  });
 
 const categories = Array.from(new Set(articles.map((a) => a.data.category))).sort();
 const DEFAULT_ARTICLE_IMAGE = "/logo.png";
