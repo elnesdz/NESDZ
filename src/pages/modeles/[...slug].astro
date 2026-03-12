@@ -23,6 +23,17 @@ const { entry } = Astro.props;
 const { Content } = await entry.render();
 
 const d = entry.data;
+
+const editorialStatusLabels = {
+  "en-cours": "Fiche en cours",
+  enrichie: "Fiche enrichie",
+  "a-completer": "Données à compléter",
+};
+
+const editorialStatusLabel = d.editorialStatus
+  ? editorialStatusLabels[d.editorialStatus] ?? null
+  : null;
+
 const spec = [
   ["Catégorie", d.category],
   ["Constructeur", d.manufacturer ?? "—"],
@@ -159,6 +170,18 @@ const nextModel =
         </div>
 
         <h1 style="margin-top:14px;">{d.name}</h1>
+
+        {editorialStatusLabel && (
+          <div class="row" style="gap:10px;flex-wrap:wrap;margin:6px 0 0;">
+            <span
+              class="pill"
+              aria-label={`Statut éditorial : ${editorialStatusLabel}`}
+              title={`Statut éditorial : ${editorialStatusLabel}`}
+            >
+              {editorialStatusLabel}
+            </span>
+          </div>
+        )}
 
         <p class="lead">
           {d.heroImage && (
