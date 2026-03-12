@@ -8,6 +8,7 @@ stallKmh: 60
 engine: "Rotax 912 UL / 912 ULS (selon versions)"
 heroImage: "/images/ulm/AeroPrakt-A22-Foxbat.jpg"
 country: "Ukraine"
+editorialStatus: "enrichie"
 tags: ["STOL", "robuste", "tout métal"]
 youtube:
   url: "https://www.youtube.com/watch?v=4byx6xRtMKM"
