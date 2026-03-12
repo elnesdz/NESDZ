@@ -3,18 +3,21 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import ArticleCard from "../components/ArticleCard.astro";
 import ModelCard from "../components/ModelCard.astro";
 import { getCollection } from "astro:content";
+import { FEATURED_TAG_KEYS, MODEL_TAGS, getTagByKey } from "../lib/tags";
 
-const articles = (await getCollection("articles"))
+const allArticles = (await getCollection("articles"))
+  .filter((a) => !a.data.draft)
   .sort((a, b) => {
     const dateA = a.data.updated ?? a.data.date;
     const dateB = b.data.updated ?? b.data.date;
     return dateB.valueOf() - dateA.valueOf();
   });
 
-const featured = articles.find((a) => a.data.featured) ?? articles[0];
-const latest = articles.slice(0, 5);
+const featured = allArticles.find((a) => a.data.featured) ?? allArticles[0];
+const latest = allArticles.slice(0, 5);
 
-const models = (await getCollection("models")).slice(0, 4);
+const allModels = await getCollection("models");
+const models = allModels.slice(0, 4);
 
 function slugify(input) {
   return String(input)
@@ -26,10 +29,13 @@ function slugify(input) {
     .replace(/^-+|-+$/g, "");
 }
 
-// Tags existants (pour éviter de créer des liens vers des pages qui n'existent pas)
+// Tags existants (pour éviter les liens morts)
 const tagSlugs = new Set();
-for (const a of articles) {
+for (const a of allArticles) {
   for (const t of a.data.tags ?? []) tagSlugs.add(slugify(t));
+}
+for (const m of allModels) {
+  for (const t of m.data.tags ?? []) tagSlugs.add(slugify(t));
 }
 
 const featuredCategorySlug = featured ? slugify(featured.data.category) : "";
@@ -37,6 +43,46 @@ const featuredCategoryIsTag = featuredCategorySlug ? tagSlugs.has(featuredCatego
 
 const securiteSlug = slugify("Sécurité");
 const securiteIsTag = tagSlugs.has(securiteSlug);
+
+// Thèmes Home → Journal
+const homeJournalThemes = FEATURED_TAG_KEYS
+  .map((key) => {
+    const tag = getTagByKey(key);
+    if (!tag) return null;
+
+    const count = allArticles.filter((article) =>
+      (article.data.tags ?? []).some((t) => slugify(t) === key)
+    ).length;
+
+    if (count === 0) return null;
+
+    return {
+      key,
+      label: tag.label,
+      count,
+    };
+  })
+  .filter(Boolean)
+  .slice(0, 6);
+
+// Thèmes Home → Modèles
+const homeModelThemes = MODEL_TAGS
+  .map((tag) => {
+    const count = allModels.filter((model) =>
+      (model.data.tags ?? []).some((t) => slugify(t) === tag.key)
+    ).length;
+
+    if (count === 0) return null;
+
+    return {
+      key: tag.key,
+      label: tag.label,
+      count,
+    };
+  })
+  .filter(Boolean)
+  .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, "fr", { sensitivity: "base" }))
+  .slice(0, 6);
 ---
 
 <BaseLayout
@@ -152,6 +198,77 @@ const securiteIsTag = tagSlugs.has(securiteSlug);
       </aside>
     </div>
   </section>
+
+  {(homeJournalThemes.length > 0 || homeModelThemes.length > 0) && (
+    <section class="container" style="padding: 8px 0 18px;">
+      <div class="card">
+        <div class="pad">
+          <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <h2 style="margin:0;">Explorer par thèmes</h2>
+            <span class="pill">{homeJournalThemes.length + homeModelThemes.length} entrées</span>
+          </div>
+
+          <p style="margin:8px 0 0; color:var(--muted);">
+            Une porte d’entrée rapide vers les grands sujets du journal et les profils de machines de l’annuaire.
+          </p>
+
+          <div class="grid grid-2" style="margin-top:14px;gap:14px;">
+            <div class="card" style="box-shadow:none;">
+              <div class="pad">
+                <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <h3 style="margin:0;">Journal</h3>
+                  <span class="pill">{homeJournalThemes.length}</span>
+                </div>
+
+                <p style="margin:8px 0 0; color:var(--muted);">
+                  Pilotage, sécurité, météo, navigation, essai, comparatif…
+                </p>
+
+                <div class="row" style="gap:10px;flex-wrap:wrap;margin-top:12px;">
+                  {homeJournalThemes.map((tag) => (
+                    <a
+                      class="pill"
+                      href={`/tags/${tag.key}/`}
+                      title={`Voir le tag ${tag.label}`}
+                      style="text-decoration:none;"
+                    >
+                      {tag.label} · {tag.count}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div class="card" style="box-shadow:none;">
+              <div class="pad">
+                <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <h3 style="margin:0;">Modèles ULM</h3>
+                  <span class="pill">{homeModelThemes.length}</span>
+                </div>
+
+                <p style="margin:8px 0 0; color:var(--muted);">
+                  Voyage, école, STOL, polyvalence, matériaux et profils d’usage.
+                </p>
+
+                <div class="row" style="gap:10px;flex-wrap:wrap;margin-top:12px;">
+                  {homeModelThemes.map((tag) => (
+                    <a
+                      class="pill"
+                      href={`/tags/${tag.key}/`}
+                      title={`Voir le tag ${tag.label}`}
+                      style="text-decoration:none;"
+                    >
+                      {tag.label} · {tag.count}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
 
   <section class="container" style="padding: 8px 0 26px;">
     <div class="card">
