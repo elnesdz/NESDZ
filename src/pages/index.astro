@@ -17,7 +17,24 @@ const featured = allArticles.find((a) => a.data.featured) ?? allArticles[0];
 const latest = allArticles.slice(0, 5);
 
 const allModels = await getCollection("models");
-const models = allModels.slice(0, 4);
+
+const editorialStatusPriority = {
+  enrichie: 0,
+  "en-cours": 1,
+  "a-completer": 2,
+};
+
+const models = [...allModels]
+  .sort((a, b) => {
+    const priorityA = editorialStatusPriority[a.data.editorialStatus] ?? 99;
+    const priorityB = editorialStatusPriority[b.data.editorialStatus] ?? 99;
+
+    return (
+      priorityA - priorityB ||
+      a.data.name.localeCompare(b.data.name, "fr", { sensitivity: "base" })
+    );
+  })
+  .slice(0, 4);
 
 function slugify(input) {
   return String(input)
@@ -191,6 +208,7 @@ const homeModelThemes = MODEL_TAGS
                   engine={m.data.engine}
                   cruiseKmh={m.data.cruiseKmh}
                   tags={m.data.tags}
+                  editorialStatus={m.data.editorialStatus}
                 />
               ))}
             </div>
