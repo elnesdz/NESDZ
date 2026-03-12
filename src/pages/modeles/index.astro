@@ -1,95 +1,230 @@
-<script type="module" define:vars={{ models: data }}>
-  const $ = (s) => document.querySelector(s);
-  const q = $("#q"), cat = $("#cat"), seats = $("#seats"), list = $("#list"), count = $("#count"), reset = $("#reset");
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+import { MODEL_TAGS } from "../../lib/tags";
 
-  const normalize = (s) =>
-    (s ?? "")
-      .toString()
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/\p{Diacritic}/gu, "");
+const slugify = (input) =>
+  String(input)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
-  const editorialStatusLabels = {
-    "en-cours": "En cours",
-    enrichie: "Enrichie",
-    "a-completer": "À compléter",
-  };
+const entries = (await getCollection("models")).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name, "fr")
+);
 
-  const editorialStatusTitles = {
-    "en-cours": "Statut éditorial : fiche en cours",
-    enrichie: "Statut éditorial : fiche enrichie",
-    "a-completer": "Statut éditorial : données à compléter",
-  };
+const modelsData = entries.map((e) => ({
+  slug: e.slug,
+  name: e.data.name,
+  manufacturer: e.data.manufacturer ?? "",
+  category: e.data.category,
+  seats: e.data.seats,
+  engine: e.data.engine ?? "",
+  cruiseKmh: e.data.cruiseKmh ?? null,
+  mtowKg: e.data.mtowKg ?? null,
+  image: e.data.heroImage ?? "/logo.png",
+  tags: e.data.tags ?? [],
+  editorialStatus: e.data.editorialStatus ?? null,
+}));
 
-  const makeItem = (m) => {
-    const a = document.createElement("a");
-    a.className = "item";
-    a.href = `/modeles/${m.slug}/`;
+const categories = Array.from(new Set(modelsData.map((d) => d.category))).sort();
 
-    const editorialStatusLabel = m.editorialStatus
-      ? editorialStatusLabels[m.editorialStatus] ?? null
-      : null;
+const explorerTags = MODEL_TAGS
+  .map((tag) => {
+    const count = modelsData.filter((model) =>
+      (model.tags ?? []).some((t) => slugify(t) === tag.key)
+    ).length;
 
-    const editorialStatusTitle = m.editorialStatus
-      ? editorialStatusTitles[m.editorialStatus] ?? null
-      : null;
+    return {
+      ...tag,
+      count,
+    };
+  })
+  .filter((tag) => tag.count > 0);
+---
 
-    const badgeHtml = editorialStatusLabel
-      ? `<span class="pill" title="${editorialStatusTitle}">${editorialStatusLabel}</span>`
-      : `<span class="pill">Fiche</span>`;
+<BaseLayout
+  title="Annuaire ULM"
+  description="Annuaire des modèles ULM : fiches techniques, liens, vidéos YouTube."
+>
+  <section class="container" style="padding: 28px 0 10px;">
+    <div class="row" style="justify-content:space-between;align-items:flex-end;flex-wrap:wrap;">
+      <div>
+        <h1 style="margin:0 0 8px;">Annuaire des modèles</h1>
+        <p class="lead">Recherche + filtres. Une fiche par modèle, avec specs et vidéos.</p>
+      </div>
+      <div class="row" style="gap:8px;flex-wrap:wrap;">
+        <span class="pill">Astuce : <span class="kbd">Ctrl</span>+<span class="kbd">F</span> ne suffit pas — ici c’est mieux 😄</span>
+      </div>
+    </div>
+  </section>
 
-    a.innerHTML = `
-      <div class="row" style="align-items:flex-start;gap:12px;">
-        <img class="thumb" src="${m.image}" alt="${m.name}" loading="lazy" />
-        <div style="flex:1;min-width:0;">
-          <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px;">
-            <div>
-              <div class="t">${m.name}</div>
-              <div class="s">
-                ${(m.manufacturer ? m.manufacturer + " · " : "")}${m.category} · ${m.seats} place${m.seats > 1 ? "s" : ""}
-                ${(m.engine ? " · " + m.engine : "")}
-                ${(m.cruiseKmh ? " · Croisière ~" + m.cruiseKmh + " km/h" : "")}
-              </div>
-            </div>
-            <div class="row" style="gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-              ${badgeHtml}
-            </div>
+  {explorerTags.length > 0 && (
+    <section class="container" style="padding: 6px 0 14px;">
+      <div class="card">
+        <div class="pad">
+          <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <h2 style="margin:0;">Explorer par tags</h2>
+            <span class="pill">{explorerTags.length} tags</span>
           </div>
-          <div class="row" style="margin-top:10px;flex-wrap:wrap;">
-            ${(m.tags || []).slice(0, 4).map(t => `<span class="pill">${t}</span>`).join("")}
+
+          <p style="margin:8px 0 0; color:var(--muted);">
+            Parcours l’annuaire par usages, matériaux ou profils de machines.
+          </p>
+
+          <div class="row" style="gap:10px;flex-wrap:wrap;margin-top:14px;">
+            {explorerTags.map((tag) => (
+              <a
+                class="pill"
+                href={`/tags/${tag.key}/`}
+                title={`Voir le tag ${tag.label}`}
+                style="text-decoration:none;"
+              >
+                {tag.label} · {tag.count}
+              </a>
+            ))}
           </div>
         </div>
       </div>
-    `;
+    </section>
+  )}
 
-    return a;
-  };
+  <section class="container" style="padding: 10px 0 26px;">
+    <div class="card">
+      <div class="pad">
+        <div class="grid grid-3" style="align-items:end;">
+          <div class="stack" style="gap:8px;">
+            <label style="color:var(--muted);font-size:12px;">Recherche</label>
+            <input id="q" class="btn" style="width:100%;text-align:left;" placeholder="Nom, constructeur, moteur, tags…" />
+          </div>
 
-  const render = () => {
-    const nq = normalize(q.value);
-    const c = cat.value;
-    const s = seats.value ? Number(seats.value) : null;
+          <div class="stack" style="gap:8px;">
+            <label style="color:var(--muted);font-size:12px;">Catégorie</label>
+            <select id="cat" class="btn" style="width:100%;text-align:left;">
+              <option value="">Toutes</option>
+              {categories.map((c) => <option value={c}>{c}</option>)}
+            </select>
+          </div>
 
-    const filtered = models.filter((m) => {
-      if (c && m.category !== c) return false;
-      if (s && m.seats !== s) return false;
-      if (!nq) return true;
-      const hay = normalize([m.name, m.manufacturer, m.engine, ...(m.tags || [])].join(" "));
-      return hay.includes(nq);
+          <div class="stack" style="gap:8px;">
+            <label style="color:var(--muted);font-size:12px;">Places</label>
+            <select id="seats" class="btn" style="width:100%;text-align:left;">
+              <option value="">Toutes</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
+          </div>
+        </div>
+
+        <hr class="sep" />
+
+        <div class="row" style="justify-content:space-between;flex-wrap:wrap;">
+          <span class="pill">Résultats : <strong id="count" style="color:var(--text);">0</strong></span>
+          <button class="btn" id="reset" type="button">Réinitialiser</button>
+        </div>
+
+        <div class="list" id="list" style="margin-top:12px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" define:vars={{ models: modelsData }}>
+    const $ = (s) => document.querySelector(s);
+    const q = $("#q"), cat = $("#cat"), seats = $("#seats"), list = $("#list"), count = $("#count"), reset = $("#reset");
+
+    const normalize = (s) =>
+      (s ?? "")
+        .toString()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "");
+
+    const editorialStatusLabels = {
+      "en-cours": "En cours",
+      enrichie: "Enrichie",
+      "a-completer": "À compléter",
+    };
+
+    const editorialStatusTitles = {
+      "en-cours": "Statut éditorial : fiche en cours",
+      enrichie: "Statut éditorial : fiche enrichie",
+      "a-completer": "Statut éditorial : données à compléter",
+    };
+
+    const makeItem = (m) => {
+      const a = document.createElement("a");
+      a.className = "item";
+      a.href = `/modeles/${m.slug}/`;
+
+      const editorialStatusLabel = m.editorialStatus
+        ? editorialStatusLabels[m.editorialStatus] ?? null
+        : null;
+
+      const editorialStatusTitle = m.editorialStatus
+        ? editorialStatusTitles[m.editorialStatus] ?? null
+        : null;
+
+      const badgeHtml = editorialStatusLabel
+        ? `<span class="pill" title="${editorialStatusTitle}">${editorialStatusLabel}</span>`
+        : `<span class="pill">Fiche</span>`;
+
+      a.innerHTML = `
+        <div class="row" style="align-items:flex-start;gap:12px;">
+          <img class="thumb" src="${m.image}" alt="${m.name}" loading="lazy" />
+          <div style="flex:1;min-width:0;">
+            <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px;">
+              <div>
+                <div class="t">${m.name}</div>
+                <div class="s">
+                  ${(m.manufacturer ? m.manufacturer + " · " : "")}${m.category} · ${m.seats} place${m.seats > 1 ? "s" : ""}
+                  ${(m.engine ? " · " + m.engine : "")}
+                  ${(m.cruiseKmh ? " · Croisière ~" + m.cruiseKmh + " km/h" : "")}
+                </div>
+              </div>
+              <div class="row" style="gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+                ${badgeHtml}
+              </div>
+            </div>
+            <div class="row" style="margin-top:10px;flex-wrap:wrap;">
+              ${(m.tags || []).slice(0, 4).map(t => `<span class="pill">${t}</span>`).join("")}
+            </div>
+          </div>
+        </div>
+      `;
+
+      return a;
+    };
+
+    const render = () => {
+      const nq = normalize(q.value);
+      const c = cat.value;
+      const s = seats.value ? Number(seats.value) : null;
+
+      const filtered = models.filter((m) => {
+        if (c && m.category !== c) return false;
+        if (s && m.seats !== s) return false;
+        if (!nq) return true;
+        const hay = normalize([m.name, m.manufacturer, m.engine, ...(m.tags || [])].join(" "));
+        return hay.includes(nq);
+      });
+
+      list.innerHTML = "";
+      filtered.forEach((m) => list.appendChild(makeItem(m)));
+      count.textContent = String(filtered.length);
+    };
+
+    [q, cat, seats].forEach((el) => el.addEventListener("input", render));
+    reset.addEventListener("click", () => {
+      q.value = "";
+      cat.value = "";
+      seats.value = "";
+      render();
     });
 
-    list.innerHTML = "";
-    filtered.forEach((m) => list.appendChild(makeItem(m)));
-    count.textContent = String(filtered.length);
-  };
-
-  [q, cat, seats].forEach((el) => el.addEventListener("input", render));
-  reset.addEventListener("click", () => {
-    q.value = "";
-    cat.value = "";
-    seats.value = "";
     render();
-  });
-
-  render();
-</script>
+  </script>
+</BaseLayout>
