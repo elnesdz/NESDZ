@@ -27,6 +27,7 @@ const data = entries.map((e) => ({
   mtowKg: e.data.mtowKg ?? null,
   image: e.data.heroImage ?? "/logo.png",
   tags: e.data.tags ?? [],
+  editorialStatus: e.data.editorialStatus ?? null,
 }));
 
 const categories = Array.from(new Set(data.map((d) => d.category))).sort();
@@ -142,10 +143,20 @@ const explorerTags = MODEL_TAGS
         .normalize("NFD")
         .replace(/\p{Diacritic}/gu, "");
 
+    const editorialStatusLabels = {
+      "en-cours": "Fiche en cours",
+      enrichie: "Fiche enrichie",
+      "a-completer": "Données à compléter",
+    };
+
     const makeItem = (m) => {
       const a = document.createElement("a");
       a.className = "item";
       a.href = `/modeles/${m.slug}/`;
+
+      const editorialStatusLabel = m.editorialStatus
+        ? editorialStatusLabels[m.editorialStatus] ?? null
+        : null;
 
       a.innerHTML = `
         <div class="row" style="align-items:flex-start;gap:12px;">
@@ -160,7 +171,10 @@ const explorerTags = MODEL_TAGS
                   ${(m.cruiseKmh ? " · Croisière ~" + m.cruiseKmh + " km/h" : "")}
                 </div>
               </div>
-              <span class="pill">Fiche</span>
+              <div class="row" style="gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+                ${editorialStatusLabel ? `<span class="pill" title="Statut éditorial : ${editorialStatusLabel}">${editorialStatusLabel}</span>` : ""}
+                <span class="pill">Fiche</span>
+              </div>
             </div>
             <div class="row" style="margin-top:10px;flex-wrap:wrap;">
               ${(m.tags || []).slice(0, 4).map(t => `<span class="pill">${t}</span>`).join("")}
