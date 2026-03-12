@@ -21,18 +21,27 @@ const slugify = (input) =>
     .replace(/^-+|-+$/g, "");
 
 const editorialStatusLabels = {
-  "en-cours": "Fiche en cours",
-  enrichie: "Fiche enrichie",
-  "a-completer": "Données à compléter",
+  "en-cours": "En cours",
+  enrichie: "Enrichie",
+  "a-completer": "À compléter",
+};
+
+const editorialStatusTitle = {
+  "en-cours": "Statut éditorial : fiche en cours",
+  enrichie: "Statut éditorial : fiche enrichie",
+  "a-completer": "Statut éditorial : données à compléter",
 };
 
 const editorialStatusLabel = editorialStatus
   ? editorialStatusLabels[editorialStatus] ?? null
   : null;
+
+const editorialStatusTooltip = editorialStatus
+  ? editorialStatusTitle[editorialStatus] ?? null
+  : null;
 ---
 
 <article class="item">
-  <!-- Hitbox : cliquer n’importe où ouvre la fiche -->
   <a class="itemLink" href={href} aria-label={`Ouvrir la fiche modèle : ${name}`}></a>
 
   <div class="itemContent">
@@ -50,8 +59,8 @@ const editorialStatusLabel = editorialStatus
         {editorialStatusLabel && (
           <span
             class="pill"
-            aria-label={`Statut éditorial : ${editorialStatusLabel}`}
-            title={`Statut éditorial : ${editorialStatusLabel}`}
+            aria-label={editorialStatusTooltip}
+            title={editorialStatusTooltip}
           >
             {editorialStatusLabel}
           </span>
@@ -78,19 +87,16 @@ const editorialStatusLabel = editorialStatus
     text-decoration: none;
   }
 
-  /* Lien “hitbox” au-dessus de la card */
   .itemLink {
     position: absolute;
     inset: 0;
     z-index: 1;
   }
 
-  /* Contenu : ne pas mettre de z-index ici (sinon stacking context) */
   .itemContent {
     position: relative;
   }
 
-  /* Les tags doivent passer au-dessus de la hitbox */
   .tagLink {
     position: relative;
     z-index: 2;
