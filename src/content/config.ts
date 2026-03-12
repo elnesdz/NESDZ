@@ -139,6 +139,7 @@ const models = defineCollection({
     engine: z.string().optional(),
     year: z.number().int().optional(),
     country: z.string().optional(),
+    editorialStatus: z.enum(['en-cours', 'enrichie', 'a-completer']).optional(),
     tags: tagsSchema('model', MODEL_TAG_KEYS),
     heroImage: z.string().optional(),
     youtube: z
