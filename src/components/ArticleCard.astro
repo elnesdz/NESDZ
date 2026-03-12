@@ -1,12 +1,17 @@
 ---
-const { href, title, description, date, category, tags, image } = Astro.props;
+const { href, title, description, date, updated, category, tags, image } = Astro.props;
 
-const d = new Date(date);
-const pretty = d.toLocaleDateString("fr-FR", {
+const publishedDate = new Date(date);
+const updatedDate = updated ? new Date(updated) : null;
+const displayDate = updatedDate ?? publishedDate;
+
+const pretty = displayDate.toLocaleDateString("fr-FR", {
   year: "numeric",
   month: "short",
   day: "numeric",
 });
+
+const dateLabel = updatedDate ? `Mis à jour le ${pretty}` : pretty;
 
 function slugify(input) {
   return String(input)
@@ -37,7 +42,7 @@ const tagLinks = (tags ?? [])
           <div class="t">{title}</div>
           <div class="s">{description}</div>
         </div>
-        <span class="pill">{pretty}</span>
+        <span class="pill">{dateLabel}</span>
       </div>
 
       <div class="row" style="margin-top:10px;flex-wrap:wrap;">
@@ -69,9 +74,9 @@ const tagLinks = (tags ?? [])
   }
 
   /* Contenu en dessous de la hitbox */
-.itemContent {
-  position: relative;
-}
+  .itemContent {
+    position: relative;
+  }
 
   /* Les tags passent au-dessus de la hitbox pour rester cliquables */
   .tagLink {
