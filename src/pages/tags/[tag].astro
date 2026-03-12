@@ -3,22 +3,21 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import ArticleCard from "../../components/ArticleCard.astro";
 import ModelCard from "../../components/ModelCard.astro";
 import { getCollection } from "astro:content";
+import { getTagByKey } from "../../lib/tags";
+
+const slugify = (input) =>
+  String(input)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 export async function getStaticPaths() {
-  // slugify défini ICI => garanti disponible pendant getStaticPaths
-  const slugify = (input) =>
-    String(input)
-      .trim()
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-
   const articles = await getCollection("articles");
   const models = await getCollection("models");
 
-  // slug -> label affichable (accentué si dispo)
   const tagMap = new Map();
 
   const addTag = (label) => {
@@ -41,20 +40,12 @@ export async function getStaticPaths() {
   }));
 }
 
-// params + props
-const { tag } = Astro.params;     // ex: "tube-toile"
-const { tagLabel } = Astro.props; // ex: "tube-toile" ou "sécurité"
-const displayTag = tagLabel ?? tag;
+const { tag } = Astro.params;
+const { tagLabel } = Astro.props;
 
-// slugify aussi pour filtrer (duplication OK et claire)
-const slugify = (input) =>
-  String(input)
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+// Priorité au label canonique depuis src/lib/tags.ts
+const canonicalTag = getTagByKey(tag);
+const displayTag = canonicalTag?.label ?? tagLabel ?? tag;
 
 const articles = await getCollection("articles");
 const models = await getCollection("models");
@@ -70,66 +61,118 @@ const filteredArticles = articles
 const filteredModels = models
   .filter((m) => (m.data.tags ?? []).some((t) => slugify(t) === tag))
   .sort((a, b) => a.data.name.localeCompare(b.data.name, "fr", { sensitivity: "base" }));
+
+const totalCount = filteredArticles.length + filteredModels.length;
+const DEFAULT_ARTICLE_IMAGE = "/logo.png";
 ---
 
 <BaseLayout
-  title={`Tag : ${displayTag} · NESDZ`}
+  title={`Tag : ${displayTag}`}
   description={`Contenus NESDZ liés au tag "${displayTag}" : articles et modèles ULM.`}
 >
-  <section class="container">
-    <div class="row" style="justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;">
-      <div>
-        <h1 style="margin:0 0 6px;">Tag : {displayTag}</h1>
-        <p class="lead" style="margin:0;">Articles et modèles ULM liés à ce thème.</p>
-      </div>
+  <section class="container" style="padding: 28px 0 10px;">
+    <div class="card">
+      <div class="pad">
+        <nav class="meta" aria-label="Fil d’Ariane" style="margin:0 0 10px; flex-wrap:wrap;">
+          <a href="/" style="color:inherit;text-decoration:none;opacity:.9;">Accueil</a>
+          <span class="sep" style="opacity:.7;">›</span>
+          <span style="opacity:.85;">Tags</span>
+          <span class="sep" style="opacity:.7;">›</span>
+          <span style="opacity:.85;">{displayTag}</span>
+        </nav>
 
-      <div class="row" style="gap:8px;flex-wrap:wrap;">
-        <span class="pill" title="Articles">{filteredArticles.length} articles</span>
-        <span class="pill" title="Modèles">{filteredModels.length} modèles</span>
+        <div class="row" style="justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;">
+          <div>
+            <h1 style="margin:0 0 6px;">Tag : {displayTag}</h1>
+            <p class="lead" style="margin:0;">
+              Ce hub rassemble les contenus NESDZ liés à ce thème : articles du journal et modèles ULM associés.
+            </p>
+          </div>
+
+          <div class="row" style="gap:8px;flex-wrap:wrap;">
+            <span class="pill">{totalCount} contenus</span>
+            <span class="pill" title="Articles">{filteredArticles.length} articles</span>
+            <span class="pill" title="Modèles">{filteredModels.length} modèles</span>
+          </div>
+        </div>
       </div>
     </div>
+  </section>
 
+  <section class="container" style="padding: 10px 0 26px;">
     {filteredArticles.length > 0 ? (
-      <>
-        <h2 style="margin:18px 0 10px;">Articles</h2>
-        <div class="grid">
-          {filteredArticles.map((a) => (
-            <ArticleCard
-              href={`/journal/${a.slug}/`}
-              title={a.data.title}
-              description={a.data.description}
-              date={a.data.date}
-              category={a.data.category}
-              tags={a.data.tags}
-              image={a.data.image}
-            />
-          ))}
+      <div class="card">
+        <div class="pad">
+          <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <h2 style="margin:0;">Articles</h2>
+            <span class="pill">{filteredArticles.length}</span>
+          </div>
+
+          <p style="margin:8px 0 0; color:var(--muted);">
+            Les articles les plus récents ou récemment mis à jour apparaissent en premier.
+          </p>
+
+          <div class="grid" style="margin-top:12px;">
+            {filteredArticles.map((a) => (
+              <ArticleCard
+                href={`/journal/${a.slug}/`}
+                title={a.data.title}
+                description={a.data.description}
+                date={a.data.date}
+                category={a.data.category}
+                tags={a.data.tags}
+                image={a.data.image ?? DEFAULT_ARTICLE_IMAGE}
+              />
+            ))}
+          </div>
         </div>
-      </>
+      </div>
     ) : (
-      <p style="margin-top:18px;opacity:.85;">Aucun article pour ce tag pour le moment.</p>
+      <div class="card">
+        <div class="pad">
+          <h2 style="margin:0 0 8px;">Articles</h2>
+          <p style="margin:0;opacity:.85;">Aucun article pour ce tag pour le moment.</p>
+        </div>
+      </div>
     )}
 
+    <div style="height:16px;"></div>
+
     {filteredModels.length > 0 ? (
-      <>
-        <h2 style="margin:22px 0 10px;">Modèles ULM</h2>
-        <div class="list">
-          {filteredModels.map((m) => (
-            <ModelCard
-              href={`/modeles/${m.slug}/`}
-              name={m.data.name}
-              manufacturer={m.data.manufacturer}
-              category={m.data.category}
-              seats={m.data.seats}
-              engine={m.data.engine}
-              cruiseKmh={m.data.cruiseKmh}
-              tags={m.data.tags}
-            />
-          ))}
+      <div class="card">
+        <div class="pad">
+          <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <h2 style="margin:0;">Modèles ULM</h2>
+            <span class="pill">{filteredModels.length}</span>
+          </div>
+
+          <p style="margin:8px 0 0; color:var(--muted);">
+            Les modèles sont classés par ordre alphabétique pour garder une navigation stable.
+          </p>
+
+          <div class="list" style="margin-top:12px;">
+            {filteredModels.map((m) => (
+              <ModelCard
+                href={`/modeles/${m.slug}/`}
+                name={m.data.name}
+                manufacturer={m.data.manufacturer}
+                category={m.data.category}
+                seats={m.data.seats}
+                engine={m.data.engine}
+                cruiseKmh={m.data.cruiseKmh}
+                tags={m.data.tags}
+              />
+            ))}
+          </div>
         </div>
-      </>
+      </div>
     ) : (
-      <p style="margin-top:12px;opacity:.85;">Aucun modèle associé à ce tag.</p>
+      <div class="card">
+        <div class="pad">
+          <h2 style="margin:0 0 8px;">Modèles ULM</h2>
+          <p style="margin:0;opacity:.85;">Aucun modèle associé à ce tag.</p>
+        </div>
+      </div>
     )}
   </section>
 </BaseLayout>
