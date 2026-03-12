@@ -3,19 +3,19 @@ name: "Aeroprakt A-22 (Foxbat)"
 manufacturer: "Aeroprakt"
 category: "Multiaxe"
 seats: 2
-engine: "Rotax 912 (selon versions)"
+cruiseKmh: 150
+stallKmh: 60
+engine: "Rotax 912 UL / 912 ULS (selon versions)"
 heroImage: "/images/ulm/AeroPrakt-A22-Foxbat.jpg"
-tags: ["STOL", "tout métal", "robuste"]
+country: "Ukraine"
+tags: ["STOL", "robuste", "tout métal"]
 youtube:
-  url: "https://www.youtube.com/results?search_query=Aeroprakt+A-22+(Foxbat)+ULM"
-  title: "Vidéos sur Aeroprakt A-22 (Foxbat)"
+  url: "https://www.youtube.com/watch?v=4byx6xRtMKM"
+  title: "Aeroprakt A22 Foxbat — mini review"
 links:
-  - label: "Lien"
+  - label: "Données & performances (Aeroprakt)"
+    url: "https://www.aeroprakt.de/index.php/en/models/a-22"
+  - label: "Référence (Wikipedia)"
     url: "https://en.wikipedia.org/wiki/Aeroprakt_A-22_Foxbat"
 ---
-**But de cette fiche :** base de travail pour remplir progressivement les specs (masses, vitesses, autonomie) avec des données vérifiées.
-
-✅ À faire :
-- compléter les champs `emptyWeightKg`, `mtowKg`, `cruiseKmh`, `stallKmh`, `rangeKm`
-- remplacer la recherche YouTube par **une vidéo précise** (url `watch?v=...`)
-- ajouter 1–2 liens fiables (constructeur, manuel/POH, distributeur)
+ULM multiaxe très “utilitaire” : capacités basse vitesse, tolérance, et orientation terrain court selon versions.
