@@ -5,16 +5,17 @@ import ModelCard from "../../components/ModelCard.astro";
 import { getCollection } from "astro:content";
 import { getTagByKey } from "../../lib/tags";
 
-const slugify = (input) =>
-  String(input)
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
 export async function getStaticPaths() {
+  // slugify local à getStaticPaths => safe au build
+  const slugify = (input) =>
+    String(input)
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
   const articles = await getCollection("articles");
   const models = await getCollection("models");
 
@@ -39,6 +40,16 @@ export async function getStaticPaths() {
     props: { tagLabel },
   }));
 }
+
+// slugify pour le reste de la page
+const slugify = (input) =>
+  String(input)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 const { tag } = Astro.params;
 const { tagLabel } = Astro.props;
