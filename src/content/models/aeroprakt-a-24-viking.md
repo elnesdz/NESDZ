@@ -2,20 +2,23 @@
 name: "Aeroprakt A-24 Viking"
 manufacturer: "Aeroprakt"
 category: "Multiaxe"
-seats: 2
-engine: "Rotax 912 (selon versions)"
+seats: 3
+engine: "Rotax 912 ULS"
+country: "Ukraine"
 heroImage: "/images/ulm/AeroPrakt-A24-Viking.jpg"
-tags: ["voyage", "tout métal"]
+tags: ["polyvalent"]
 youtube:
-  url: "https://www.youtube.com/results?search_query=Aeroprakt+A-24+Viking+ULM"
-  title: "Vidéos sur Aeroprakt A-24 Viking"
+  url: "https://www.youtube.com/watch?v=B31cFpDPC9M"
+  title: "Aeroprakt A-24 Amphibious Aircraft Water Landings and Takeoffs"
 links:
-  - label: "Lien"
-    url: "https://en.wikipedia.org/wiki/Aeroprakt_A-24_Viking"
+  - label: "Site constructeur Aeroprakt"
+    url: "https://www.aeroprakt.kiev.ua/"
+  - label: "Fiche type AP24"
+    url: "https://doc8643.com/aircraft/AP24"
+  - label: "Fiche technique secondaire"
+    url: "https://janes.migavia.com/ukr/aeroprakt/a-24.html"
+editorialStatus: "en-cours"
 ---
-**But de cette fiche :** base de travail pour remplir progressivement les specs (masses, vitesses, autonomie) avec des données vérifiées.
+L’Aeroprakt A-24 Viking est un amphibie léger à aile haute conçu pour opérer aussi bien depuis la terre que depuis l’eau. Sa formule générale privilégie la polyvalence, avec une cabine trois places, une implantation moteur haute et une configuration pensée pour les usages de balade, de découverte et d’exploitation sur plans d’eau ou terrains simples.
 
-✅ À faire :
-- compléter les champs `emptyWeightKg`, `mtowKg`, `cruiseKmh`, `stallKmh`, `rangeKm`
-- remplacer la recherche YouTube par **une vidéo précise** (url `watch?v=...`)
-- ajouter 1–2 liens fiables (constructeur, manuel/POH, distributeur)
+*Note éditoriale :* les données publiées sur l’A-24 Viking varient selon les sources et selon la version retenue. Cette fiche reste donc volontairement prudente tant qu’une documentation constructeur ou un manuel d’exploitation directement exploitable n’a pas permis de figer les masses et performances.
