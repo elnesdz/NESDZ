@@ -3,19 +3,22 @@ name: "AirBorne XT-912"
 manufacturer: "Airborne Windsports"
 category: "Pendulaire"
 seats: 2
-engine: "Rotax 912"
+engine: "Rotax 912 UL"
 heroImage: "/images/ulm/AirBorneXT-912.jpg"
-tags: ["pendulaire", "robuste"]
+country: "Australie"
+tags: ["voyage", "polyvalent"]
 youtube:
-  url: "https://www.youtube.com/results?search_query=AirBorne+XT-912+ULM"
-  title: "Vidéos sur AirBorne XT-912"
+  url: "https://www.youtube.com/watch?v=TN-sbLerZxU"
+  title: "Airborne XT-912 Outback flown by Patrick Tyler"
 links:
-  - label: "Lien"
-    url: "https://en.wikipedia.org/wiki/Airborne_Windsports_XT-912"
+  - label: "Présentation constructeur"
+    url: "https://www.airborne.com.au/pages/ml_xt912.php"
+  - label: "Manuels microlights AirBorne"
+    url: "https://www.airborne.com.au/pages/manuals_ml.php"
+  - label: "Spécifications XT-912 Tundra Arrow"
+    url: "https://www.airborne.com.au/pages/microlights_xt912_arrow_tundra_specs.php"
+editorialStatus: "en-cours"
 ---
-**But de cette fiche :** base de travail pour remplir progressivement les specs (masses, vitesses, autonomie) avec des données vérifiées.
+Le XT-912 est un pendulaire biplace AirBorne conçu autour du Rotax 912 et d’une logique de machine simple, endurante et tournée vers le voyage léger. Son positionnement tient moins à la sophistication qu’à l’efficacité pratique : cellule éprouvée, consommation raisonnable, autonomie correcte et vraie capacité à couvrir de la distance dans l’univers du pendulaire.
 
-✅ À faire :
-- compléter les champs `emptyWeightKg`, `mtowKg`, `cruiseKmh`, `stallKmh`, `rangeKm`
-- remplacer la recherche YouTube par **une vidéo précise** (url `watch?v=...`)
-- ajouter 1–2 liens fiables (constructeur, manuel/POH, distributeur)
+*Note éditoriale :* sur la gamme XT-912, l’aile retenue change sensiblement le comportement et les chiffres. Cette fiche reste donc volontairement générique tant qu’une combinaison précise — Streak, Cruze, SST, Arrow ou Merlin — n’est pas choisie comme base de référence.
