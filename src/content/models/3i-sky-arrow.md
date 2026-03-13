@@ -6,7 +6,7 @@ seats: 2
 engine: "Rotax 912 (80 ou 100 ch selon versions)"
 year: 1993
 country: "Italie"
-heroImage: "/images/ulm/3iskyarrow.png"
+heroImage: "/images/ulm/SkyArrowLSA.jpg"
 tags: ["composite", "ecole"]
 youtube:
   url: "https://www.youtube.com/watch?v=9XXROT92Hzw"
