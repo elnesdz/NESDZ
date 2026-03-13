@@ -43,7 +43,11 @@ const spec = [
   ["MTOW / masse max (kg)", d.mtowKg ? String(d.mtowKg) : "—"],
   ["Vitesse de croisière (km/h)", d.cruiseKmh ? String(d.cruiseKmh) : "—"],
   ["Vitesse de décrochage (km/h)", d.stallKmh ? String(d.stallKmh) : "—"],
+  ["VSO (km/h)", d.vsoKmh ? String(d.vsoKmh) : "—"],
+  ["VNE (km/h)", d.vneKmh ? String(d.vneKmh) : "—"],
   ["Autonomie (km)", d.rangeKm ? String(d.rangeKm) : "—"],
+  ["Facteur de charge +G", d.limitLoadPositiveG ? String(d.limitLoadPositiveG) : "—"],
+  ["Facteur de charge -G", d.limitLoadNegativeG ? String(d.limitLoadNegativeG) : "—"],
   ["Année", d.year ? String(d.year) : "—"],
   ["Pays", d.country ?? "—"],
 ];
@@ -136,13 +140,11 @@ const nextModel =
   <article class="container" style="padding: 28px 0 26px;">
     <div class="card">
       <div class="pad">
-        <!-- JSON-LD (SEO) -->
         <script
           type="application/ld+json"
           set:html={JSON.stringify(breadcrumbJsonLd)}
         ></script>
 
-        <!-- Fil d'Ariane -->
         <nav
           class="meta"
           aria-label="Fil d’Ariane"
