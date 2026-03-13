@@ -3,19 +3,22 @@ name: "Air Création Tanarg"
 manufacturer: "Air Création"
 category: "Pendulaire"
 seats: 2
-engine: "Rotax 582/912 (selon versions)"
+engine: "Rotax 582 / 912 UL / 912 ULS (selon versions)"
 heroImage: "/images/ulm/AirCréationTanarg.jpg"
-tags: ["voyage", "pendulaire", "cockpit ouvert"]
+country: "France"
+tags: ["voyage", "polyvalent"]
 youtube:
-  url: "https://www.youtube.com/results?search_query=Air+Création+Tanarg+ULM"
-  title: "Vidéos sur Air Création Tanarg"
+  url: "https://www.youtube.com/watch?v=5Htvn7QzUT0"
+  title: "Air Création Tanarg, le pendulaire haut de gamme"
 links:
-  - label: "Lien"
-    url: "https://en.wikipedia.org/wiki/Air_Creation_Tanarg"
+  - label: "Documentation constructeur"
+    url: "https://www.aircreation.com/fr/documentation-en-ligne"
+  - label: "Manuel d'utilisation Tanarg 912 (PDF)"
+    url: "https://www.aircreation.com/uploads/documentation/manuel-d-utilisation-tanarg-912.pdf"
+  - label: "Manuel de maintenance Tanarg 912 (PDF)"
+    url: "https://www.aircreation.com/uploads/documentation/manuel-de-maintenance-tanarg-912.pdf"
+editorialStatus: "en-cours"
 ---
-**But de cette fiche :** base de travail pour remplir progressivement les specs (masses, vitesses, autonomie) avec des données vérifiées.
+Le Tanarg est un pendulaire biplace Air Création orienté vers le voyage et le confort d’exploitation, avec un chariot plus habillé, plus routier et plus ambitieux qu’un tricycle école de base. Il s’adresse à ceux qui cherchent un pendulaire capable de couvrir de la distance sans renoncer à la logique simple et directe du vol à déplacement du centre de gravité.
 
-✅ À faire :
-- compléter les champs `emptyWeightKg`, `mtowKg`, `cruiseKmh`, `stallKmh`, `rangeKm`
-- remplacer la recherche YouTube par **une vidéo précise** (url `watch?v=...`)
-- ajouter 1–2 liens fiables (constructeur, manuel/POH, distributeur)
+*Note éditoriale :* sur le Tanarg, les chiffres ne prennent vraiment sens qu’avec l’aile retenue et la motorisation exacte. Cette fiche reste donc volontairement prudente : elle décrit la machine et sa vocation, sans mélanger les données du tricycle nu avec celles d’une configuration complète iXess, NuviX, BioniX ou autre.
