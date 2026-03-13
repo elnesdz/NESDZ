@@ -1,24 +1,24 @@
 ---
 name: "Aeroprakt A-24 Viking"
 manufacturer: "Aeroprakt"
-category: "Multiaxe"
+category: "HydroULM"
 seats: 3
 engine: "Rotax 912 ULS"
-country: "Ukraine"
 heroImage: "/images/ulm/AeroPrakt-A24-Viking.jpg"
+country: "Ukraine"
 tags: ["polyvalent"]
 youtube:
   url: "https://www.youtube.com/watch?v=B31cFpDPC9M"
   title: "Aeroprakt A-24 Amphibious Aircraft Water Landings and Takeoffs"
 links:
   - label: "Site constructeur Aeroprakt"
-    url: "https://www.aeroprakt.kiev.ua/"
-  - label: "Fiche type AP24"
-    url: "https://doc8643.com/aircraft/AP24"
-  - label: "Fiche technique secondaire"
+    url: "https://aeroprakt.eu/"
+  - label: "Fiche Janes AEROPRAKT-24"
     url: "https://janes.migavia.com/ukr/aeroprakt/a-24.html"
+  - label: "Type designator ICAO AP24 (PDF)"
+    url: "https://cfapps.icao.int/doc8643/reports/Part2-By%20Type%20Designator%28Decode%29.pdf"
 editorialStatus: "en-cours"
 ---
-L’Aeroprakt A-24 Viking est un amphibie léger à aile haute conçu pour opérer aussi bien depuis la terre que depuis l’eau. Sa formule générale privilégie la polyvalence, avec une cabine trois places, une implantation moteur haute et une configuration pensée pour les usages de balade, de découverte et d’exploitation sur plans d’eau ou terrains simples.
+L’Aeroprakt A-24 Viking est un amphibie léger à aile haute, train rétractable et moteur en position haute, pensé pour les opérations mixtes terre/eau plus que pour la recherche de vitesse pure. Sa cabine trois places, avec une place arrière souvent présentée comme convertible en volume bagages, le situe davantage dans un registre de balade, d’accès aux plans d’eau et d’exploitation légère que dans celui de l’ULM français classique.
 
-*Note éditoriale :* les données publiées sur l’A-24 Viking varient selon les sources et selon la version retenue. Cette fiche reste donc volontairement prudente tant qu’une documentation constructeur ou un manuel d’exploitation directement exploitable n’a pas permis de figer les masses et performances.
+*Note éditoriale :* le nom A-24 Viking renvoie surtout à une plateforme amphibie diffusée en kit ou dans des cadres light aircraft/experimental selon les marchés. Faute d’avoir identifié une variante ULM française clairement documentée, cette fiche reste volontairement prudente et n’agrège pas des masses ou vitesses issues de versions export ou de bases de données secondaires.
