@@ -8,7 +8,7 @@ mtowKg: 450
 cruiseKmh: 150
 stallKmh: 60
 engine: "Rotax 912 UL / 912 ULS (selon versions)"
-heroImage: "/images/ulm/aeroprakta22foxbat.png"
+heroImage: "/images/ulm/AeroPrakt-A22-Foxbat.jpg"
 country: "Ukraine"
 editorialStatus: "enrichie"
 tags: ["stol", "ecole", "aluminium"]
