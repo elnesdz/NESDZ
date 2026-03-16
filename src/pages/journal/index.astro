@@ -1,4 +1,3 @@
-
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import ArticleCard from "../../components/ArticleCard.astro";
@@ -58,8 +57,29 @@ const explorerTags = ARTICLE_TAGS
     </div>
   </section>
 
+  <section class="container" style="padding: 10px 0 14px;">
+    <div class="card">
+      <div class="pad">
+        <div class="list">
+          {articles.map((a) => (
+            <ArticleCard
+              href={`/journal/${a.slug}/`}
+              title={a.data.title}
+              description={a.data.description}
+              date={a.data.date}
+              updated={a.data.updated}
+              category={a.data.category}
+              tags={a.data.tags}
+              image={a.data.image ?? DEFAULT_ARTICLE_IMAGE}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
   {explorerTags.length > 0 && (
-    <section class="container" style="padding: 6px 0 14px;">
+    <section class="container" style="padding: 6px 0 26px;">
       <div class="card">
         <div class="pad">
           <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
@@ -87,24 +107,4 @@ const explorerTags = ARTICLE_TAGS
       </div>
     </section>
   )}
-
-  <section class="container" style="padding: 10px 0 26px;">
-    <div class="card">
-      <div class="pad">
-        <div class="list">
-          {articles.map((a) => (
-            <ArticleCard
-              href={`/journal/${a.slug}/`}
-              title={a.data.title}
-              description={a.data.description}
-              date={a.data.date}
-              category={a.data.category}
-              tags={a.data.tags}
-              image={a.data.image ?? DEFAULT_ARTICLE_IMAGE}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  </section>
 </BaseLayout>
