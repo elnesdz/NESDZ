@@ -12,7 +12,7 @@ year: 2008
 country: "Allemagne"
 limitLoadPositiveG: 4
 limitLoadNegativeG: -2
-heroImage: "/images/ulm/flightdesignctls.png"
+heroImage: "/images/ulm/FlightDesignCTLS.jpeg"
 tags: ["voyage", "ecole", "composite"]
 youtube:
   url: "https://www.youtube.com/watch?v=QnRBb-BQS8g"
