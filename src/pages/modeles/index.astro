@@ -127,7 +127,7 @@ const explorerTags = MODEL_TAGS
           <button class="btn" id="reset" type="button">Réinitialiser</button>
         </div>
 
-        <div class="list" id="list" style="margin-top:12px;"></div>
+        <div class="list models-index-list" id="list" style="margin-top:12px;"></div>
       </div>
     </div>
   </section>
@@ -157,7 +157,7 @@ const explorerTags = MODEL_TAGS
 
     const makeItem = (m) => {
       const a = document.createElement("a");
-      a.className = "item";
+      a.className = "item model-index-item";
       a.href = `/modeles/${m.slug}/`;
 
       const editorialStatusLabel = m.editorialStatus
@@ -169,27 +169,32 @@ const explorerTags = MODEL_TAGS
         : null;
 
       const badgeHtml = editorialStatusLabel
-        ? `<span class="pill" title="${editorialStatusTitle}">${editorialStatusLabel}</span>`
-        : `<span class="pill">Fiche</span>`;
+        ? `<span class="pill model-index-status" title="${editorialStatusTitle}">${editorialStatusLabel}</span>`
+        : `<span class="pill model-index-status">Fiche</span>`;
 
       a.innerHTML = `
-        <div class="row" style="align-items:flex-start;gap:12px;">
-          <img class="thumb" src="${m.image}" alt="${m.name}" loading="lazy" />
-          <div style="flex:1;min-width:0;">
-            <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px;">
-              <div>
+        <div class="model-index-grid">
+          <div class="model-index-media">
+            <img class="thumb model-index-thumb" src="${m.image}" alt="${m.name}" loading="lazy" />
+          </div>
+
+          <div class="model-index-body">
+            <div class="model-index-head">
+              <div class="model-index-main">
                 <div class="t">${m.name}</div>
-                <div class="s">
+                <div class="s model-index-meta">
                   ${(m.manufacturer ? m.manufacturer + " · " : "")}${m.category} · ${m.seats} place${m.seats > 1 ? "s" : ""}
                   ${(m.engine ? " · " + m.engine : "")}
                   ${(m.cruiseKmh ? " · Croisière ~" + m.cruiseKmh + " km/h" : "")}
                 </div>
               </div>
-              <div class="row" style="gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+
+              <div class="model-index-badge-wrap">
                 ${badgeHtml}
               </div>
             </div>
-            <div class="row" style="margin-top:10px;flex-wrap:wrap;">
+
+            <div class="row model-index-tags" style="margin-top:10px;flex-wrap:wrap;">
               ${(m.tags || []).slice(0, 4).map(t => `<span class="pill">${t}</span>`).join("")}
             </div>
           </div>
@@ -227,4 +232,95 @@ const explorerTags = MODEL_TAGS
 
     render();
   </script>
+
+  <style is:global>
+    .models-index-list .model-index-item {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .models-index-list .model-index-grid {
+      display: grid;
+      grid-template-columns: 168px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .models-index-list .model-index-media {
+      min-width: 0;
+    }
+
+    .models-index-list .model-index-thumb {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      border-radius: 18px;
+      display: block;
+    }
+
+    .models-index-list .model-index-body {
+      min-width: 0;
+    }
+
+    .models-index-list .model-index-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .models-index-list .model-index-main {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .models-index-list .model-index-meta {
+      line-height: 1.55;
+    }
+
+    .models-index-list .model-index-badge-wrap {
+      flex: 0 0 auto;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .models-index-list .model-index-status {
+      white-space: nowrap;
+    }
+
+    .models-index-list .model-index-tags {
+      gap: 8px;
+    }
+
+    @media (max-width: 720px) {
+      .models-index-list .model-index-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .models-index-list .model-index-media {
+        width: 100%;
+      }
+
+      .models-index-list .model-index-thumb {
+        width: 100%;
+        max-width: none;
+      }
+
+      .models-index-list .model-index-head {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+
+      .models-index-list .model-index-badge-wrap {
+        justify-content: flex-start;
+      }
+
+      .models-index-list .model-index-status {
+        white-space: normal;
+      }
+    }
+  </style>
 </BaseLayout>
