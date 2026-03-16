@@ -144,7 +144,37 @@ p.lead{ font-size: 18px; color: rgba(231,238,247,.85); }
   background: rgba(255,255,255,.04);
   text-decoration:none;
 }
+@media (max-width: 720px){
+  .nav-inner{
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
 
+  .brand{
+    width: 100%;
+    align-items: center;
+  }
+
+  .brand .stack{
+    min-width: 0;
+  }
+
+  .navlinks{
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .navlinks a{
+    padding: 8px 10px;
+  }
+
+  .logo{
+    height: 48px;
+    width: auto;
+  }
+}
 .hero{
   padding: 34px 0 18px;
 }
