@@ -3,18 +3,31 @@ name: "Skyranger Swift"
 manufacturer: "Skyranger"
 category: "Multiaxe"
 seats: 2
-engine: "Rotax 912 (selon versions)"
-tags: ["STOL", "tube-toile"]
+emptyWeightKg: 262
+mtowKg: 450
+cruiseKmh: 140
+stallKmh: 70
+vneKmh: 195
+vsoKmh: 62
+engine: "Rotax 912 UL"
+year: 2005
+country: "France"
+limitLoadPositiveG: 4
+limitLoadNegativeG: -2
+heroImage: "/images/ulm/Bestoff-swift.jpg"
+tags: ["rapide", "tube-toile", "polyvalent"]
 youtube:
-  url: "https://www.youtube.com/results?search_query=Skyranger+Swift+ULM"
-  title: "Vidéos sur Skyranger Swift"
+  url: "https://www.youtube.com/watch?v=e0X4__hD-z0"
+  title: "4K Flying With Matt - Skyranger Swift Conversion"
 links:
-  - label: "Lien"
-    url: "https://www.skyranger.co.uk/en/swift-2/"
+  - label: "Manuel d'utilisation Swift (FR, PDF)"
+    url: "https://www.skyranger.co.uk/wp-content/uploads/2019/07/Manuel-uti-musk-SW-V3-07-2018.pdf"
+  - label: "Manuel opérateur Swift / Swift 2 (PDF)"
+    url: "https://www.skyranger.co.uk/wp-content/uploads/2018/10/Skyranger-Swift-Swift-2-Operators-manual-issue-3.pdf"
+  - label: "Histoire de la gamme Skyranger"
+    url: "https://www.skyranger.co.uk/en/the-skyranger-story/"
+editorialStatus: "enrichie"
 ---
-**But de cette fiche :** base de travail pour remplir progressivement les specs (masses, vitesses, autonomie) avec des données vérifiées.
+Le Skyranger Swift est la déclinaison à aile courte du Skyranger, pensée pour tirer un meilleur parti des moteurs de 80 à 100 ch et gagner en vivacité comme en vitesse de déplacement. Il conserve la simplicité structurelle, la réparabilité et la philosophie utilitaire de la famille, mais avec un tempérament un peu plus rapide et plus tendu en navigation que le Skyranger classique.
 
-✅ À faire :
-- compléter les champs `emptyWeightKg`, `mtowKg`, `cruiseKmh`, `stallKmh`, `rangeKm`
-- remplacer la recherche YouTube par **une vidéo précise** (url `watch?v=...`)
-- ajouter 1–2 liens fiables (constructeur, manuel/POH, distributeur)
+*Note éditoriale :* les spécifications retenues ici correspondent explicitement au Swift d’origine en Rotax 912 UL à 450 kg, tel qu’il est documenté dans le manuel français. Il ne faut pas le confondre avec le Swift 2 de 2014 ni avec le Swift 3 actuel, qui reprennent le concept mais avec des évolutions notables de cellule, d’équipement et parfois de masse maximale.
