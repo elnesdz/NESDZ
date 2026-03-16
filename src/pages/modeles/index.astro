@@ -62,36 +62,6 @@ const explorerTags = MODEL_TAGS
     </div>
   </section>
 
-  {explorerTags.length > 0 && (
-    <section class="container" style="padding: 6px 0 14px;">
-      <div class="card">
-        <div class="pad">
-          <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-            <h2 style="margin:0;">Explorer par tags</h2>
-            <span class="pill">{explorerTags.length} tags</span>
-          </div>
-
-          <p style="margin:8px 0 0; color:var(--muted);">
-            Parcours l’annuaire par usages, matériaux ou profils de machines.
-          </p>
-
-          <div class="row" style="gap:10px;flex-wrap:wrap;margin-top:14px;">
-            {explorerTags.map((tag) => (
-              <a
-                class="pill"
-                href={`/tags/${tag.key}/`}
-                title={`Voir le tag ${tag.label}`}
-                style="text-decoration:none;"
-              >
-                {tag.label} · {tag.count}
-              </a>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  )}
-
   <section class="container" style="padding: 10px 0 26px;">
     <div class="card">
       <div class="pad">
@@ -131,6 +101,36 @@ const explorerTags = MODEL_TAGS
       </div>
     </div>
   </section>
+
+ {explorerTags.length > 0 && (
+    <section class="container" style="padding: 6px 0 14px;">
+      <div class="card">
+        <div class="pad">
+          <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <h2 style="margin:0;">Explorer par tags</h2>
+            <span class="pill">{explorerTags.length} tags</span>
+          </div>
+
+          <p style="margin:8px 0 0; color:var(--muted);">
+            Parcours l’annuaire par usages, matériaux ou profils de machines.
+          </p>
+
+          <div class="row" style="gap:10px;flex-wrap:wrap;margin-top:14px;">
+            {explorerTags.map((tag) => (
+              <a
+                class="pill"
+                href={`/tags/${tag.key}/`}
+                title={`Voir le tag ${tag.label}`}
+                style="text-decoration:none;"
+              >
+                {tag.label} · {tag.count}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
 
   <script type="module" define:vars={{ models: modelsData }}>
     const $ = (s) => document.querySelector(s);
