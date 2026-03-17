@@ -101,15 +101,26 @@ const homeModelThemes = MODEL_TAGS
   .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, "fr", { sensitivity: "base" }))
   .slice(0, 6);
 ---
+<style>
+  .home-hero-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+    align-items: start;
+  }
 
+  @media (min-width: 1024px) {
+    .home-hero-grid {
+      grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.9fr);
+    }
+  }
+</style>
 <BaseLayout
   title="Accueil"
   description="NESDZ : édito, articles et annuaire des ULM (fiches techniques + vidéos)."
 >
   <section class="hero">
-    <div
-  class="container hero-grid"
-  style="display:grid;grid-template-columns:minmax(0,1.7fr) minmax(320px,0.9fr);gap:18px;align-items:start;"
+ <div class="container hero-grid home-hero-grid">
 >
       <article class="card hero-card">
         <div class="meta">
