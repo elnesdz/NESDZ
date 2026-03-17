@@ -1,6 +1,5 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import ArticleCard from "../components/ArticleCard.astro";
 import ModelCard from "../components/ModelCard.astro";
 import { getCollection } from "astro:content";
 import { FEATURED_TAG_KEYS, MODEL_TAGS, getTagByKey } from "../lib/tags";
@@ -36,7 +35,7 @@ const models = [...allModels]
   })
   .slice(0, 4);
 
-function slugify(input) {
+function slugify(input: string) {
   return String(input)
     .trim()
     .toLowerCase()
@@ -47,7 +46,7 @@ function slugify(input) {
 }
 
 // Tags existants (pour éviter les liens morts)
-const tagSlugs = new Set();
+const tagSlugs = new Set<string>();
 for (const a of allArticles) {
   for (const t of a.data.tags ?? []) tagSlugs.add(slugify(t));
 }
@@ -56,7 +55,9 @@ for (const m of allModels) {
 }
 
 const featuredCategorySlug = featured ? slugify(featured.data.category) : "";
-const featuredCategoryIsTag = featuredCategorySlug ? tagSlugs.has(featuredCategorySlug) : false;
+const featuredCategoryIsTag = featuredCategorySlug
+  ? tagSlugs.has(featuredCategorySlug)
+  : false;
 
 const securiteSlug = slugify("Sécurité");
 const securiteIsTag = tagSlugs.has(securiteSlug);
@@ -98,9 +99,14 @@ const homeModelThemes = MODEL_TAGS
     };
   })
   .filter(Boolean)
-  .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, "fr", { sensitivity: "base" }))
+  .sort(
+    (a, b) =>
+      b.count - a.count ||
+      a.label.localeCompare(b.label, "fr", { sensitivity: "base" })
+  )
   .slice(0, 6);
 ---
+
 <style>
   .home-hero-grid {
     display: grid;
@@ -109,15 +115,28 @@ const homeModelThemes = MODEL_TAGS
     align-items: start;
   }
 
- @media (min-width: 1100px) {
-  .home-hero-grid {
-    grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.9fr);
+  .home-hero-grid > * {
+    min-width: 0;
   }
-}
+
+  .home-hero-grid .hero-card,
+  .home-hero-grid .hero-aside {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+  }
+
+  @media (min-width: 1100px) {
+    .home-hero-grid {
+      grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.9fr);
+    }
+  }
 </style>
+
 <BaseLayout
   title="Accueil"
   description="NESDZ : édito, articles et annuaire des ULM (fiches techniques + vidéos)."
+>
   <section class="hero">
     <div class="container home-hero-grid">
       <article class="card hero-card">
@@ -149,12 +168,17 @@ const homeModelThemes = MODEL_TAGS
 
         {featured && (
           <div>
-            <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;">
+            <div
+              class="row"
+              style="justify-content:space-between;align-items:center;flex-wrap:wrap;"
+            >
               <div class="row" style="gap:10px;flex-wrap:wrap;">
                 <span class="badge">À la une</span>
 
                 {featuredCategoryIsTag ? (
-                  <a class="pill" href={`/tags/${featuredCategorySlug}/`}>{featured.data.category}</a>
+                  <a class="pill" href={`/tags/${featuredCategorySlug}/`}>
+                    {featured.data.category}
+                  </a>
                 ) : (
                   <span class="pill">{featured.data.category}</span>
                 )}
@@ -181,55 +205,61 @@ const homeModelThemes = MODEL_TAGS
       <aside class="hero-aside">
         <div class="card">
           <div class="pad">
-            <div class="row" style="justify-content:space-between;align-items:center;">
+            <div
+              class="row"
+              style="justify-content:space-between;align-items:center;"
+            >
               <h2 style="margin:0;">Derniers articles</h2>
               <span class="pill">5</span>
             </div>
 
-<ul class="mt-4 space-y-6">
-  {latest.map((article) => {
-    const displayDate = article.data.updated ?? article.data.date;
-    const isUpdated = Boolean(article.data.updated);
+            <ul class="mt-4 space-y-6">
+              {latest.map((article) => {
+                const displayDate = article.data.updated ?? article.data.date;
+                const isUpdated = Boolean(article.data.updated);
 
-    return (
-      <li>
-        <a
-          href={`/journal/${article.slug}/`}
-          class="group block"
-        >
-          <div class="mb-1 text-xs text-neutral-500">
-            {isUpdated && (
-              <span class="mr-2 text-cyan-400">Mis à jour</span>
-            )}
-            <time datetime={new Date(displayDate).toISOString()}>
-              {new Date(displayDate).toLocaleDateString("fr-FR", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
+                return (
+                  <li>
+                    <a
+                      href={`/journal/${article.slug}/`}
+                      class="group block"
+                    >
+                      <div class="mb-1 text-xs text-neutral-500">
+                        {isUpdated && (
+                          <span class="mr-2 text-cyan-400">Mis à jour</span>
+                        )}
+                        <time datetime={new Date(displayDate).toISOString()}>
+                          {new Date(displayDate).toLocaleDateString("fr-FR", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </time>
+                      </div>
+
+                      <h3 class="text-base font-semibold leading-snug text-white transition group-hover:text-cyan-300">
+                        {article.data.title}
+                      </h3>
+
+                      {article.data.description && (
+                        <p class="mt-2 line-clamp-2 text-sm leading-relaxed text-neutral-400">
+                          {article.data.description}
+                        </p>
+                      )}
+                    </a>
+                  </li>
+                );
               })}
-            </time>
-          </div>
-
-          <h3 class="text-base font-semibold leading-snug text-white transition group-hover:text-cyan-300">
-            {article.data.title}
-          </h3>
-
-          {article.data.description && (
-            <p class="mt-2 line-clamp-2 text-sm leading-relaxed text-neutral-400">
-              {article.data.description}
-            </p>
-          )}
-        </a>
-      </li>
-    );
-  })}
-</ul>
+            </ul>
           </div>
         </div>
 
         <div class="card">
           <div class="pad">
-            <div class="row" style="justify-content:space-between;align-items:center;">
+            <div
+              class="row"
+              style="justify-content:space-between;align-items:center;"
+            >
               <h2 style="margin:0;">Modèles en vedette</h2>
               <span class="pill">{models.length}</span>
             </div>
@@ -259,9 +289,14 @@ const homeModelThemes = MODEL_TAGS
     <section class="container" style="padding: 8px 0 18px;">
       <div class="card">
         <div class="pad">
-          <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div
+            class="row"
+            style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;"
+          >
             <h2 style="margin:0;">Explorer par thèmes</h2>
-            <span class="pill">{homeJournalThemes.length + homeModelThemes.length} entrées</span>
+            <span class="pill">
+              {homeJournalThemes.length + homeModelThemes.length} entrées
+            </span>
           </div>
 
           <p style="margin:8px 0 0; color:var(--muted);">
@@ -271,7 +306,10 @@ const homeModelThemes = MODEL_TAGS
           <div class="grid grid-2" style="margin-top:14px;gap:14px;">
             <div class="card" style="box-shadow:none;">
               <div class="pad">
-                <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+                <div
+                  class="row"
+                  style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;"
+                >
                   <h3 style="margin:0;">Journal</h3>
                   <span class="pill">{homeJournalThemes.length}</span>
                 </div>
@@ -297,7 +335,10 @@ const homeModelThemes = MODEL_TAGS
 
             <div class="card" style="box-shadow:none;">
               <div class="pad">
-                <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+                <div
+                  class="row"
+                  style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;"
+                >
                   <h3 style="margin:0;">Modèles ULM</h3>
                   <span class="pill">{homeModelThemes.length}</span>
                 </div>
