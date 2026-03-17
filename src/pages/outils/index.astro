@@ -145,14 +145,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       return `${altim} hPa`;
     }
 
-    function formatStatus(item) {
-      if (!item) return "Aucune donnée";
-      if (item.fltCat === "VFR") return "Conditions VFR";
-      if (item.fltCat === "MVFR") return "Conditions VFR marginales";
-      if (item.fltCat === "IFR") return "Conditions IFR";
-      if (item.fltCat === "LIFR") return "Conditions IFR basses";
-      return "Données reçues";
-    }
+function formatStatus(item) {
+  if (!item) return "Aucune donnée";
+  if (item.fltCat === "VFR") return "🟢 Conditions VFR (bonnes)";
+  if (item.fltCat === "MVFR") return "🟡 VFR marginal (à surveiller)";
+  if (item.fltCat === "IFR") return "🔴 IFR (dégradé)";
+  if (item.fltCat === "LIFR") return "🚨 IFR basse (très dégradé)";
+  return "Données météo reçues";
+}
 
     async function loadMetar() {
       const icao = icaoInput?.value?.trim().toUpperCase();
