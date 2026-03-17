@@ -174,19 +174,44 @@ const homeModelThemes = MODEL_TAGS
               <span class="pill">5</span>
             </div>
 
-            <div class="list" style="margin-top:12px;">
-              {latest.map((a) => (
-                <ArticleCard
-                  href={`/journal/${a.slug}/`}
-                  title={a.data.title}
-                  description={a.data.description}
-                  date={a.data.date}
-                  updated={a.data.updated}
-                  category={a.data.category}
-                  tags={a.data.tags}
-                />
-              ))}
-            </div>
+<ul class="space-y-4 mt-3">
+  {latestArticles.map((article) => {
+    const displayDate = article.data.updated ?? article.data.date;
+    const isUpdated = Boolean(article.data.updated);
+
+    return (
+      <li>
+        <a
+          href={`/journal/${article.slug}/`}
+          class="group block border-b border-white/10 pb-4 last:border-b-0 last:pb-0"
+        >
+          <div class="mb-2 flex items-center gap-2 text-[11px] text-neutral-400">
+            <span class="inline-flex rounded-full border border-white/10 px-2 py-1">
+              {isUpdated ? "Mis à jour" : "Publié"}
+            </span>
+            <time datetime={new Date(displayDate).toISOString()}>
+              {new Date(displayDate).toLocaleDateString("fr-FR", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+            </time>
+          </div>
+
+          <h3 class="text-base font-semibold leading-snug text-white transition group-hover:text-cyan-300">
+            {article.data.title}
+          </h3>
+
+          {article.data.description && (
+            <p class="mt-2 line-clamp-2 text-sm leading-6 text-neutral-400">
+              {article.data.description}
+            </p>
+          )}
+        </a>
+      </li>
+    );
+  })}
+</ul>
           </div>
         </div>
 
