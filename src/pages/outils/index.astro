@@ -177,12 +177,21 @@ function formatStatus(item) {
         const res = await fetch(`${WORKER_URL}?icao=${encodeURIComponent(icao)}`);
         const data = await res.json();
 
-        if (!Array.isArray(data) || data.length === 0) {
-          metarOutput.textContent = "Aucune donnée trouvée pour ce terrain.";
-          resetDecoded();
-          statusValue.textContent = "Aucune donnée";
-          return;
-        }
+     if (!Array.isArray(data) || data.length === 0) {
+  metarOutput.textContent =
+    `Aucune observation METAR trouvée pour ${icao}. Vérifie le code OACI ou teste un terrain disposant d’une météo publiée.`;
+
+  resetDecoded();
+  statusValue.textContent = "Aucune donnée météo disponible";
+  nameValue.textContent = icao;
+  windValue.textContent = "Non disponible";
+  visibilityValue.textContent = "Non disponible";
+  cloudsValue.textContent = "Non disponible";
+  tempValue.textContent = "Non disponible";
+  pressureValue.textContent = "Non disponible";
+  fltCatValue.textContent = "Non disponible";
+  return;
+}
 
         const item = data[0];
 
