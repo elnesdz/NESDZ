@@ -45,8 +45,8 @@ const editorialStatusTooltip = editorialStatus
   <a class="itemLink" href={href} aria-label={`Ouvrir la fiche modèle : ${name}`}></a>
 
   <div class="itemContent">
-    <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px;">
-      <div>
+    <div class="itemHead">
+      <div class="itemText">
         <div class="t">{name}</div>
         <div class="s">
           {(manufacturer ? `${manufacturer} · ` : "")}{category} · {seats} place{seats > 1 ? "s" : ""}
@@ -55,7 +55,7 @@ const editorialStatusTooltip = editorialStatus
         </div>
       </div>
 
-      <div class="row" style="gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+      <div class="itemStatus">
         {editorialStatusLabel ? (
           <span
             class="pill"
@@ -70,7 +70,7 @@ const editorialStatusTooltip = editorialStatus
       </div>
     </div>
 
-    <div class="row" style="margin-top:10px;flex-wrap:wrap;">
+    <div class="itemMeta">
       {(tags ?? []).slice(0, 4).map((t) => (
         <a class="pill tagLink" href={"/tags/" + slugify(t) + "/"} title={"Tag : " + t}>
           {t}
@@ -98,8 +98,47 @@ const editorialStatusTooltip = editorialStatus
     position: relative;
   }
 
+  .itemHead {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .itemText {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .itemStatus {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    flex: 0 0 auto;
+  }
+
+  .itemMeta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
   .tagLink {
     position: relative;
     z-index: 2;
+  }
+
+  @media (max-width: 720px) {
+    .itemHead {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .itemStatus {
+      justify-content: flex-start;
+      width: 100%;
+    }
   }
 </style>
