@@ -175,7 +175,7 @@ const homeModelThemes = MODEL_TAGS
             </div>
 
 <ul class="space-y-4 mt-3">
-  {latestArticles.map((article) => {
+{latest.map((article) => {
     const displayDate = article.data.updated ?? article.data.date;
     const isUpdated = Boolean(article.data.updated);
 
