@@ -174,8 +174,8 @@ const homeModelThemes = MODEL_TAGS
               <span class="pill">5</span>
             </div>
 
-<ul class="space-y-4 mt-3">
-{latest.map((article) => {
+<ul class="mt-4 space-y-6">
+  {latest.map((article) => {
     const displayDate = article.data.updated ?? article.data.date;
     const isUpdated = Boolean(article.data.updated);
 
@@ -183,12 +183,12 @@ const homeModelThemes = MODEL_TAGS
       <li>
         <a
           href={`/journal/${article.slug}/`}
-          class="group block border-b border-white/10 pb-4 last:border-b-0 last:pb-0"
+          class="group block"
         >
-          <div class="mb-2 flex items-center gap-2 text-[11px] text-neutral-400">
-            <span class="inline-flex rounded-full border border-white/10 px-2 py-1">
-              {isUpdated ? "Mis à jour" : "Publié"}
-            </span>
+          <div class="mb-1 text-xs text-neutral-500">
+            {isUpdated && (
+              <span class="mr-2 text-cyan-400">Mis à jour</span>
+            )}
             <time datetime={new Date(displayDate).toISOString()}>
               {new Date(displayDate).toLocaleDateString("fr-FR", {
                 day: "numeric",
@@ -203,7 +203,7 @@ const homeModelThemes = MODEL_TAGS
           </h3>
 
           {article.data.description && (
-            <p class="mt-2 line-clamp-2 text-sm leading-6 text-neutral-400">
+            <p class="mt-2 line-clamp-2 text-sm leading-relaxed text-neutral-400">
               {article.data.description}
             </p>
           )}
