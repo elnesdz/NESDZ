@@ -30,22 +30,26 @@ const tagLinks = (tags ?? [])
 ---
 
 <article class="item">
-  <!-- Hitbox: toute la card ouvre l’article -->
   <a class="itemLink" href={href} aria-label={`Ouvrir l’article : ${title}`}></a>
 
-  <div class="row itemContent" style="gap:12px; align-items:flex-start;">
-    {image ? <img class="thumb" src={image} alt={title} loading="lazy" /> : null}
+  <div class="itemContent">
+    {image ? (
+      <div class="itemMedia">
+        <img class="itemThumb" src={image} alt={title} loading="lazy" />
+      </div>
+    ) : null}
 
-    <div style="flex:1; min-width:0;">
-      <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px;">
-        <div>
+    <div class="itemBody">
+      <div class="itemHead">
+        <div class="itemText">
           <div class="t">{title}</div>
           <div class="s">{description}</div>
         </div>
-        <span class="pill">{dateLabel}</span>
+
+        <span class="pill itemDate">{dateLabel}</span>
       </div>
 
-      <div class="row" style="margin-top:10px;flex-wrap:wrap;">
+      <div class="itemMeta">
         <span class="badge">{category}</span>
 
         {tagLinks.map((t) => (
@@ -66,21 +70,84 @@ const tagLinks = (tags ?? [])
     text-decoration: none;
   }
 
-  /* Lien “hitbox” au-dessus de la card */
   .itemLink {
     position: absolute;
     inset: 0;
     z-index: 1;
   }
 
-  /* Contenu en dessous de la hitbox */
   .itemContent {
     position: relative;
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
   }
 
-  /* Les tags passent au-dessus de la hitbox pour rester cliquables */
+  .itemMedia {
+    min-width: 0;
+  }
+
+  .itemThumb {
+    width: 100%;
+    display: block;
+  }
+
+  .itemBody {
+    min-width: 0;
+  }
+
+  .itemHead {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .itemText {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .itemDate {
+    white-space: normal;
+    flex: 0 0 auto;
+    max-width: 120px;
+    text-align: center;
+  }
+
+  .itemMeta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
   .tagLink {
     position: relative;
     z-index: 2;
+  }
+
+  @media (max-width: 720px) {
+    .itemContent {
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .itemThumb {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .itemHead {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .itemDate {
+      max-width: none;
+      text-align: left;
+    }
   }
 </style>
