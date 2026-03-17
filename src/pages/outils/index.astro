@@ -2,117 +2,148 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="Outils pilote" description="Météo aviation, METAR, TAF et aérodromes à proximité.">
+<BaseLayout
+  title="Outils pilote"
+  description="Météo aviation, METAR, TAF et aérodromes à proximité."
+>
+  <section class="container" style="padding: 20px 0;">
+    <div class="card">
+      <div class="pad">
+        <h1>Outils pilote</h1>
 
-<section class="container" style="padding: 20px 0;">
-  <div class="card">
-    <div class="pad">
+        <div class="tool-block">
+          <label for="icaoInput">Code OACI</label>
+          <div class="row">
+            <input id="icaoInput" placeholder="Ex : LFPN" />
+            <button id="loadMetarBtn" type="button">Voir METAR / TAF</button>
+          </div>
+        </div>
 
-      <h1>Outils pilote</h1>
+        <div class="tool-block">
+          <h2>METAR / TAF</h2>
+          <pre id="metarOutput">Aucune donnée</pre>
+        </div>
 
-      <!-- INPUT OACI -->
-      <div class="tool-block">
-        <label>Code OACI</label>
-        <div class="row">
-          <input id="icaoInput" placeholder="Ex : LFPN" />
-          <button onclick="loadMetar()">Voir METAR / TAF</button>
+        <div class="tool-block">
+          <h2>Aérodromes à proximité</h2>
+          <button id="nearbyBtn" type="button">Autour de moi</button>
+          <ul id="nearbyAirports"></ul>
         </div>
       </div>
-
-      <!-- RESULT METAR -->
-      <div class="tool-block">
-        <h2>METAR / TAF</h2>
-        <pre id="metarOutput">Aucune donnée</pre>
-      </div>
-
-      <!-- AERODROMES PROCHES -->
-      <div class="tool-block">
-        <h2>Aérodromes à proximité</h2>
-        <button onclick="getLocation()">Autour de moi</button>
-        <ul id="nearbyAirports"></ul>
-      </div>
-
     </div>
-  </div>
-</section>
+  </section>
 
-<script>
-async function loadMetar() {
-  const icao = document.getElementById("icaoInput").value.trim().toUpperCase();
-  const output = document.getElementById("metarOutput");
+  <script is:inline>
+    const icaoInput = document.getElementById("icaoInput");
+    const metarOutput = document.getElementById("metarOutput");
+    const nearbyAirports = document.getElementById("nearbyAirports");
+    const loadMetarBtn = document.getElementById("loadMetarBtn");
+    const nearbyBtn = document.getElementById("nearbyBtn");
 
-  if (!icao) {
-    output.textContent = "Entre un code OACI.";
-    return;
-  }
+    async function loadMetar() {
+      const icao = icaoInput?.value?.trim().toUpperCase();
 
-  try {
-    const res = await fetch(
-      "https://aviationweather.gov/api/data/metar?ids=" + icao + "&format=raw"
-    );
-    const data = await res.text();
+      if (!icao) {
+        metarOutput.textContent = "Entre un code OACI.";
+        return;
+      }
 
-    if (!data) {
-      output.textContent = "Aucune donnée trouvée.";
-      return;
+      metarOutput.textContent = "Chargement...";
+
+      try {
+        const metarRes = await fetch(
+          `https://aviationweather.gov/api/data/metar?ids=${encodeURIComponent(icao)}&format=raw`
+        );
+        const tafRes = await fetch(
+          `https://aviationweather.gov/api/data/taf?ids=${encodeURIComponent(icao)}&format=raw`
+        );
+
+        const metarText = (await metarRes.text()).trim();
+        const tafText = (await tafRes.text()).trim();
+
+        const metarPart = metarText || "Aucun METAR trouvé.";
+        const tafPart = tafText || "Aucun TAF trouvé.";
+
+        metarOutput.textContent = `METAR\n${metarPart}\n\nTAF\n${tafPart}`;
+      } catch (error) {
+        metarOutput.textContent =
+          "Erreur lors de la récupération des données météo.";
+        console.error(error);
+      }
     }
 
-    output.textContent = data;
+    function getLocation() {
+      nearbyAirports.innerHTML = "";
 
-  } catch (e) {
-    output.textContent = "Erreur lors de la récupération.";
-  }
-}
+      if (!navigator.geolocation) {
+        nearbyAirports.innerHTML =
+          "<li>La géolocalisation n’est pas supportée sur cet appareil.</li>";
+        return;
+      }
 
-function getLocation() {
-  const list = document.getElementById("nearbyAirports");
+      nearbyAirports.innerHTML = "<li>Localisation en cours...</li>";
 
-  if (!navigator.geolocation) {
-    list.innerHTML = "<li>Géolocalisation non supportée</li>";
-    return;
-  }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
 
-  navigator.geolocation.getCurrentPosition(async (pos) => {
-    const lat = pos.coords.latitude;
-    const lon = pos.coords.longitude;
+          nearbyAirports.innerHTML = `
+            <li>Position détectée : ${lat.toFixed(4)}, ${lon.toFixed(4)}</li>
+            <li>Étape suivante : brancher une vraie base d’aérodromes proches.</li>
+          `;
+        },
+        (error) => {
+          nearbyAirports.innerHTML =
+            "<li>Impossible de récupérer la position.</li>";
+          console.error(error);
+        }
+      );
+    }
 
-    // Simulation simple pour l’instant
-    list.innerHTML = `
-      <li>Position : ${lat.toFixed(2)}, ${lon.toFixed(2)}</li>
-      <li>(Étape suivante : vraie base aérodromes)</li>
-    `;
-  });
-}
-</script>
+    loadMetarBtn?.addEventListener("click", loadMetar);
+    nearbyBtn?.addEventListener("click", getLocation);
 
-<style>
-.tool-block {
-  margin-top: 20px;
-}
+    icaoInput?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        loadMetar();
+      }
+    });
+  </script>
 
-.tool-block input {
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.05);
-  color: white;
-}
+  <style>
+    .tool-block {
+      margin-top: 20px;
+    }
 
-.tool-block button {
-  padding: 10px 14px;
-  border-radius: 8px;
-  background: var(--accent);
-  border: none;
-  color: white;
-  cursor: pointer;
-}
+    .tool-block input {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+    }
 
-pre {
-  background: rgba(0,0,0,0.4);
-  padding: 10px;
-  border-radius: 8px;
-  overflow-x: auto;
-}
-</style>
+    .tool-block button {
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: var(--accent);
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
 
+    pre {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 10px;
+      border-radius: 8px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    #nearbyAirports {
+      margin-top: 12px;
+      padding-left: 18px;
+    }
+  </style>
 </BaseLayout>
