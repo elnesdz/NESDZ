@@ -145,14 +145,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       return `${altim} hPa`;
     }
 
-function formatStatus(item) {
-  if (!item) return "Aucune donnée";
-  if (item.fltCat === "VFR") return "🟢 Conditions VFR (bonnes)";
-  if (item.fltCat === "MVFR") return "🟡 VFR marginal (à surveiller)";
-  if (item.fltCat === "IFR") return "🔴 IFR (dégradé)";
-  if (item.fltCat === "LIFR") return "🚨 IFR basse (très dégradé)";
-  return "Données météo reçues";
-}
+    function formatStatus(item) {
+      if (!item) return "Aucune donnée";
+      if (item.fltCat === "VFR") return "🟢 Conditions VFR (bonnes)";
+      if (item.fltCat === "MVFR") return "🟡 VFR marginal (à surveiller)";
+      if (item.fltCat === "IFR") return "🔴 IFR (dégradé)";
+      if (item.fltCat === "LIFR") return "🚨 IFR basse (très dégradé)";
+      return "Données météo reçues";
+    }
 
     async function loadMetar() {
       const icao = icaoInput?.value?.trim().toUpperCase();
@@ -175,30 +175,63 @@ function formatStatus(item) {
 
       try {
         const res = await fetch(`${WORKER_URL}?icao=${encodeURIComponent(icao)}`);
+
+        if (!res.ok) {
+          metarOutput.textContent =
+            `Impossible de récupérer la météo pour ${icao}. La source a renvoyé une erreur technique.`;
+
+          resetDecoded();
+          statusValue.textContent = "Erreur technique";
+          nameValue.textContent = icao;
+          windValue.textContent = "Indisponible";
+          visibilityValue.textContent = "Indisponible";
+          cloudsValue.textContent = "Indisponible";
+          tempValue.textContent = "Indisponible";
+          pressureValue.textContent = "Indisponible";
+          fltCatValue.textContent = "Indisponible";
+          return;
+        }
+
         const data = await res.json();
 
-     if (!Array.isArray(data) || data.length === 0) {
-  metarOutput.textContent =
-    `Aucune observation METAR trouvée pour ${icao}. Vérifie le code OACI ou teste un terrain disposant d’une météo publiée.`;
+        if (!Array.isArray(data) || data.length === 0) {
+          metarOutput.textContent =
+            `Aucune observation METAR trouvée pour ${icao}. Vérifie le code OACI ou teste un terrain disposant d’une météo publiée.`;
 
-  resetDecoded();
-  statusValue.textContent = "Aucune donnée météo disponible";
-  nameValue.textContent = icao;
-  windValue.textContent = "Non disponible";
-  visibilityValue.textContent = "Non disponible";
-  cloudsValue.textContent = "Non disponible";
-  tempValue.textContent = "Non disponible";
-  pressureValue.textContent = "Non disponible";
-  fltCatValue.textContent = "Non disponible";
-  return;
-}
+          resetDecoded();
+          statusValue.textContent = "Aucune donnée météo disponible";
+          nameValue.textContent = icao;
+          windValue.textContent = "Non disponible";
+          visibilityValue.textContent = "Non disponible";
+          cloudsValue.textContent = "Non disponible";
+          tempValue.textContent = "Non disponible";
+          pressureValue.textContent = "Non disponible";
+          fltCatValue.textContent = "Non disponible";
+          return;
+        }
 
         const item = data[0];
+
+        if (!item || typeof item !== "object") {
+          metarOutput.textContent =
+            `Réponse météo inexploitable pour ${icao}.`;
+
+          resetDecoded();
+          statusValue.textContent = "Réponse invalide";
+          nameValue.textContent = icao;
+          windValue.textContent = "Indisponible";
+          visibilityValue.textContent = "Indisponible";
+          cloudsValue.textContent = "Indisponible";
+          tempValue.textContent = "Indisponible";
+          pressureValue.textContent = "Indisponible";
+          fltCatValue.textContent = "Indisponible";
+          return;
+        }
 
         metarOutput.textContent = item.rawOb || "METAR brut indisponible";
 
         statusValue.textContent = formatStatus(item);
-        nameValue.textContent = item.name || item.icaoId || "—";
+        nameValue.textContent = item.name || item.icaoId || icao;
         windValue.textContent = formatWind(item.wdir, item.wspd);
         visibilityValue.textContent = formatVisibility(item.visib);
         cloudsValue.textContent = formatClouds(item);
@@ -207,9 +240,17 @@ function formatStatus(item) {
         fltCatValue.textContent = item.fltCat || "—";
       } catch (error) {
         metarOutput.textContent =
-          "Erreur lors de la récupération des données météo.";
+          `Erreur lors de la récupération des données météo pour ${icao}.`;
+
         resetDecoded();
-        statusValue.textContent = "Erreur";
+        statusValue.textContent = "Erreur technique";
+        nameValue.textContent = icao;
+        windValue.textContent = "Indisponible";
+        visibilityValue.textContent = "Indisponible";
+        cloudsValue.textContent = "Indisponible";
+        tempValue.textContent = "Indisponible";
+        pressureValue.textContent = "Indisponible";
+        fltCatValue.textContent = "Indisponible";
         console.error(error);
       }
     }
