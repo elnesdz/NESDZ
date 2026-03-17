@@ -13,14 +13,59 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         <div class="tool-block">
           <label for="icaoInput">Code OACI</label>
-          <div class="row">
-            <input id="icaoInput" placeholder="Ex : LFPN" />
+          <div class="row tool-row">
+            <input id="icaoInput" placeholder="Ex : LFQQ" value="LFQQ" />
             <button id="loadMetarBtn" type="button">Voir METAR / TAF</button>
           </div>
         </div>
 
         <div class="tool-block">
-          <h2>METAR / TAF</h2>
+          <h2>Lecture rapide</h2>
+          <div id="decodedOutput" class="decoded-grid">
+            <div class="decoded-card">
+              <span class="decoded-label">Statut</span>
+              <strong id="statusValue">Aucune donnée</strong>
+            </div>
+
+            <div class="decoded-card">
+              <span class="decoded-label">Terrain</span>
+              <strong id="nameValue">—</strong>
+            </div>
+
+            <div class="decoded-card">
+              <span class="decoded-label">Vent</span>
+              <strong id="windValue">—</strong>
+            </div>
+
+            <div class="decoded-card">
+              <span class="decoded-label">Visibilité</span>
+              <strong id="visibilityValue">—</strong>
+            </div>
+
+            <div class="decoded-card">
+              <span class="decoded-label">Nuages</span>
+              <strong id="cloudsValue">—</strong>
+            </div>
+
+            <div class="decoded-card">
+              <span class="decoded-label">Température</span>
+              <strong id="tempValue">—</strong>
+            </div>
+
+            <div class="decoded-card">
+              <span class="decoded-label">Pression</span>
+              <strong id="pressureValue">—</strong>
+            </div>
+
+            <div class="decoded-card">
+              <span class="decoded-label">Catégorie vol</span>
+              <strong id="fltCatValue">—</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-block">
+          <h2>METAR brut</h2>
           <pre id="metarOutput">Aucune donnée</pre>
         </div>
 
@@ -34,40 +79,128 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
   </section>
 
   <script is:inline>
+    const WORKER_URL = "https://metar-proxy-nesdz.elnesdz.workers.dev/";
+
     const icaoInput = document.getElementById("icaoInput");
     const metarOutput = document.getElementById("metarOutput");
     const nearbyAirports = document.getElementById("nearbyAirports");
     const loadMetarBtn = document.getElementById("loadMetarBtn");
     const nearbyBtn = document.getElementById("nearbyBtn");
 
+    const statusValue = document.getElementById("statusValue");
+    const nameValue = document.getElementById("nameValue");
+    const windValue = document.getElementById("windValue");
+    const visibilityValue = document.getElementById("visibilityValue");
+    const cloudsValue = document.getElementById("cloudsValue");
+    const tempValue = document.getElementById("tempValue");
+    const pressureValue = document.getElementById("pressureValue");
+    const fltCatValue = document.getElementById("fltCatValue");
+
+    function resetDecoded() {
+      statusValue.textContent = "Aucune donnée";
+      nameValue.textContent = "—";
+      windValue.textContent = "—";
+      visibilityValue.textContent = "—";
+      cloudsValue.textContent = "—";
+      tempValue.textContent = "—";
+      pressureValue.textContent = "—";
+      fltCatValue.textContent = "—";
+    }
+
+    function formatWind(dir, speed) {
+      if (dir == null || speed == null) return "—";
+      return `${dir}° à ${speed} kt`;
+    }
+
+    function formatVisibility(visib) {
+      if (visib == null) return "—";
+      if (Number(visib) >= 10) return "10 km ou plus";
+      return `${visib} km`;
+    }
+
+    function formatClouds(item) {
+      if (item?.cover && item?.clouds?.length) {
+        const firstCloud = item.clouds[0];
+        if (firstCloud?.base) {
+          return `${item.cover} à ${firstCloud.base} ft`;
+        }
+        return item.cover;
+      }
+
+      if (item?.cover) return item.cover;
+      return "—";
+    }
+
+    function formatTemp(temp, dewpoint) {
+      if (temp == null && dewpoint == null) return "—";
+      if (temp != null && dewpoint != null) {
+        return `${temp}°C / rosée ${dewpoint}°C`;
+      }
+      if (temp != null) return `${temp}°C`;
+      return `Rosée ${dewpoint}°C`;
+    }
+
+    function formatPressure(altim) {
+      if (altim == null) return "—";
+      return `${altim} hPa`;
+    }
+
+    function formatStatus(item) {
+      if (!item) return "Aucune donnée";
+      if (item.fltCat === "VFR") return "Conditions VFR";
+      if (item.fltCat === "MVFR") return "Conditions VFR marginales";
+      if (item.fltCat === "IFR") return "Conditions IFR";
+      if (item.fltCat === "LIFR") return "Conditions IFR basses";
+      return "Données reçues";
+    }
+
     async function loadMetar() {
       const icao = icaoInput?.value?.trim().toUpperCase();
 
       if (!icao) {
         metarOutput.textContent = "Entre un code OACI.";
+        resetDecoded();
         return;
       }
 
       metarOutput.textContent = "Chargement...";
+      statusValue.textContent = "Chargement...";
+      nameValue.textContent = "…";
+      windValue.textContent = "…";
+      visibilityValue.textContent = "…";
+      cloudsValue.textContent = "…";
+      tempValue.textContent = "…";
+      pressureValue.textContent = "…";
+      fltCatValue.textContent = "…";
 
       try {
-        const metarRes = await fetch(
-          `https://aviationweather.gov/api/data/metar?ids=${encodeURIComponent(icao)}&format=raw`
-        );
-        const tafRes = await fetch(
-          `https://aviationweather.gov/api/data/taf?ids=${encodeURIComponent(icao)}&format=raw`
-        );
+        const res = await fetch(`${WORKER_URL}?icao=${encodeURIComponent(icao)}`);
+        const data = await res.json();
 
-        const metarText = (await metarRes.text()).trim();
-        const tafText = (await tafRes.text()).trim();
+        if (!Array.isArray(data) || data.length === 0) {
+          metarOutput.textContent = "Aucune donnée trouvée pour ce terrain.";
+          resetDecoded();
+          statusValue.textContent = "Aucune donnée";
+          return;
+        }
 
-        const metarPart = metarText || "Aucun METAR trouvé.";
-        const tafPart = tafText || "Aucun TAF trouvé.";
+        const item = data[0];
 
-        metarOutput.textContent = `METAR\n${metarPart}\n\nTAF\n${tafPart}`;
+        metarOutput.textContent = item.rawOb || "METAR brut indisponible";
+
+        statusValue.textContent = formatStatus(item);
+        nameValue.textContent = item.name || item.icaoId || "—";
+        windValue.textContent = formatWind(item.wdir, item.wspd);
+        visibilityValue.textContent = formatVisibility(item.visib);
+        cloudsValue.textContent = formatClouds(item);
+        tempValue.textContent = formatTemp(item.temp, item.dewp);
+        pressureValue.textContent = formatPressure(item.altim);
+        fltCatValue.textContent = item.fltCat || "—";
       } catch (error) {
         metarOutput.textContent =
           "Erreur lors de la récupération des données météo.";
+        resetDecoded();
+        statusValue.textContent = "Erreur";
         console.error(error);
       }
     }
@@ -113,10 +246,16 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
   <style>
     .tool-block {
-      margin-top: 20px;
+      margin-top: 24px;
+    }
+
+    .tool-row {
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .tool-block input {
+      min-width: 220px;
       padding: 10px;
       border-radius: 8px;
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -133,9 +272,30 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       cursor: pointer;
     }
 
+    .decoded-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .decoded-card {
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .decoded-label {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
     pre {
       background: rgba(0, 0, 0, 0.4);
-      padding: 10px;
+      padding: 12px;
       border-radius: 8px;
       overflow-x: auto;
       white-space: pre-wrap;
