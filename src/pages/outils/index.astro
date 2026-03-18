@@ -178,17 +178,17 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         if (!res.ok) {
           metarOutput.textContent =
-            `Impossible de récupérer la météo pour ${icao}. La source a renvoyé une erreur technique.`;
+            `Aucune météo exploitable trouvée pour ${icao}. Ce terrain ne publie peut-être pas de METAR, ou la source n’a pas de donnée disponible actuellement.`;
 
           resetDecoded();
-          statusValue.textContent = "Erreur technique";
+          statusValue.textContent = "⚠️ Météo indisponible";
           nameValue.textContent = icao;
-          windValue.textContent = "Indisponible";
-          visibilityValue.textContent = "Indisponible";
-          cloudsValue.textContent = "Indisponible";
-          tempValue.textContent = "Indisponible";
-          pressureValue.textContent = "Indisponible";
-          fltCatValue.textContent = "Indisponible";
+          windValue.textContent = "Non disponible";
+          visibilityValue.textContent = "Non disponible";
+          cloudsValue.textContent = "Non disponible";
+          tempValue.textContent = "Non disponible";
+          pressureValue.textContent = "Non disponible";
+          fltCatValue.textContent = "Non disponible";
           return;
         }
 
@@ -240,17 +240,17 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         fltCatValue.textContent = item.fltCat || "—";
       } catch (error) {
         metarOutput.textContent =
-          `Erreur lors de la récupération des données météo pour ${icao}.`;
+          `Impossible de joindre la météo pour ${icao} pour le moment. Réessaie dans quelques instants ou teste un terrain plus couvert comme LFQQ ou LFPN.`;
 
         resetDecoded();
-        statusValue.textContent = "Erreur technique";
+        statusValue.textContent = "⚠️ Service météo indisponible";
         nameValue.textContent = icao;
-        windValue.textContent = "Indisponible";
-        visibilityValue.textContent = "Indisponible";
-        cloudsValue.textContent = "Indisponible";
-        tempValue.textContent = "Indisponible";
-        pressureValue.textContent = "Indisponible";
-        fltCatValue.textContent = "Indisponible";
+        windValue.textContent = "Non disponible";
+        visibilityValue.textContent = "Non disponible";
+        cloudsValue.textContent = "Non disponible";
+        tempValue.textContent = "Non disponible";
+        pressureValue.textContent = "Non disponible";
+        fltCatValue.textContent = "Non disponible";
         console.error(error);
       }
     }
