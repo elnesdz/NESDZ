@@ -372,12 +372,27 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             const airports = dedupeAirports(airportsRaw);
 
             const nearest = airports
-              .map((airport) => ({
-                ...airport,
-                distanceKm: getDistanceKm(lat, lon, airport.lat, airport.lon),
-              }))
-              .sort((a, b) => a.distanceKm - b.distanceKm)
-              .slice(0, 8);
+  .map((airport) => ({
+    ...airport,
+    distanceKm: getDistanceKm(lat, lon, airport.lat, airport.lon),
+  }))
+
+  // 🔥 filtre utile
+  .filter((airport) => {
+    // garder uniquement les terrains avec code ICAO valide
+    if (!airport.icao || airport.icao.length !== 4) return false;
+
+    // limiter à 300 km max (évite Paris quand t’es à Lille)
+    if (airport.distanceKm > 300) return false;
+
+    return true;
+  })
+
+  // tri distance
+  .sort((a, b) => a.distanceKm - b.distanceKm)
+
+  // limiter affichage
+  .slice(0, 10);
 
             nearbyAirports.innerHTML = "";
 
