@@ -65,8 +65,23 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         </div>
 
         <div class="tool-block">
+          <h2>Lecture prévision</h2>
+          <div class="decoded-grid">
+            <div class="decoded-card">
+              <span class="decoded-label">Tendance</span>
+              <strong id="tafSummaryValue">Aucune donnée</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-block">
           <h2>METAR brut</h2>
           <pre id="metarOutput">Aucune donnée</pre>
+        </div>
+
+        <div class="tool-block">
+          <h2>TAF brut</h2>
+          <pre id="tafOutput">Aucune donnée</pre>
         </div>
 
         <div class="tool-block">
@@ -83,6 +98,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     const icaoInput = document.getElementById("icaoInput");
     const metarOutput = document.getElementById("metarOutput");
+    const tafOutput = document.getElementById("tafOutput");
     const nearbyAirports = document.getElementById("nearbyAirports");
     const loadMetarBtn = document.getElementById("loadMetarBtn");
     const nearbyBtn = document.getElementById("nearbyBtn");
@@ -95,6 +111,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const tempValue = document.getElementById("tempValue");
     const pressureValue = document.getElementById("pressureValue");
     const fltCatValue = document.getElementById("fltCatValue");
+    const tafSummaryValue = document.getElementById("tafSummaryValue");
 
     function resetDecoded() {
       statusValue.textContent = "Aucune donnée";
@@ -105,6 +122,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       tempValue.textContent = "—";
       pressureValue.textContent = "—";
       fltCatValue.textContent = "—";
+      tafSummaryValue.textContent = "Aucune donnée";
     }
 
     function formatWind(dir, speed) {
@@ -154,16 +172,36 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       return "Données météo reçues";
     }
 
+    function buildSimpleTaf(rawOb, item) {
+      if (!rawOb) return "TAF indisponible";
+
+      if (item?.fltCat === "VFR") {
+        return "Prévision globalement favorable si la tendance reste stable.";
+      }
+
+      if (item?.fltCat === "MVFR") {
+        return "Prévision à surveiller : marges VFR plus faibles.";
+      }
+
+      if (item?.fltCat === "IFR" || item?.fltCat === "LIFR") {
+        return "Prévision dégradée : conditions à analyser avec prudence.";
+      }
+
+      return "Prévision disponible en brut ci-dessous.";
+    }
+
     async function loadMetar() {
       const icao = icaoInput?.value?.trim().toUpperCase();
 
       if (!icao) {
         metarOutput.textContent = "Entre un code OACI.";
+        tafOutput.textContent = "Entre un code OACI.";
         resetDecoded();
         return;
       }
 
       metarOutput.textContent = "Chargement...";
+      tafOutput.textContent = "Chargement...";
       statusValue.textContent = "Chargement...";
       nameValue.textContent = "…";
       windValue.textContent = "…";
@@ -172,6 +210,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       tempValue.textContent = "…";
       pressureValue.textContent = "…";
       fltCatValue.textContent = "…";
+      tafSummaryValue.textContent = "Chargement...";
 
       try {
         const res = await fetch(`${WORKER_URL}?icao=${encodeURIComponent(icao)}`);
@@ -179,6 +218,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         if (!res.ok) {
           metarOutput.textContent =
             `Aucune météo exploitable trouvée pour ${icao}. Ce terrain ne publie peut-être pas de METAR, ou la source n’a pas de donnée disponible actuellement.`;
+          tafOutput.textContent =
+            `Aucune prévision TAF exploitable trouvée pour ${icao}.`;
 
           resetDecoded();
           statusValue.textContent = "⚠️ Météo indisponible";
@@ -189,6 +230,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           tempValue.textContent = "Non disponible";
           pressureValue.textContent = "Non disponible";
           fltCatValue.textContent = "Non disponible";
+          tafSummaryValue.textContent = "Prévision indisponible";
           return;
         }
 
@@ -197,6 +239,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         if (!Array.isArray(data) || data.length === 0) {
           metarOutput.textContent =
             `Aucune observation METAR trouvée pour ${icao}. Vérifie le code OACI ou teste un terrain disposant d’une météo publiée.`;
+          tafOutput.textContent =
+            `Aucune prévision TAF trouvée pour ${icao}.`;
 
           resetDecoded();
           statusValue.textContent = "Aucune donnée météo disponible";
@@ -207,14 +251,15 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           tempValue.textContent = "Non disponible";
           pressureValue.textContent = "Non disponible";
           fltCatValue.textContent = "Non disponible";
+          tafSummaryValue.textContent = "Prévision indisponible";
           return;
         }
 
         const item = data[0];
 
         if (!item || typeof item !== "object") {
-          metarOutput.textContent =
-            `Réponse météo inexploitable pour ${icao}.`;
+          metarOutput.textContent = `Réponse météo inexploitable pour ${icao}.`;
+          tafOutput.textContent = `Réponse prévision inexploitable pour ${icao}.`;
 
           resetDecoded();
           statusValue.textContent = "Réponse invalide";
@@ -225,10 +270,13 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           tempValue.textContent = "Indisponible";
           pressureValue.textContent = "Indisponible";
           fltCatValue.textContent = "Indisponible";
+          tafSummaryValue.textContent = "Prévision indisponible";
           return;
         }
 
         metarOutput.textContent = item.rawOb || "METAR brut indisponible";
+        tafOutput.textContent =
+          item.taf || "TAF non disponible via cette source actuelle";
 
         statusValue.textContent = formatStatus(item);
         nameValue.textContent = item.name || item.icaoId || icao;
@@ -238,9 +286,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         tempValue.textContent = formatTemp(item.temp, item.dewp);
         pressureValue.textContent = formatPressure(item.altim);
         fltCatValue.textContent = item.fltCat || "—";
+        tafSummaryValue.textContent = buildSimpleTaf(item.taf, item);
       } catch (error) {
         metarOutput.textContent =
           `Impossible de joindre la météo pour ${icao} pour le moment. Réessaie dans quelques instants ou teste un terrain plus couvert comme LFQQ ou LFPN.`;
+        tafOutput.textContent =
+          `Impossible de joindre la prévision pour ${icao} pour le moment.`;
 
         resetDecoded();
         statusValue.textContent = "⚠️ Service météo indisponible";
@@ -251,6 +302,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         tempValue.textContent = "Non disponible";
         pressureValue.textContent = "Non disponible";
         fltCatValue.textContent = "Non disponible";
+        tafSummaryValue.textContent = "Prévision indisponible";
         console.error(error);
       }
     }
