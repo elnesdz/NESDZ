@@ -172,23 +172,35 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       return "Données météo reçues";
     }
 
-    function buildSimpleTaf(rawOb, item) {
-      if (!rawOb) return "TAF indisponible";
+    function buildSimpleTaf(rawOb, item, icao) {
+  if (!rawOb) {
+    return `Aucune prévision TAF disponible pour ${icao}. 
+Ce terrain ne publie probablement pas de TAF.
 
-      if (item?.fltCat === "VFR") {
-        return "Prévision globalement favorable si la tendance reste stable.";
-      }
+👉 Conseil pilote :
+- Vérifie un terrain proche (ex: grande plateforme)
+- Analyse la tendance METAR actuelle
+- Complète avec la météo générale (vent / front / visibilité)`;
+  }
 
-      if (item?.fltCat === "MVFR") {
-        return "Prévision à surveiller : marges VFR plus faibles.";
-      }
+  if (item?.fltCat === "VFR") {
+    return "🟢 Prévision favorable : conditions VFR attendues si la tendance se maintient.";
+  }
 
-      if (item?.fltCat === "IFR" || item?.fltCat === "LIFR") {
-        return "Prévision dégradée : conditions à analyser avec prudence.";
-      }
+  if (item?.fltCat === "MVFR") {
+    return "🟡 Prévision à surveiller : conditions VFR marginales possibles.";
+  }
 
-      return "Prévision disponible en brut ci-dessous.";
-    }
+  if (item?.fltCat === "IFR") {
+    return "🔴 Prévision dégradée : conditions IFR probables.";
+  }
+
+  if (item?.fltCat === "LIFR") {
+    return "🚨 Prévision critique : conditions très dégradées.";
+  }
+
+  return "Prévision disponible en brut ci-dessous.";
+}
 
     async function loadMetar() {
       const icao = icaoInput?.value?.trim().toUpperCase();
