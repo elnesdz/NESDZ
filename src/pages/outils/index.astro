@@ -298,7 +298,7 @@ Ce terrain ne publie probablement pas de TAF.
         tempValue.textContent = formatTemp(item.temp, item.dewp);
         pressureValue.textContent = formatPressure(item.altim);
         fltCatValue.textContent = item.fltCat || "—";
-        tafSummaryValue.textContent = buildSimpleTaf(item.taf, item);
+        tafSummaryValue.textContent = buildSimpleTaf(item.taf, item, icao);
       } catch (error) {
         metarOutput.textContent =
           `Impossible de joindre la météo pour ${icao} pour le moment. Réessaie dans quelques instants ou teste un terrain plus couvert comme LFQQ ou LFPN.`;
