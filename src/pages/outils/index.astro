@@ -67,7 +67,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         <div class="tool-block">
           <h2>Lecture prévision</h2>
           <div class="decoded-grid">
-            <div class="decoded-card">
+            <div class="decoded-card decoded-card-wide">
               <span class="decoded-label">Tendance</span>
               <strong id="tafSummaryValue">Aucune donnée</strong>
             </div>
@@ -95,6 +95,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
   <script is:inline>
     const WORKER_URL = "https://metar-proxy-nesdz.elnesdz.workers.dev/";
+    const AIRPORTS_URL = "/data/airports-fr.json";
 
     const icaoInput = document.getElementById("icaoInput");
     const metarOutput = document.getElementById("metarOutput");
@@ -173,34 +174,28 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     function buildSimpleTaf(rawOb, item, icao) {
-  if (!rawOb) {
-    return `Aucune prévision TAF disponible pour ${icao}. 
-Ce terrain ne publie probablement pas de TAF.
+      if (!rawOb) {
+        return `Aucune prévision TAF disponible pour ${icao}. Ce terrain ne publie probablement pas de TAF.`;
+      }
 
-👉 Conseil pilote :
-- Vérifie un terrain proche (ex: grande plateforme)
-- Analyse la tendance METAR actuelle
-- Complète avec la météo générale (vent / front / visibilité)`;
-  }
+      if (item?.fltCat === "VFR") {
+        return "🟢 Prévision favorable : conditions VFR attendues si la tendance se maintient.";
+      }
 
-  if (item?.fltCat === "VFR") {
-    return "🟢 Prévision favorable : conditions VFR attendues si la tendance se maintient.";
-  }
+      if (item?.fltCat === "MVFR") {
+        return "🟡 Prévision à surveiller : conditions VFR marginales possibles.";
+      }
 
-  if (item?.fltCat === "MVFR") {
-    return "🟡 Prévision à surveiller : conditions VFR marginales possibles.";
-  }
+      if (item?.fltCat === "IFR") {
+        return "🔴 Prévision dégradée : conditions IFR probables.";
+      }
 
-  if (item?.fltCat === "IFR") {
-    return "🔴 Prévision dégradée : conditions IFR probables.";
-  }
+      if (item?.fltCat === "LIFR") {
+        return "🚨 Prévision critique : conditions très dégradées.";
+      }
 
-  if (item?.fltCat === "LIFR") {
-    return "🚨 Prévision critique : conditions très dégradées.";
-  }
-
-  return "Prévision disponible en brut ci-dessous.";
-}
+      return "Prévision disponible en brut ci-dessous.";
+    }
 
     async function loadMetar() {
       const icao = icaoInput?.value?.trim().toUpperCase();
@@ -319,7 +314,36 @@ Ce terrain ne publie probablement pas de TAF.
       }
     }
 
-    function getLocation() {
+    function getDistanceKm(lat1, lon1, lat2, lon2) {
+      const toRad = (value) => (value * Math.PI) / 180;
+      const R = 6371;
+
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) *
+          Math.cos(toRad(lat2)) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    function dedupeAirports(list) {
+      const seen = new Set();
+
+      return list.filter((airport) => {
+        const key = airport.icao;
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    async function getLocation() {
       nearbyAirports.innerHTML = "";
 
       if (!navigator.geolocation) {
@@ -328,17 +352,59 @@ Ce terrain ne publie probablement pas de TAF.
         return;
       }
 
-      nearbyAirports.innerHTML = "<li>Localisation en cours...</li>";
+      nearbyAirports.innerHTML = "<li>Recherche des terrains proches...</li>";
 
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
+        async (pos) => {
           const lat = pos.coords.latitude;
           const lon = pos.coords.longitude;
 
-          nearbyAirports.innerHTML = `
-            <li>Position détectée : ${lat.toFixed(4)}, ${lon.toFixed(4)}</li>
-            <li>Étape suivante : brancher une vraie base d’aérodromes proches.</li>
-          `;
+          try {
+            const res = await fetch(AIRPORTS_URL);
+            const airportsRaw = await res.json();
+
+            if (!Array.isArray(airportsRaw) || airportsRaw.length === 0) {
+              nearbyAirports.innerHTML =
+                "<li>Base d’aérodromes indisponible.</li>";
+              return;
+            }
+
+            const airports = dedupeAirports(airportsRaw);
+
+            const nearest = airports
+              .map((airport) => ({
+                ...airport,
+                distanceKm: getDistanceKm(lat, lon, airport.lat, airport.lon),
+              }))
+              .sort((a, b) => a.distanceKm - b.distanceKm)
+              .slice(0, 8);
+
+            nearbyAirports.innerHTML = "";
+
+            nearest.forEach((airport) => {
+              const li = document.createElement("li");
+              const button = document.createElement("button");
+
+              button.type = "button";
+              button.className = "airport-nearby-btn";
+              button.innerHTML = `
+                <strong>${airport.icao}</strong> — ${airport.name}
+                <span>${airport.distanceKm.toFixed(1)} km</span>
+              `;
+
+              button.addEventListener("click", () => {
+                icaoInput.value = airport.icao;
+                loadMetar();
+              });
+
+              li.appendChild(button);
+              nearbyAirports.appendChild(li);
+            });
+          } catch (error) {
+            nearbyAirports.innerHTML =
+              "<li>Impossible de charger la base d’aérodromes.</li>";
+            console.error(error);
+          }
         },
         (error) => {
           nearbyAirports.innerHTML =
@@ -400,6 +466,10 @@ Ce terrain ne publie probablement pas de TAF.
       background: rgba(255, 255, 255, 0.03);
     }
 
+    .decoded-card-wide {
+      grid-column: 1 / -1;
+    }
+
     .decoded-label {
       display: block;
       font-size: 0.9rem;
@@ -417,7 +487,42 @@ Ce terrain ne publie probablement pas de TAF.
 
     #nearbyAirports {
       margin-top: 12px;
-      padding-left: 18px;
+      padding-left: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    .airport-nearby-btn {
+      width: 100%;
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      color: white;
+      cursor: pointer;
+    }
+
+    .airport-nearby-btn span {
+      color: var(--muted);
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 720px) {
+      .airport-nearby-btn {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .airport-nearby-btn span {
+        white-space: normal;
+      }
     }
   </style>
 </BaseLayout>
