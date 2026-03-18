@@ -31,4 +31,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Build airports-fr-full.json"
-       file_pattern: public/data/*
+          file_pattern: public/data/*
