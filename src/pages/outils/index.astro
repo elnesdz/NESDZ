@@ -86,16 +86,17 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         <div class="tool-block">
           <h2>Aérodromes à proximité</h2>
-          <button id="nearbyBtn" type="button">Autour de moi</button>
+          <button id="nearbyBtn" type="button">Terrains proches</button>
           <ul id="nearbyAirports"></ul>
         </div>
       </div>
     </div>
   </section>
 
-  <script is:inline>
+  <script>
     const WORKER_URL = "https://metar-proxy-nesdz.elnesdz.workers.dev/";
-    const AIRPORTS_URL = "/data/airports-fr.json";
+    const AIRPORTS_URL = "/data/airports-fr-full.json";
+    const ULM_URL = "/data/ulm-fr.json";
 
     const icaoInput = document.getElementById("icaoInput");
     const metarOutput = document.getElementById("metarOutput");
@@ -114,6 +115,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const fltCatValue = document.getElementById("fltCatValue");
     const tafSummaryValue = document.getElementById("tafSummaryValue");
 
+    let airportsCache = null;
+    let airportsPromise = null;
+
+    let ulmCache = null;
+    let ulmPromise = null;
+
     function resetDecoded() {
       statusValue.textContent = "Aucune donnée";
       nameValue.textContent = "—";
@@ -124,6 +131,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       pressureValue.textContent = "—";
       fltCatValue.textContent = "—";
       tafSummaryValue.textContent = "Aucune donnée";
+    }
+
+    function normalizeCode(value) {
+      return String(value || "").trim().toUpperCase();
+    }
+
+    function isValidWeatherCode(code) {
+      return /^[A-Z]{4}$/.test(normalizeCode(code));
     }
 
     function formatWind(dir, speed) {
@@ -197,120 +212,200 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       return "Prévision disponible en brut ci-dessous.";
     }
 
-    async function loadMetar() {
-      const icao = icaoInput?.value?.trim().toUpperCase();
+    function getAirportWeatherCode(airport) {
+      const icao = normalizeCode(airport?.icao);
+      if (isValidWeatherCode(icao)) return icao;
 
-      if (!icao) {
-        metarOutput.textContent = "Entre un code OACI.";
-        tafOutput.textContent = "Entre un code OACI.";
-        resetDecoded();
-        return;
+      const gpsCode = normalizeCode(airport?.gps_code);
+      if (isValidWeatherCode(gpsCode)) return gpsCode;
+
+      return "";
+    }
+
+    function normalizeAirportRecord(airport) {
+      const weatherCode = getAirportWeatherCode(airport);
+      const latitude = Number(airport?.latitude);
+      const longitude = Number(airport?.longitude);
+
+      return {
+        ...airport,
+        weatherCode,
+        latitude,
+        longitude,
+      };
+    }
+
+    function isUsableAirport(airport) {
+      return (
+        airport &&
+        airport.type !== "closed" &&
+        airport.weatherCode &&
+        Number.isFinite(airport.latitude) &&
+        Number.isFinite(airport.longitude)
+      );
+    }
+
+    function dedupeAirports(list) {
+      const seen = new Set();
+
+      return list.filter((airport) => {
+        const key = airport.weatherCode;
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    async function loadAirports() {
+      if (airportsCache) return airportsCache;
+
+      if (!airportsPromise) {
+        airportsPromise = fetch(AIRPORTS_URL)
+          .then(async (res) => {
+            if (!res.ok) {
+              throw new Error("Impossible de charger la base d’aérodromes.");
+            }
+
+            const data = await res.json();
+
+            if (!Array.isArray(data)) {
+              throw new Error("Format JSON inattendu pour la base d’aérodromes.");
+            }
+
+            airportsCache = dedupeAirports(
+              data.map(normalizeAirportRecord).filter(isUsableAirport)
+            );
+
+            return airportsCache;
+          })
+          .catch((error) => {
+            airportsPromise = null;
+            throw error;
+          });
       }
 
-      metarOutput.textContent = "Chargement...";
-      tafOutput.textContent = "Chargement...";
-      statusValue.textContent = "Chargement...";
-      nameValue.textContent = "…";
-      windValue.textContent = "…";
-      visibilityValue.textContent = "…";
-      cloudsValue.textContent = "…";
-      tempValue.textContent = "…";
-      pressureValue.textContent = "…";
-      fltCatValue.textContent = "…";
-      tafSummaryValue.textContent = "Chargement...";
+      return airportsPromise;
+    }
+
+    async function findAirportByCode(code) {
+      const normalized = normalizeCode(code);
+
+      if (!normalized) return null;
 
       try {
-        const res = await fetch(`${WORKER_URL}?icao=${encodeURIComponent(icao)}`);
+        const airports = await loadAirports();
 
-        if (!res.ok) {
-          metarOutput.textContent =
-            `Aucune météo exploitable trouvée pour ${icao}. Ce terrain ne publie peut-être pas de METAR, ou la source n’a pas de donnée disponible actuellement.`;
-          tafOutput.textContent =
-            `Aucune prévision TAF exploitable trouvée pour ${icao}.`;
-
-          resetDecoded();
-          statusValue.textContent = "⚠️ Météo indisponible";
-          nameValue.textContent = icao;
-          windValue.textContent = "Non disponible";
-          visibilityValue.textContent = "Non disponible";
-          cloudsValue.textContent = "Non disponible";
-          tempValue.textContent = "Non disponible";
-          pressureValue.textContent = "Non disponible";
-          fltCatValue.textContent = "Non disponible";
-          tafSummaryValue.textContent = "Prévision indisponible";
-          return;
-        }
-
-        const data = await res.json();
-
-        if (!Array.isArray(data) || data.length === 0) {
-          metarOutput.textContent =
-            `Aucune observation METAR trouvée pour ${icao}. Vérifie le code OACI ou teste un terrain disposant d’une météo publiée.`;
-          tafOutput.textContent =
-            `Aucune prévision TAF trouvée pour ${icao}.`;
-
-          resetDecoded();
-          statusValue.textContent = "Aucune donnée météo disponible";
-          nameValue.textContent = icao;
-          windValue.textContent = "Non disponible";
-          visibilityValue.textContent = "Non disponible";
-          cloudsValue.textContent = "Non disponible";
-          tempValue.textContent = "Non disponible";
-          pressureValue.textContent = "Non disponible";
-          fltCatValue.textContent = "Non disponible";
-          tafSummaryValue.textContent = "Prévision indisponible";
-          return;
-        }
-
-        const item = data[0];
-
-        if (!item || typeof item !== "object") {
-          metarOutput.textContent = `Réponse météo inexploitable pour ${icao}.`;
-          tafOutput.textContent = `Réponse prévision inexploitable pour ${icao}.`;
-
-          resetDecoded();
-          statusValue.textContent = "Réponse invalide";
-          nameValue.textContent = icao;
-          windValue.textContent = "Indisponible";
-          visibilityValue.textContent = "Indisponible";
-          cloudsValue.textContent = "Indisponible";
-          tempValue.textContent = "Indisponible";
-          pressureValue.textContent = "Indisponible";
-          fltCatValue.textContent = "Indisponible";
-          tafSummaryValue.textContent = "Prévision indisponible";
-          return;
-        }
-
-        metarOutput.textContent = item.rawOb || "METAR brut indisponible";
-        tafOutput.textContent =
-          item.taf || "TAF non disponible via cette source actuelle";
-
-        statusValue.textContent = formatStatus(item);
-        nameValue.textContent = item.name || item.icaoId || icao;
-        windValue.textContent = formatWind(item.wdir, item.wspd);
-        visibilityValue.textContent = formatVisibility(item.visib);
-        cloudsValue.textContent = formatClouds(item);
-        tempValue.textContent = formatTemp(item.temp, item.dewp);
-        pressureValue.textContent = formatPressure(item.altim);
-        fltCatValue.textContent = item.fltCat || "—";
-        tafSummaryValue.textContent = buildSimpleTaf(item.taf, item, icao);
+        return (
+          airports.find((airport) => airport.weatherCode === normalized) || null
+        );
       } catch (error) {
-        metarOutput.textContent =
-          `Impossible de joindre la météo pour ${icao} pour le moment. Réessaie dans quelques instants ou teste un terrain plus couvert comme LFQQ ou LFPN.`;
-        tafOutput.textContent =
-          `Impossible de joindre la prévision pour ${icao} pour le moment.`;
-
-        resetDecoded();
-        statusValue.textContent = "⚠️ Service météo indisponible";
-        nameValue.textContent = icao;
-        windValue.textContent = "Non disponible";
-        visibilityValue.textContent = "Non disponible";
-        cloudsValue.textContent = "Non disponible";
-        tempValue.textContent = "Non disponible";
-        pressureValue.textContent = "Non disponible";
-        fltCatValue.textContent = "Non disponible";
-        tafSummaryValue.textContent = "Prévision indisponible";
         console.error(error);
+        return null;
+      }
+    }
+
+    function formatAirportDisplayName(airport, fallbackCode) {
+      if (!airport) return fallbackCode || "—";
+
+      const labelCode = airport.weatherCode || fallbackCode || "—";
+      const municipality = airport.municipality
+        ? ` — ${airport.municipality}`
+        : "";
+
+      return `${airport.name} (${labelCode})${municipality}`;
+    }
+
+    function formatMatchedDisplayName(matchedAirport, matchedUlm) {
+      if (matchedAirport) {
+        return formatAirportDisplayName(
+          matchedAirport,
+          matchedAirport.weatherCode
+        );
+      }
+
+      if (matchedUlm?.name) {
+        const codeLabel = matchedUlm.weatherCode || matchedUlm.code || "";
+        return codeLabel
+          ? `${matchedUlm.name} (${codeLabel})`
+          : matchedUlm.name;
+      }
+
+      return "";
+    }
+
+    function normalizeUlmRecord(item) {
+      const code = normalizeCode(item?.code || item?.source_id || "");
+      const weatherCode = isValidWeatherCode(item?.weather_code)
+        ? normalizeCode(item.weather_code)
+        : "";
+
+      return {
+        ...item,
+        code,
+        weatherCode,
+        latitude: Number(item?.latitude),
+        longitude: Number(item?.longitude),
+        platformType: item?.platform_type || "unknown",
+        operationalLabel: item?.operational_label || "Plateforme spécifique",
+        accessTags: Array.isArray(item?.access_tags) ? item.access_tags : [],
+        weatherCapable: Boolean(weatherCode),
+      };
+    }
+
+    function isUsableUlm(item) {
+      return (
+        item &&
+        Number.isFinite(item.latitude) &&
+        Number.isFinite(item.longitude) &&
+        item.platformType !== "helistation"
+      );
+    }
+
+    async function loadUlmBases() {
+      if (ulmCache) return ulmCache;
+
+      if (!ulmPromise) {
+        ulmPromise = fetch(ULM_URL)
+          .then(async (res) => {
+            if (!res.ok) {
+              throw new Error("Impossible de charger la base ULM.");
+            }
+
+            const data = await res.json();
+
+            if (!Array.isArray(data)) {
+              throw new Error("Format JSON inattendu pour la base ULM.");
+            }
+
+            ulmCache = data.map(normalizeUlmRecord).filter(isUsableUlm);
+            return ulmCache;
+          })
+          .catch((error) => {
+            ulmPromise = null;
+            throw error;
+          });
+      }
+
+      return ulmPromise;
+    }
+
+    async function findUlmByCode(code) {
+      const normalized = normalizeCode(code);
+
+      if (!normalized) return null;
+
+      try {
+        const ulmBases = await loadUlmBases();
+
+        return (
+          ulmBases.find(
+            (item) =>
+              item.code === normalized || item.weatherCode === normalized
+          ) || null
+        );
+      } catch (error) {
+        console.error(error);
+        return null;
       }
     }
 
@@ -332,101 +427,394 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       return R * c;
     }
 
-    function dedupeAirports(list) {
-      const seen = new Set();
+    function getAirportOperationalLabel(airport, basulmOverlay) {
+      if (basulmOverlay?.operationalLabel) return basulmOverlay.operationalLabel;
 
-      return list.filter((airport) => {
-        const key = airport.icao;
-        if (!key || seen.has(key)) return false;
-        seen.add(key);
-        return true;
+      if (airport.type === "large_airport") return "Aérodrome principal";
+      if (airport.type === "medium_airport") return "Aérodrome";
+      if (airport.type === "small_airport") return "Aérodrome";
+      return "Plateforme aéronautique";
+    }
+
+    function formatAccessTags(tags = []) {
+      const labels = [];
+
+      if (tags.includes("open_to_ulm")) labels.push("Ouvert aux ULM");
+      if (tags.includes("authorization_required")) {
+        labels.push("Autorisation obligatoire");
+      }
+      if (tags.includes("private")) labels.push("Privé");
+      if (tags.includes("restricted")) labels.push("Restrictions");
+      if (tags.includes("specific_rules")) labels.push("Règles spécifiques");
+      if (tags.includes("in_service")) labels.push("En service");
+
+      return labels.join(" · ");
+    }
+
+    function buildBasulmIndexByWeatherCode(ulmBases) {
+      const map = new Map();
+
+      ulmBases.forEach((item) => {
+        if (!item.weatherCode) return;
+        if (!map.has(item.weatherCode)) {
+          map.set(item.weatherCode, item);
+        }
+      });
+
+      return map;
+    }
+
+    async function resolveNearbyCenter() {
+      const enteredCode = normalizeCode(icaoInput?.value);
+
+      if (enteredCode) {
+        const matchedAirport = await findAirportByCode(enteredCode);
+        if (matchedAirport) {
+          return {
+            latitude: matchedAirport.latitude,
+            longitude: matchedAirport.longitude,
+            label: `Terrains autour de ${matchedAirport.weatherCode} — ${matchedAirport.name}`,
+          };
+        }
+
+        const matchedUlm = await findUlmByCode(enteredCode);
+        if (matchedUlm) {
+          return {
+            latitude: matchedUlm.latitude,
+            longitude: matchedUlm.longitude,
+            label: `Terrains autour de ${matchedUlm.code} — ${matchedUlm.name}`,
+          };
+        }
+      }
+
+      if (!navigator.geolocation) {
+        throw new Error("geolocation_not_supported");
+      }
+
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            resolve({
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+              label: "Terrains autour de votre position",
+            });
+          },
+          () => reject(new Error("geolocation_failed"))
+        );
       });
     }
 
-    async function getLocation() {
-      nearbyAirports.innerHTML = "";
+    function renderNearbyHeader(centerLabel) {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <strong>${centerLabel}</strong><br>
+        <small>
+          Vérifier systématiquement les conditions d’utilisation publiées
+          (AIP, VAC, NOTAM, consignes locales) avant toute exploitation.
+        </small>
+      `;
+      nearbyAirports.appendChild(li);
+    }
 
-      if (!navigator.geolocation) {
-        nearbyAirports.innerHTML =
-          "<li>La géolocalisation n’est pas supportée sur cet appareil.</li>";
+    function renderNearbyGroupTitle(title) {
+      const li = document.createElement("li");
+      li.style.marginTop = "1rem";
+      li.innerHTML = `<strong>${title}</strong>`;
+      nearbyAirports.appendChild(li);
+    }
+
+    function renderEmptyGroup(message) {
+      const li = document.createElement("li");
+      li.innerHTML = `<small>${message}</small>`;
+      nearbyAirports.appendChild(li);
+    }
+
+    function renderWeatherNearbyItem(item) {
+      const li = document.createElement("li");
+      const button = document.createElement("button");
+
+      button.type = "button";
+      button.className = "airport-nearby-btn";
+
+      const accessLine = item.accessLabel
+        ? `<br><small>${item.accessLabel}</small>`
+        : "";
+
+      button.innerHTML = `
+        <strong>${item.code}</strong> — ${item.name}
+        <br>
+        <small>
+          ${item.operationalLabel}
+          ${item.municipality ? ` · ${item.municipality}` : ""}
+          · ${item.distanceKm.toFixed(1)} km
+        </small>
+        ${accessLine}
+      `;
+
+      button.addEventListener("click", () => {
+        icaoInput.value = item.code;
+        loadMetar();
+      });
+
+      li.appendChild(button);
+      nearbyAirports.appendChild(li);
+    }
+
+    function renderUlmNearbyItem(item) {
+      const li = document.createElement("li");
+
+      const codeLabel = item.code || "Plateforme locale";
+      const accessLine = item.accessLabel
+        ? `<br><small>${item.accessLabel}</small>`
+        : "";
+      const weatherLine = item.weatherCapable
+        ? `<br><small>Météo terrain potentiellement exploitable via ${item.weatherCode}</small>`
+        : `<br><small>Pas de METAR / TAF direct dans l’outil</small>`;
+
+      li.innerHTML = `
+        <div class="airport-nearby-btn" style="cursor: default;">
+          <strong>${codeLabel}</strong> — ${item.name}
+          <br>
+          <small>
+            ${item.operationalLabel}
+            · ${item.distanceKm.toFixed(1)} km
+          </small>
+          ${accessLine}
+          ${weatherLine}
+        </div>
+      `;
+
+      nearbyAirports.appendChild(li);
+    }
+
+    async function loadMetar() {
+      const icao = normalizeCode(icaoInput?.value);
+
+      if (!icao) {
+        metarOutput.textContent = "Entre un code OACI.";
+        tafOutput.textContent = "Entre un code OACI.";
+        resetDecoded();
         return;
       }
 
+      metarOutput.textContent = "Chargement...";
+      tafOutput.textContent = "Chargement...";
+      statusValue.textContent = "Chargement...";
+      nameValue.textContent = "…";
+      windValue.textContent = "…";
+      visibilityValue.textContent = "…";
+      cloudsValue.textContent = "…";
+      tempValue.textContent = "…";
+      pressureValue.textContent = "…";
+      fltCatValue.textContent = "…";
+      tafSummaryValue.textContent = "Chargement...";
+
+      const matchedAirport = await findAirportByCode(icao);
+      const matchedUlm = await findUlmByCode(icao);
+
+      try {
+        const res = await fetch(`${WORKER_URL}?icao=${encodeURIComponent(icao)}`);
+
+        if (!res.ok) {
+          metarOutput.textContent =
+            `Aucune météo exploitable trouvée pour ${icao}. Ce terrain ne publie peut-être pas de METAR, ou la source n’a pas de donnée disponible actuellement.`;
+          tafOutput.textContent =
+            `Aucune prévision TAF exploitable trouvée pour ${icao}.`;
+
+          resetDecoded();
+          statusValue.textContent = "⚠️ Météo indisponible";
+          nameValue.textContent =
+            formatMatchedDisplayName(matchedAirport, matchedUlm) || icao;
+          windValue.textContent = "Non disponible";
+          visibilityValue.textContent = "Non disponible";
+          cloudsValue.textContent = "Non disponible";
+          tempValue.textContent = "Non disponible";
+          pressureValue.textContent = "Non disponible";
+          fltCatValue.textContent = "Non disponible";
+          tafSummaryValue.textContent = "Prévision indisponible";
+          return;
+        }
+
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          metarOutput.textContent =
+            `Aucune observation METAR trouvée pour ${icao}. Vérifie le code OACI ou teste un terrain disposant d’une météo publiée.`;
+          tafOutput.textContent =
+            `Aucune prévision TAF trouvée pour ${icao}.`;
+
+          resetDecoded();
+          statusValue.textContent = "Aucune donnée météo disponible";
+          nameValue.textContent =
+            formatMatchedDisplayName(matchedAirport, matchedUlm) || icao;
+          windValue.textContent = "Non disponible";
+          visibilityValue.textContent = "Non disponible";
+          cloudsValue.textContent = "Non disponible";
+          tempValue.textContent = "Non disponible";
+          pressureValue.textContent = "Non disponible";
+          fltCatValue.textContent = "Non disponible";
+          tafSummaryValue.textContent = "Prévision indisponible";
+          return;
+        }
+
+        const item = data[0];
+
+        if (!item || typeof item !== "object") {
+          metarOutput.textContent = `Réponse météo inexploitable pour ${icao}.`;
+          tafOutput.textContent = `Réponse prévision inexploitable pour ${icao}.`;
+
+          resetDecoded();
+          statusValue.textContent = "Réponse invalide";
+          nameValue.textContent =
+            formatMatchedDisplayName(matchedAirport, matchedUlm) || icao;
+          windValue.textContent = "Indisponible";
+          visibilityValue.textContent = "Indisponible";
+          cloudsValue.textContent = "Indisponible";
+          tempValue.textContent = "Indisponible";
+          pressureValue.textContent = "Indisponible";
+          fltCatValue.textContent = "Indisponible";
+          tafSummaryValue.textContent = "Prévision indisponible";
+          return;
+        }
+
+        metarOutput.textContent = item.rawOb || "METAR brut indisponible";
+        tafOutput.textContent =
+          item.taf || "TAF non disponible via cette source actuelle";
+
+        statusValue.textContent = formatStatus(item);
+        nameValue.textContent =
+          formatMatchedDisplayName(matchedAirport, matchedUlm) ||
+          item.name ||
+          item.icaoId ||
+          icao;
+        windValue.textContent = formatWind(item.wdir, item.wspd);
+        visibilityValue.textContent = formatVisibility(item.visib);
+        cloudsValue.textContent = formatClouds(item);
+        tempValue.textContent = formatTemp(item.temp, item.dewp);
+        pressureValue.textContent = formatPressure(item.altim);
+        fltCatValue.textContent = item.fltCat || "—";
+        tafSummaryValue.textContent = buildSimpleTaf(item.taf, item, icao);
+      } catch (error) {
+        metarOutput.textContent =
+          `Impossible de joindre la météo pour ${icao} pour le moment. Réessaie dans quelques instants ou teste un terrain plus couvert comme LFQQ ou LFPN.`;
+        tafOutput.textContent =
+          `Impossible de joindre la prévision pour ${icao} pour le moment.`;
+
+        resetDecoded();
+        statusValue.textContent = "⚠️ Service météo indisponible";
+        nameValue.textContent =
+          formatMatchedDisplayName(matchedAirport, matchedUlm) || icao;
+        windValue.textContent = "Non disponible";
+        visibilityValue.textContent = "Non disponible";
+        cloudsValue.textContent = "Non disponible";
+        tempValue.textContent = "Non disponible";
+        pressureValue.textContent = "Non disponible";
+        fltCatValue.textContent = "Non disponible";
+        tafSummaryValue.textContent = "Prévision indisponible";
+        console.error(error);
+      }
+    }
+
+    async function getLocation() {
       nearbyAirports.innerHTML = "<li>Recherche des terrains proches...</li>";
 
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const lat = pos.coords.latitude;
-          const lon = pos.coords.longitude;
+      try {
+        const center = await resolveNearbyCenter();
+        const [airports, ulmBases] = await Promise.all([
+          loadAirports(),
+          loadUlmBases(),
+        ]);
 
-          try {
-            const res = await fetch(AIRPORTS_URL);
-            const airportsRaw = await res.json();
+        const basulmByWeatherCode = buildBasulmIndexByWeatherCode(ulmBases);
+        const radiusKm = 120;
 
-            if (!Array.isArray(airportsRaw) || airportsRaw.length === 0) {
-              nearbyAirports.innerHTML =
-                "<li>Base d’aérodromes indisponible.</li>";
-              return;
+        const weatherNearby = airports
+          .map((airport) => {
+            const overlay = basulmByWeatherCode.get(airport.weatherCode) || null;
+
+            return {
+              code: airport.weatherCode,
+              name: airport.name,
+              municipality: airport.municipality || "",
+              distanceKm: getDistanceKm(
+                center.latitude,
+                center.longitude,
+                airport.latitude,
+                airport.longitude
+              ),
+              operationalLabel: getAirportOperationalLabel(airport, overlay),
+              accessLabel: formatAccessTags(overlay?.accessTags || []),
+            };
+          })
+          .filter((item) => item.distanceKm <= radiusKm)
+          .sort((a, b) => a.distanceKm - b.distanceKm)
+          .slice(0, 10);
+
+        const weatherCodesShown = new Set(weatherNearby.map((item) => item.code));
+
+        const ulmNearby = ulmBases
+          .map((item) => ({
+            code: item.code,
+            name: item.name,
+            weatherCode: item.weatherCode,
+            weatherCapable: item.weatherCapable,
+            distanceKm: getDistanceKm(
+              center.latitude,
+              center.longitude,
+              item.latitude,
+              item.longitude
+            ),
+            operationalLabel: item.operationalLabel,
+            accessLabel: formatAccessTags(item.accessTags),
+          }))
+          .filter((item) => item.distanceKm <= radiusKm)
+          .filter((item) => {
+            if (item.weatherCode && weatherCodesShown.has(item.weatherCode)) {
+              return false;
             }
+            return true;
+          })
+          .sort((a, b) => a.distanceKm - b.distanceKm)
+          .slice(0, 10);
 
-            const airports = dedupeAirports(airportsRaw);
+        nearbyAirports.innerHTML = "";
+        renderNearbyHeader(center.label);
 
-            const nearest = airports
-  .map((airport) => ({
-    ...airport,
-    distanceKm: getDistanceKm(lat, lon, airport.lat, airport.lon),
-  }))
-
-  // 🔥 filtre utile
-  .filter((airport) => {
-    // garder uniquement les terrains avec code ICAO valide
-    if (!airport.icao || airport.icao.length !== 4) return false;
-
-    // limiter à 300 km max (évite Paris quand t’es à Lille)
-    if (airport.distanceKm > 300) return false;
-
-    return true;
-  })
-
-  // tri distance
-  .sort((a, b) => a.distanceKm - b.distanceKm)
-
-  // limiter affichage
-  .slice(0, 10);
-
-            nearbyAirports.innerHTML = "";
-
-            nearest.forEach((airport) => {
-              const li = document.createElement("li");
-              const button = document.createElement("button");
-
-              button.type = "button";
-              button.className = "airport-nearby-btn";
-              button.innerHTML = `
-                <strong>${airport.icao}</strong> — ${airport.name}
-                <span>${airport.distanceKm.toFixed(1)} km</span>
-              `;
-
-              button.addEventListener("click", () => {
-                icaoInput.value = airport.icao;
-                loadMetar();
-              });
-
-              li.appendChild(button);
-              nearbyAirports.appendChild(li);
-            });
-          } catch (error) {
-            nearbyAirports.innerHTML =
-              "<li>Impossible de charger la base d’aérodromes.</li>";
-            console.error(error);
-          }
-        },
-        (error) => {
-          nearbyAirports.innerHTML =
-            "<li>Impossible de récupérer la position.</li>";
-          console.error(error);
+        renderNearbyGroupTitle("Terrains avec météo terrain exploitable");
+        if (weatherNearby.length === 0) {
+          renderEmptyGroup(
+            "Aucun terrain météo exploitable trouvé dans le rayon retenu."
+          );
+        } else {
+          weatherNearby.forEach(renderWeatherNearbyItem);
         }
-      );
+
+        renderNearbyGroupTitle("Plateformes ULM et terrains spécifiques");
+        if (ulmNearby.length === 0) {
+          renderEmptyGroup(
+            "Aucune plateforme ULM ou spécifique trouvée dans le rayon retenu."
+          );
+        } else {
+          ulmNearby.forEach(renderUlmNearbyItem);
+        }
+      } catch (error) {
+        if (error.message === "geolocation_not_supported") {
+          nearbyAirports.innerHTML =
+            "<li>La géolocalisation n’est pas supportée sur cet appareil.</li>";
+          return;
+        }
+
+        if (error.message === "geolocation_failed") {
+          nearbyAirports.innerHTML =
+            "<li>Impossible de récupérer la position. Saisis un terrain comme LFQQ puis relance la recherche.</li>";
+          return;
+        }
+
+        nearbyAirports.innerHTML =
+          "<li>Impossible de charger les terrains proches pour le moment.</li>";
+        console.error(error);
+      }
     }
 
     loadMetarBtn?.addEventListener("click", loadMetar);
