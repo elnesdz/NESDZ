@@ -6,7 +6,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
   title="Météo & terrains"
   description="Météo aviation, METAR, TAF et terrains proches."
 >
-  <section class="container" style="padding: 20px 0;">
+  <section class="container tool-page" style="padding: 20px 0;">
     <div class="card">
       <div class="pad">
         <h1>Météo & terrains</h1>
@@ -23,7 +23,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         <div class="tool-block">
           <h2>Lecture rapide</h2>
-          <div id="decodedOutput" class="decoded-grid">
+          <div class="decoded-grid">
             <div class="decoded-card">
               <span class="decoded-label">Statut</span>
               <strong id="statusValue">Aucune donnée</strong>
@@ -91,7 +91,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           <button id="nearbyBtn" class="tool-action-btn" type="button">
             Terrains proches
           </button>
-          <ul id="nearbyAirports"></ul>
+          <ul id="nearbyAirports" class="nearby-list"></ul>
         </div>
       </div>
     </div>
@@ -298,7 +298,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
       try {
         const airports = await loadAirports();
-
         return (
           airports.find((airport) => airport.weatherCode === normalized) || null
         );
@@ -400,7 +399,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
       try {
         const ulmBases = await loadUlmBases();
-
         return (
           ulmBases.find(
             (item) =>
@@ -833,856 +831,23 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         loadMetar();
       }
     });
+
+    if (icaoInput?.value) {
+      loadMetar();
+    }
   </script>
 
----
-import BaseLayout from "../../layouts/BaseLayout.astro";
----
-
-<BaseLayout
-  title="Météo & terrains"
-  description="Météo aviation, METAR, TAF et terrains proches."
->
-  <section class="container" style="padding: 20px 0;">
-    <div class="card">
-      <div class="pad">
-        <h1>Météo & terrains</h1>
-
-        <div class="tool-block">
-          <label for="icaoInput">Code OACI</label>
-          <div class="row tool-row">
-            <input id="icaoInput" placeholder="Ex : LFQQ" value="LFQQ" />
-            <button id="loadMetarBtn" class="tool-action-btn" type="button">
-              Voir METAR / TAF
-            </button>
-          </div>
-        </div>
-
-        <div class="tool-block">
-          <h2>Lecture rapide</h2>
-          <div id="decodedOutput" class="decoded-grid">
-            <div class="decoded-card">
-              <span class="decoded-label">Statut</span>
-              <strong id="statusValue">Aucune donnée</strong>
-            </div>
-
-            <div class="decoded-card">
-              <span class="decoded-label">Terrain</span>
-              <strong id="nameValue">—</strong>
-            </div>
-
-            <div class="decoded-card">
-              <span class="decoded-label">Vent</span>
-              <strong id="windValue">—</strong>
-            </div>
-
-            <div class="decoded-card">
-              <span class="decoded-label">Visibilité</span>
-              <strong id="visibilityValue">—</strong>
-            </div>
-
-            <div class="decoded-card">
-              <span class="decoded-label">Nuages</span>
-              <strong id="cloudsValue">—</strong>
-            </div>
-
-            <div class="decoded-card">
-              <span class="decoded-label">Température</span>
-              <strong id="tempValue">—</strong>
-            </div>
-
-            <div class="decoded-card">
-              <span class="decoded-label">Pression</span>
-              <strong id="pressureValue">—</strong>
-            </div>
-
-            <div class="decoded-card">
-              <span class="decoded-label">Catégorie vol</span>
-              <strong id="fltCatValue">—</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="tool-block">
-          <h2>Lecture prévision</h2>
-          <div class="decoded-grid">
-            <div class="decoded-card decoded-card-wide">
-              <span class="decoded-label">Tendance</span>
-              <strong id="tafSummaryValue">Aucune donnée</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="tool-block">
-          <h2>METAR brut</h2>
-          <pre id="metarOutput">Aucune donnée</pre>
-        </div>
-
-        <div class="tool-block">
-          <h2>TAF brut</h2>
-          <pre id="tafOutput">Aucune donnée</pre>
-        </div>
-
-        <div class="tool-block">
-          <h2>Aérodromes à proximité</h2>
-          <button id="nearbyBtn" class="tool-action-btn" type="button">
-            Terrains proches
-          </button>
-          <ul id="nearbyAirports"></ul>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <script>
-    const WORKER_URL = "https://metar-proxy-nesdz.elnesdz.workers.dev/";
-    const AIRPORTS_URL = "/data/airports-fr-full.json";
-    const ULM_URL = "/data/ulm-fr.json";
-
-    const icaoInput = document.getElementById("icaoInput");
-    const metarOutput = document.getElementById("metarOutput");
-    const tafOutput = document.getElementById("tafOutput");
-    const nearbyAirports = document.getElementById("nearbyAirports");
-    const loadMetarBtn = document.getElementById("loadMetarBtn");
-    const nearbyBtn = document.getElementById("nearbyBtn");
-
-    const statusValue = document.getElementById("statusValue");
-    const nameValue = document.getElementById("nameValue");
-    const windValue = document.getElementById("windValue");
-    const visibilityValue = document.getElementById("visibilityValue");
-    const cloudsValue = document.getElementById("cloudsValue");
-    const tempValue = document.getElementById("tempValue");
-    const pressureValue = document.getElementById("pressureValue");
-    const fltCatValue = document.getElementById("fltCatValue");
-    const tafSummaryValue = document.getElementById("tafSummaryValue");
-
-    let airportsCache = null;
-    let airportsPromise = null;
-
-    let ulmCache = null;
-    let ulmPromise = null;
-
-    function resetDecoded() {
-      statusValue.textContent = "Aucune donnée";
-      nameValue.textContent = "—";
-      windValue.textContent = "—";
-      visibilityValue.textContent = "—";
-      cloudsValue.textContent = "—";
-      tempValue.textContent = "—";
-      pressureValue.textContent = "—";
-      fltCatValue.textContent = "—";
-      tafSummaryValue.textContent = "Aucune donnée";
-    }
-
-    function normalizeCode(value) {
-      return String(value || "").trim().toUpperCase();
-    }
-
-    function isValidWeatherCode(code) {
-      return /^[A-Z]{4}$/.test(normalizeCode(code));
-    }
-
-    function formatWind(dir, speed) {
-      if (dir == null || speed == null) return "—";
-      return `${dir}° à ${speed} kt`;
-    }
-
-    function formatVisibility(visib) {
-      if (visib == null) return "—";
-      if (Number(visib) >= 10) return "10 km ou plus";
-      return `${visib} km`;
-    }
-
-    function formatClouds(item) {
-      if (item?.cover && item?.clouds?.length) {
-        const firstCloud = item.clouds[0];
-        if (firstCloud?.base) {
-          return `${item.cover} à ${firstCloud.base} ft`;
-        }
-        return item.cover;
-      }
-
-      if (item?.cover) return item.cover;
-      return "—";
-    }
-
-    function formatTemp(temp, dewpoint) {
-      if (temp == null && dewpoint == null) return "—";
-      if (temp != null && dewpoint != null) {
-        return `${temp}°C / rosée ${dewpoint}°C`;
-      }
-      if (temp != null) return `${temp}°C`;
-      return `Rosée ${dewpoint}°C`;
-    }
-
-    function formatPressure(altim) {
-      if (altim == null) return "—";
-      return `${altim} hPa`;
-    }
-
-    function formatStatus(item) {
-      if (!item) return "Aucune donnée";
-      if (item.fltCat === "VFR") return "🟢 Conditions VFR (bonnes)";
-      if (item.fltCat === "MVFR") return "🟡 VFR marginal (à surveiller)";
-      if (item.fltCat === "IFR") return "🔴 IFR (dégradé)";
-      if (item.fltCat === "LIFR") return "🚨 IFR basse (très dégradé)";
-      return "Données météo reçues";
-    }
-
-    function buildSimpleTaf(rawOb, item, icao) {
-      if (!rawOb) {
-        return `Aucune prévision TAF disponible pour ${icao}. Ce terrain ne publie probablement pas de TAF.`;
-      }
-
-      if (item?.fltCat === "VFR") {
-        return "🟢 Prévision favorable : conditions VFR attendues si la tendance se maintient.";
-      }
-
-      if (item?.fltCat === "MVFR") {
-        return "🟡 Prévision à surveiller : conditions VFR marginales possibles.";
-      }
-
-      if (item?.fltCat === "IFR") {
-        return "🔴 Prévision dégradée : conditions IFR probables.";
-      }
-
-      if (item?.fltCat === "LIFR") {
-        return "🚨 Prévision critique : conditions très dégradées.";
-      }
-
-      return "Prévision disponible en brut ci-dessous.";
-    }
-
-    function getAirportWeatherCode(airport) {
-      const icao = normalizeCode(airport?.icao);
-      if (isValidWeatherCode(icao)) return icao;
-
-      const gpsCode = normalizeCode(airport?.gps_code);
-      if (isValidWeatherCode(gpsCode)) return gpsCode;
-
-      return "";
-    }
-
-    function normalizeAirportRecord(airport) {
-      const weatherCode = getAirportWeatherCode(airport);
-      const latitude = Number(airport?.latitude);
-      const longitude = Number(airport?.longitude);
-
-      return {
-        ...airport,
-        weatherCode,
-        latitude,
-        longitude,
-      };
-    }
-
-    function isUsableAirport(airport) {
-      return (
-        airport &&
-        airport.type !== "closed" &&
-        airport.weatherCode &&
-        Number.isFinite(airport.latitude) &&
-        Number.isFinite(airport.longitude)
-      );
-    }
-
-    function dedupeAirports(list) {
-      const seen = new Set();
-
-      return list.filter((airport) => {
-        const key = airport.weatherCode;
-        if (!key || seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-    }
-
-    async function loadAirports() {
-      if (airportsCache) return airportsCache;
-
-      if (!airportsPromise) {
-        airportsPromise = fetch(AIRPORTS_URL)
-          .then(async (res) => {
-            if (!res.ok) {
-              throw new Error("Impossible de charger la base d’aérodromes.");
-            }
-
-            const data = await res.json();
-
-            if (!Array.isArray(data)) {
-              throw new Error("Format JSON inattendu pour la base d’aérodromes.");
-            }
-
-            airportsCache = dedupeAirports(
-              data.map(normalizeAirportRecord).filter(isUsableAirport)
-            );
-
-            return airportsCache;
-          })
-          .catch((error) => {
-            airportsPromise = null;
-            throw error;
-          });
-      }
-
-      return airportsPromise;
-    }
-
-    async function findAirportByCode(code) {
-      const normalized = normalizeCode(code);
-
-      if (!normalized) return null;
-
-      try {
-        const airports = await loadAirports();
-
-        return (
-          airports.find((airport) => airport.weatherCode === normalized) || null
-        );
-      } catch (error) {
-        console.error(error);
-        return null;
-      }
-    }
-
-    function formatAirportDisplayName(airport, fallbackCode) {
-      if (!airport) return fallbackCode || "—";
-
-      const labelCode = airport.weatherCode || fallbackCode || "—";
-      const municipality = airport.municipality
-        ? ` — ${airport.municipality}`
-        : "";
-
-      return `${airport.name} (${labelCode})${municipality}`;
-    }
-
-    function formatMatchedDisplayName(matchedAirport, matchedUlm) {
-      if (matchedAirport) {
-        return formatAirportDisplayName(
-          matchedAirport,
-          matchedAirport.weatherCode
-        );
-      }
-
-      if (matchedUlm?.name) {
-        const codeLabel = matchedUlm.weatherCode || matchedUlm.code || "";
-        return codeLabel
-          ? `${matchedUlm.name} (${codeLabel})`
-          : matchedUlm.name;
-      }
-
-      return "";
-    }
-
-    function normalizeUlmRecord(item) {
-      const code = normalizeCode(item?.code || item?.source_id || "");
-      const weatherCode = isValidWeatherCode(item?.weather_code)
-        ? normalizeCode(item.weather_code)
-        : "";
-
-      return {
-        ...item,
-        code,
-        weatherCode,
-        latitude: Number(item?.latitude),
-        longitude: Number(item?.longitude),
-        platformType: item?.platform_type || "unknown",
-        operationalLabel: item?.operational_label || "Plateforme spécifique",
-        accessTags: Array.isArray(item?.access_tags) ? item.access_tags : [],
-        weatherCapable: Boolean(weatherCode),
-      };
-    }
-
-    function isUsableUlm(item) {
-      return (
-        item &&
-        Number.isFinite(item.latitude) &&
-        Number.isFinite(item.longitude) &&
-        item.platformType !== "helistation"
-      );
-    }
-
-    async function loadUlmBases() {
-      if (ulmCache) return ulmCache;
-
-      if (!ulmPromise) {
-        ulmPromise = fetch(ULM_URL)
-          .then(async (res) => {
-            if (!res.ok) {
-              throw new Error("Impossible de charger la base ULM.");
-            }
-
-            const data = await res.json();
-
-            if (!Array.isArray(data)) {
-              throw new Error("Format JSON inattendu pour la base ULM.");
-            }
-
-            ulmCache = data.map(normalizeUlmRecord).filter(isUsableUlm);
-            return ulmCache;
-          })
-          .catch((error) => {
-            ulmPromise = null;
-            throw error;
-          });
-      }
-
-      return ulmPromise;
-    }
-
-    async function findUlmByCode(code) {
-      const normalized = normalizeCode(code);
-
-      if (!normalized) return null;
-
-      try {
-        const ulmBases = await loadUlmBases();
-
-        return (
-          ulmBases.find(
-            (item) =>
-              item.code === normalized || item.weatherCode === normalized
-          ) || null
-        );
-      } catch (error) {
-        console.error(error);
-        return null;
-      }
-    }
-
-    function getDistanceKm(lat1, lon1, lat2, lon2) {
-      const toRad = (value) => (value * Math.PI) / 180;
-      const R = 6371;
-
-      const dLat = toRad(lat2 - lat1);
-      const dLon = toRad(lon2 - lon1);
-
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(toRad(lat1)) *
-          Math.cos(toRad(lat2)) *
-          Math.sin(dLon / 2) *
-          Math.sin(dLon / 2);
-
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    }
-
-    function getAirportOperationalLabel(airport, basulmOverlay) {
-      if (basulmOverlay?.operationalLabel) return basulmOverlay.operationalLabel;
-
-      if (airport.type === "large_airport") return "Aérodrome principal";
-      if (airport.type === "medium_airport") return "Aérodrome";
-      if (airport.type === "small_airport") return "Aérodrome";
-      return "Plateforme aéronautique";
-    }
-
-    function formatAccessTags(tags = []) {
-      const labels = [];
-
-      if (tags.includes("open_to_ulm")) labels.push("Ouvert aux ULM");
-      if (tags.includes("authorization_required")) {
-        labels.push("Autorisation obligatoire");
-      }
-      if (tags.includes("private")) labels.push("Privé");
-      if (tags.includes("restricted")) labels.push("Restrictions");
-      if (tags.includes("specific_rules")) labels.push("Règles spécifiques");
-      if (tags.includes("in_service")) labels.push("En service");
-
-      return labels.join(" · ");
-    }
-
-    function buildBasulmIndexByWeatherCode(ulmBases) {
-      const map = new Map();
-
-      ulmBases.forEach((item) => {
-        if (!item.weatherCode) return;
-        if (!map.has(item.weatherCode)) {
-          map.set(item.weatherCode, item);
-        }
-      });
-
-      return map;
-    }
-
-    async function resolveNearbyCenter() {
-      const enteredCode = normalizeCode(icaoInput?.value);
-
-      if (enteredCode) {
-        const matchedAirport = await findAirportByCode(enteredCode);
-        if (matchedAirport) {
-          return {
-            latitude: matchedAirport.latitude,
-            longitude: matchedAirport.longitude,
-            label: `Terrains autour de ${matchedAirport.weatherCode} — ${matchedAirport.name}`,
-          };
-        }
-
-        const matchedUlm = await findUlmByCode(enteredCode);
-        if (matchedUlm) {
-          return {
-            latitude: matchedUlm.latitude,
-            longitude: matchedUlm.longitude,
-            label: `Terrains autour de ${matchedUlm.code} — ${matchedUlm.name}`,
-          };
-        }
-      }
-
-      if (!navigator.geolocation) {
-        throw new Error("geolocation_not_supported");
-      }
-
-      return new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            resolve({
-              latitude: pos.coords.latitude,
-              longitude: pos.coords.longitude,
-              label: "Terrains autour de votre position",
-            });
-          },
-          () => reject(new Error("geolocation_failed"))
-        );
-      });
-    }
-
-    function renderNearbyHeader(centerLabel) {
-      const li = document.createElement("li");
-      li.className = "nearby-section-header";
-      li.innerHTML = `
-        <strong>${centerLabel}</strong>
-        <small>
-          Vérifier systématiquement les conditions d’utilisation publiées
-          (AIP, VAC, NOTAM, consignes locales) avant toute exploitation.
-        </small>
-      `;
-      nearbyAirports.appendChild(li);
-    }
-
-    function renderNearbyGroupTitle(title) {
-      const li = document.createElement("li");
-      li.className = "nearby-group-title";
-      li.textContent = title;
-      nearbyAirports.appendChild(li);
-    }
-
-    function renderEmptyGroup(message) {
-      const li = document.createElement("li");
-      li.className = "nearby-empty";
-      li.textContent = message;
-      nearbyAirports.appendChild(li);
-    }
-
-    function renderWeatherNearbyItem(item) {
-      const li = document.createElement("li");
-      li.className = "nearby-item";
-
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "airport-nearby-card airport-nearby-card--clickable";
-
-      const accessLine = item.accessLabel
-        ? `<div class="airport-nearby-access">${item.accessLabel}</div>`
-        : "";
-
-      button.innerHTML = `
-        <div class="airport-nearby-top">
-          <strong>${item.code}</strong>
-          <span>${item.distanceKm.toFixed(1)} km</span>
-        </div>
-        <div class="airport-nearby-name">${item.name}</div>
-        <div class="airport-nearby-meta">
-          ${item.operationalLabel}${item.municipality ? ` · ${item.municipality}` : ""}
-        </div>
-        ${accessLine}
-      `;
-
-      button.addEventListener("click", () => {
-        icaoInput.value = item.code;
-        loadMetar();
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      });
-
-      li.appendChild(button);
-      nearbyAirports.appendChild(li);
-    }
-
-    function renderUlmNearbyItem(item) {
-      const li = document.createElement("li");
-      li.className = "nearby-item";
-
-      const card = document.createElement("div");
-      card.className = "airport-nearby-card airport-nearby-card--static";
-
-      const accessLine = item.accessLabel
-        ? `<div class="airport-nearby-access">${item.accessLabel}</div>`
-        : "";
-
-      const weatherLine = item.weatherCapable
-        ? `<div class="airport-nearby-note">Code météo possible : ${item.weatherCode}</div>`
-        : `<div class="airport-nearby-note">Pas de METAR / TAF direct dans l’outil</div>`;
-
-      card.innerHTML = `
-        <div class="airport-nearby-top">
-          <strong>${item.code || "Plateforme locale"}</strong>
-          <span>${item.distanceKm.toFixed(1)} km</span>
-        </div>
-        <div class="airport-nearby-name">${item.name}</div>
-        <div class="airport-nearby-meta">${item.operationalLabel}</div>
-        ${accessLine}
-        ${weatherLine}
-      `;
-
-      li.appendChild(card);
-      nearbyAirports.appendChild(li);
-    }
-
-    async function loadMetar() {
-      const icao = normalizeCode(icaoInput?.value);
-
-      if (!icao) {
-        metarOutput.textContent = "Entre un code OACI.";
-        tafOutput.textContent = "Entre un code OACI.";
-        resetDecoded();
-        return;
-      }
-
-      metarOutput.textContent = "Chargement...";
-      tafOutput.textContent = "Chargement...";
-      statusValue.textContent = "Chargement...";
-      nameValue.textContent = "…";
-      windValue.textContent = "…";
-      visibilityValue.textContent = "…";
-      cloudsValue.textContent = "…";
-      tempValue.textContent = "…";
-      pressureValue.textContent = "…";
-      fltCatValue.textContent = "…";
-      tafSummaryValue.textContent = "Chargement...";
-
-      const matchedAirport = await findAirportByCode(icao);
-      const matchedUlm = await findUlmByCode(icao);
-
-      try {
-        const res = await fetch(`${WORKER_URL}?icao=${encodeURIComponent(icao)}`);
-
-        if (!res.ok) {
-          metarOutput.textContent =
-            `Aucune météo exploitable trouvée pour ${icao}. Ce terrain ne publie peut-être pas de METAR, ou la source n’a pas de donnée disponible actuellement.`;
-          tafOutput.textContent =
-            `Aucune prévision TAF exploitable trouvée pour ${icao}.`;
-
-          resetDecoded();
-          statusValue.textContent = "⚠️ Météo indisponible";
-          nameValue.textContent =
-            formatMatchedDisplayName(matchedAirport, matchedUlm) || icao;
-          windValue.textContent = "Non disponible";
-          visibilityValue.textContent = "Non disponible";
-          cloudsValue.textContent = "Non disponible";
-          tempValue.textContent = "Non disponible";
-          pressureValue.textContent = "Non disponible";
-          fltCatValue.textContent = "Non disponible";
-          tafSummaryValue.textContent = "Prévision indisponible";
-          return;
-        }
-
-        const data = await res.json();
-
-        if (!Array.isArray(data) || data.length === 0) {
-          metarOutput.textContent =
-            `Aucune observation METAR trouvée pour ${icao}. Vérifie le code OACI ou teste un terrain disposant d’une météo publiée.`;
-          tafOutput.textContent =
-            `Aucune prévision TAF trouvée pour ${icao}.`;
-
-          resetDecoded();
-          statusValue.textContent = "Aucune donnée météo disponible";
-          nameValue.textContent =
-            formatMatchedDisplayName(matchedAirport, matchedUlm) || icao;
-          windValue.textContent = "Non disponible";
-          visibilityValue.textContent = "Non disponible";
-          cloudsValue.textContent = "Non disponible";
-          tempValue.textContent = "Non disponible";
-          pressureValue.textContent = "Non disponible";
-          fltCatValue.textContent = "Non disponible";
-          tafSummaryValue.textContent = "Prévision indisponible";
-          return;
-        }
-
-        const item = data[0];
-
-        if (!item || typeof item !== "object") {
-          metarOutput.textContent = `Réponse météo inexploitable pour ${icao}.`;
-          tafOutput.textContent = `Réponse prévision inexploitable pour ${icao}.`;
-
-          resetDecoded();
-          statusValue.textContent = "Réponse invalide";
-          nameValue.textContent =
-            formatMatchedDisplayName(matchedAirport, matchedUlm) || icao;
-          windValue.textContent = "Indisponible";
-          visibilityValue.textContent = "Indisponible";
-          cloudsValue.textContent = "Indisponible";
-          tempValue.textContent = "Indisponible";
-          pressureValue.textContent = "Indisponible";
-          fltCatValue.textContent = "Indisponible";
-          tafSummaryValue.textContent = "Prévision indisponible";
-          return;
-        }
-
-        metarOutput.textContent = item.rawOb || "METAR brut indisponible";
-        tafOutput.textContent =
-          item.taf || "TAF non disponible via cette source actuelle";
-
-        statusValue.textContent = formatStatus(item);
-        nameValue.textContent =
-          formatMatchedDisplayName(matchedAirport, matchedUlm) ||
-          item.name ||
-          item.icaoId ||
-          icao;
-        windValue.textContent = formatWind(item.wdir, item.wspd);
-        visibilityValue.textContent = formatVisibility(item.visib);
-        cloudsValue.textContent = formatClouds(item);
-        tempValue.textContent = formatTemp(item.temp, item.dewp);
-        pressureValue.textContent = formatPressure(item.altim);
-        fltCatValue.textContent = item.fltCat || "—";
-        tafSummaryValue.textContent = buildSimpleTaf(item.taf, item, icao);
-      } catch (error) {
-        metarOutput.textContent =
-          `Impossible de joindre la météo pour ${icao} pour le moment. Réessaie dans quelques instants ou teste un terrain plus couvert comme LFQQ ou LFPN.`;
-        tafOutput.textContent =
-          `Impossible de joindre la prévision pour ${icao} pour le moment.`;
-
-        resetDecoded();
-        statusValue.textContent = "⚠️ Service météo indisponible";
-        nameValue.textContent =
-          formatMatchedDisplayName(matchedAirport, matchedUlm) || icao;
-        windValue.textContent = "Non disponible";
-        visibilityValue.textContent = "Non disponible";
-        cloudsValue.textContent = "Non disponible";
-        tempValue.textContent = "Non disponible";
-        pressureValue.textContent = "Non disponible";
-        fltCatValue.textContent = "Non disponible";
-        tafSummaryValue.textContent = "Prévision indisponible";
-        console.error(error);
-      }
-    }
-
-    async function getLocation() {
-      nearbyAirports.innerHTML = "<li class='nearby-loading'>Recherche des terrains proches...</li>";
-
-      try {
-        const center = await resolveNearbyCenter();
-        const [airports, ulmBases] = await Promise.all([
-          loadAirports(),
-          loadUlmBases(),
-        ]);
-
-        const basulmByWeatherCode = buildBasulmIndexByWeatherCode(ulmBases);
-        const radiusKm = 120;
-
-        const weatherNearby = airports
-          .map((airport) => {
-            const overlay = basulmByWeatherCode.get(airport.weatherCode) || null;
-
-            return {
-              code: airport.weatherCode,
-              name: airport.name,
-              municipality: airport.municipality || "",
-              distanceKm: getDistanceKm(
-                center.latitude,
-                center.longitude,
-                airport.latitude,
-                airport.longitude
-              ),
-              operationalLabel: getAirportOperationalLabel(airport, overlay),
-              accessLabel: formatAccessTags(overlay?.accessTags || []),
-            };
-          })
-          .filter((item) => item.distanceKm <= radiusKm)
-          .sort((a, b) => a.distanceKm - b.distanceKm)
-          .slice(0, 10);
-
-        const weatherCodesShown = new Set(weatherNearby.map((item) => item.code));
-
-        const ulmNearby = ulmBases
-          .map((item) => ({
-            code: item.code,
-            name: item.name,
-            weatherCode: item.weatherCode,
-            weatherCapable: item.weatherCapable,
-            distanceKm: getDistanceKm(
-              center.latitude,
-              center.longitude,
-              item.latitude,
-              item.longitude
-            ),
-            operationalLabel: item.operationalLabel,
-            accessLabel: formatAccessTags(item.accessTags),
-          }))
-          .filter((item) => item.distanceKm <= radiusKm)
-          .filter((item) => {
-            if (item.weatherCode && weatherCodesShown.has(item.weatherCode)) {
-              return false;
-            }
-            return true;
-          })
-          .sort((a, b) => a.distanceKm - b.distanceKm)
-          .slice(0, 10);
-
-        nearbyAirports.innerHTML = "";
-        renderNearbyHeader(center.label);
-
-        renderNearbyGroupTitle("Terrains avec météo terrain exploitable");
-        if (weatherNearby.length === 0) {
-          renderEmptyGroup("Aucun terrain météo exploitable trouvé dans le rayon retenu.");
-        } else {
-          weatherNearby.forEach(renderWeatherNearbyItem);
-        }
-
-        renderNearbyGroupTitle("Plateformes ULM et terrains spécifiques");
-        if (ulmNearby.length === 0) {
-          renderEmptyGroup("Aucune plateforme ULM ou spécifique trouvée dans le rayon retenu.");
-        } else {
-          ulmNearby.forEach(renderUlmNearbyItem);
-        }
-      } catch (error) {
-        if (error.message === "geolocation_not_supported") {
-          nearbyAirports.innerHTML =
-            "<li class='nearby-empty'>La géolocalisation n’est pas supportée sur cet appareil.</li>";
-          return;
-        }
-
-        if (error.message === "geolocation_failed") {
-          nearbyAirports.innerHTML =
-            "<li class='nearby-empty'>Impossible de récupérer la position. Saisis un terrain comme LFQQ puis relance la recherche.</li>";
-          return;
-        }
-
-        nearbyAirports.innerHTML =
-          "<li class='nearby-empty'>Impossible de charger les terrains proches pour le moment.</li>";
-        console.error(error);
-      }
-    }
-
-    loadMetarBtn?.addEventListener("click", loadMetar);
-    nearbyBtn?.addEventListener("click", getLocation);
-
-    icaoInput?.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        loadMetar();
-      }
-    });
-  </script>
-
-  <style>
-    .tool-block {
+  <style is:global>
+    .tool-page .tool-block {
       margin-top: 24px;
     }
 
-    .tool-row {
+    .tool-page .tool-row {
       gap: 12px;
       flex-wrap: wrap;
     }
 
-    .tool-block input {
+    .tool-page .tool-block input {
       min-width: 220px;
       padding: 10px 12px;
       border-radius: 10px;
@@ -1691,7 +856,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       color: white;
     }
 
-    .tool-action-btn {
+    .tool-page .tool-action-btn {
       padding: 10px 14px;
       border-radius: 10px;
       background: rgba(111, 184, 214, 0.18);
@@ -1701,38 +866,38 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
     }
 
-    .tool-action-btn:hover {
+    .tool-page .tool-action-btn:hover {
       transform: translateY(-1px);
       background: rgba(111, 184, 214, 0.24);
       border-color: rgba(111, 184, 214, 0.48);
     }
 
-    .decoded-grid {
+    .tool-page .decoded-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 12px;
       margin-top: 12px;
     }
 
-    .decoded-card {
+    .tool-page .decoded-card {
       padding: 14px;
       border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: rgba(255, 255, 255, 0.03);
     }
 
-    .decoded-card-wide {
+    .tool-page .decoded-card-wide {
       grid-column: 1 / -1;
     }
 
-    .decoded-label {
+    .tool-page .decoded-label {
       display: block;
       font-size: 0.9rem;
       color: var(--muted);
       margin-bottom: 6px;
     }
 
-    pre {
+    .tool-page pre {
       background: rgba(0, 0, 0, 0.4);
       padding: 12px;
       border-radius: 8px;
@@ -1740,7 +905,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       white-space: pre-wrap;
     }
 
-    #nearbyAirports {
+    .tool-page .nearby-list {
       margin-top: 16px;
       padding-left: 0;
       list-style: none;
@@ -1748,39 +913,39 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       gap: 12px;
     }
 
-    .nearby-loading,
-    .nearby-empty {
+    .tool-page .nearby-loading,
+    .tool-page .nearby-empty {
       color: var(--muted);
       font-size: 0.96rem;
     }
 
-    .nearby-section-header {
+    .tool-page .nearby-section-header {
       display: grid;
       gap: 6px;
       margin-bottom: 4px;
     }
 
-    .nearby-section-header strong {
+    .tool-page .nearby-section-header strong {
       font-size: 1.02rem;
     }
 
-    .nearby-section-header small {
+    .tool-page .nearby-section-header small {
       color: var(--muted);
       line-height: 1.5;
     }
 
-    .nearby-group-title {
+    .tool-page .nearby-group-title {
       margin-top: 10px;
       font-size: 0.98rem;
       font-weight: 700;
       color: rgba(231, 238, 245, 0.96);
     }
 
-    .nearby-item {
+    .tool-page .nearby-item {
       margin: 0;
     }
 
-    .airport-nearby-card {
+    .tool-page .airport-nearby-card {
       width: 100%;
       display: grid;
       gap: 6px;
@@ -1792,9 +957,18 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02)),
         rgba(15,23,32,.72);
       color: white;
+      font: inherit;
     }
 
-    .airport-nearby-card--clickable {
+    .tool-page button.airport-nearby-card {
+      appearance: none;
+      -webkit-appearance: none;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02)),
+        rgba(15,23,32,.72);
+    }
+
+    .tool-page .airport-nearby-card--clickable {
       cursor: pointer;
       transition:
         transform 0.18s ease,
@@ -1803,7 +977,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         box-shadow 0.18s ease;
     }
 
-    .airport-nearby-card--clickable:hover {
+    .tool-page .airport-nearby-card--clickable:hover {
       transform: translateY(-1px);
       border-color: rgba(111, 184, 214, 0.40);
       box-shadow: 0 0 0 4px rgba(111, 184, 214, 0.10);
@@ -1812,11 +986,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         rgba(15,23,32,.78);
     }
 
-    .airport-nearby-card--static {
+    .tool-page .airport-nearby-card--static {
       opacity: 0.96;
     }
 
-    .airport-nearby-top {
+    .tool-page .airport-nearby-top {
       display: flex;
       justify-content: space-between;
       gap: 12px;
@@ -1824,39 +998,38 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       font-size: 0.98rem;
     }
 
-    .airport-nearby-top span {
+    .tool-page .airport-nearby-top span {
       color: var(--muted);
       font-size: 0.92rem;
       white-space: nowrap;
     }
 
-    .airport-nearby-name {
+    .tool-page .airport-nearby-name {
       font-weight: 600;
       color: rgba(231, 238, 245, 0.96);
     }
 
-    .airport-nearby-meta,
-    .airport-nearby-access,
-    .airport-nearby-note {
+    .tool-page .airport-nearby-meta,
+    .tool-page .airport-nearby-access,
+    .tool-page .airport-nearby-note {
       color: var(--muted);
       font-size: 0.94rem;
       line-height: 1.45;
     }
 
-    .airport-nearby-note {
+    .tool-page .airport-nearby-note {
       color: rgba(231, 238, 245, 0.80);
     }
 
     @media (max-width: 720px) {
-      .airport-nearby-top {
+      .tool-page .airport-nearby-top {
         flex-direction: column;
         align-items: flex-start;
       }
 
-      .airport-nearby-top span {
+      .tool-page .airport-nearby-top span {
         white-space: normal;
       }
     }
   </style>
-</BaseLayout>
 </BaseLayout>
