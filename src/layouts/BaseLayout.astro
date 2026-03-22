@@ -26,12 +26,10 @@ canonicalURL.hash = "";
 
 // Ajoute un trailing slash si c’est une route “dossier” (pas un fichier .xml/.png/...)
 const path = canonicalURL.pathname;
-const looksLikeFile = path.includes("."); // /sitemap.xml, /og.png, etc.
+const looksLikeFile = path.includes(".");
 if (!looksLikeFile && !path.endsWith("/")) canonicalURL.pathname = `${path}/`;
 
 // OG image : toujours absolue
-// Si une page fournit son image, on la garde.
-// Sinon, fallback safe vers /logo.png
 const ogImagePath =
   typeof image === "string" && image.trim().length > 0 ? image : "/logo.png";
 const ogImageUrl = new URL(ogImagePath, base).href;
@@ -49,7 +47,7 @@ const ogType = isArticlePage ? "article" : "website";
 
     <title>{siteTitle}</title>
     <meta name="description" content={siteDescription} />
-    <meta name="theme-color" content="#0b0f14" />
+    <meta name="theme-color" content="#0b1118" />
 
     <link rel="canonical" href={canonicalURL.href} />
 
@@ -76,19 +74,28 @@ const ogType = isArticlePage ? "article" : "website";
           <img src="/logo.png" alt="Logo NESDZ" class="logo" />
           <div class="stack brand-text" style="gap:2px">
             <strong>NESDZ</strong>
-            <span style="font-size:12px;color:var(--muted);margin-top:-2px;">
+            <span class="brand-subtitle">
               ULM · Ultra-léger · Passion
             </span>
           </div>
         </a>
 
-        <nav class="navlinks" aria-label="Navigation principale">
-          <a href="/journal/">Journal</a>
-          <a href="/modeles/">Annuaire ULM</a>
-          <a href="/tags/">Tags</a>
-          <a href="/edito/">Édito</a>
-          <a href="/a-propos/">À propos</a>
-        </nav>
+        <div class="nav-right">
+          <nav class="navlinks" aria-label="Navigation principale">
+            <a href="/journal/">Journal</a>
+            <a href="/modeles/">Annuaire ULM</a>
+            <a href="/edito/">Édito</a>
+            <a href="/a-propos/">À propos</a>
+          </nav>
+
+          <a
+            href="/outils/"
+            class="service-cta"
+            aria-label="Accéder au service météo et terrains"
+          >
+            Météo & terrains
+          </a>
+        </div>
       </div>
     </header>
 
@@ -110,6 +117,95 @@ const ogType = isArticlePage ? "article" : "website";
     </footer>
 
     <style>
+      .nav-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      .brand-subtitle {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: -2px;
+      }
+
+      .nav-right {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+
+      .navlinks {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+
+      .navlinks a {
+        color: rgba(255, 255, 255, 0.86);
+        text-decoration: none;
+        font-size: 0.98rem;
+        line-height: 1.2;
+        transition: color 0.18s ease, opacity 0.18s ease;
+      }
+
+      .navlinks a:hover {
+        color: white;
+      }
+
+      .service-cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 14px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-size: 0.95rem;
+        font-weight: 700;
+        line-height: 1;
+        color: #eaf8ff;
+        background: linear-gradient(
+          180deg,
+          rgba(103, 183, 224, 0.22) 0%,
+          rgba(103, 183, 224, 0.12) 100%
+        );
+        border: 1px solid rgba(103, 183, 224, 0.34);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        white-space: nowrap;
+        transition:
+          transform 0.18s ease,
+          background 0.18s ease,
+          border-color 0.18s ease;
+      }
+
+      .service-cta:hover {
+        transform: translateY(-1px);
+        background: linear-gradient(
+          180deg,
+          rgba(103, 183, 224, 0.28) 0%,
+          rgba(103, 183, 224, 0.16) 100%
+        );
+        border-color: rgba(103, 183, 224, 0.48);
+      }
+
+      @media (max-width: 900px) {
+        .nav-inner {
+          gap: 18px;
+        }
+
+        .nav-right {
+          gap: 14px;
+        }
+
+        .navlinks {
+          gap: 14px;
+        }
+      }
+
       @media (max-width: 720px) {
         .nav-inner {
           display: flex;
@@ -139,6 +235,13 @@ const ogType = isArticlePage ? "article" : "website";
           line-height: 1.1;
         }
 
+        .nav-right {
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 12px;
+        }
+
         .navlinks {
           display: flex;
           flex-wrap: wrap;
@@ -151,6 +254,11 @@ const ogType = isArticlePage ? "article" : "website";
           font-size: 1rem;
           line-height: 1.2;
           white-space: nowrap;
+        }
+
+        .service-cta {
+          width: 100%;
+          min-height: 44px;
         }
       }
     </style>
