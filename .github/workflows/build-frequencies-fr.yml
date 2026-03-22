@@ -1,1 +1,46 @@
+name: Build Frequencies France
 
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'data-source/airports.csv'
+      - 'data-source/airport-frequencies.csv'
+      - 'scripts/build-frequencies-fr.mjs'
+      - '.github/workflows/build-frequencies-fr.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-frequencies-fr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate France frequencies JSON
+        run: node scripts/build-frequencies-fr.mjs
+
+      - name: Commit generated JSON if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add public/data/frequencies-fr.json
+
+          if git diff --cached --quiet; then
+            echo "Aucun changement à commit"
+            exit 0
+          fi
+
+          git commit -m "build: generate France frequencies JSON"
+          git push
