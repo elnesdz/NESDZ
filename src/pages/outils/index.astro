@@ -3,19 +3,21 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout
-  title="Outils pilote"
-  description="Météo aviation, METAR, TAF et aérodromes à proximité."
+  title="Météo & terrains"
+  description="Météo aviation, METAR, TAF et terrains proches."
 >
   <section class="container" style="padding: 20px 0;">
     <div class="card">
       <div class="pad">
-        <h1>Outils pilote</h1>
+        <h1>Météo & terrains</h1>
 
         <div class="tool-block">
           <label for="icaoInput">Code OACI</label>
           <div class="row tool-row">
             <input id="icaoInput" placeholder="Ex : LFQQ" value="LFQQ" />
-            <button id="loadMetarBtn" type="button">Voir METAR / TAF</button>
+            <button id="loadMetarBtn" class="tool-action-btn" type="button">
+              Voir METAR / TAF
+            </button>
           </div>
         </div>
 
@@ -86,7 +88,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         <div class="tool-block">
           <h2>Aérodromes à proximité</h2>
-          <button id="nearbyBtn" type="button">Terrains proches</button>
+          <button id="nearbyBtn" class="tool-action-btn" type="button">
+            Terrains proches
+          </button>
           <ul id="nearbyAirports"></ul>
         </div>
       </div>
@@ -507,8 +511,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     function renderNearbyHeader(centerLabel) {
       const li = document.createElement("li");
+      li.className = "nearby-section-header";
       li.innerHTML = `
-        <strong>${centerLabel}</strong><br>
+        <strong>${centerLabel}</strong>
         <small>
           Vérifier systématiquement les conditions d’utilisation publiées
           (AIP, VAC, NOTAM, consignes locales) avant toute exploitation.
@@ -519,42 +524,46 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     function renderNearbyGroupTitle(title) {
       const li = document.createElement("li");
-      li.style.marginTop = "1rem";
-      li.innerHTML = `<strong>${title}</strong>`;
+      li.className = "nearby-group-title";
+      li.textContent = title;
       nearbyAirports.appendChild(li);
     }
 
     function renderEmptyGroup(message) {
       const li = document.createElement("li");
-      li.innerHTML = `<small>${message}</small>`;
+      li.className = "nearby-empty";
+      li.textContent = message;
       nearbyAirports.appendChild(li);
     }
 
     function renderWeatherNearbyItem(item) {
       const li = document.createElement("li");
-      const button = document.createElement("button");
+      li.className = "nearby-item";
 
+      const button = document.createElement("button");
       button.type = "button";
-      button.className = "airport-nearby-btn";
+      button.className = "airport-nearby-card airport-nearby-card--clickable";
 
       const accessLine = item.accessLabel
-        ? `<br><small>${item.accessLabel}</small>`
+        ? `<div class="airport-nearby-access">${item.accessLabel}</div>`
         : "";
 
       button.innerHTML = `
-        <strong>${item.code}</strong> — ${item.name}
-        <br>
-        <small>
-          ${item.operationalLabel}
-          ${item.municipality ? ` · ${item.municipality}` : ""}
-          · ${item.distanceKm.toFixed(1)} km
-        </small>
+        <div class="airport-nearby-top">
+          <strong>${item.code}</strong>
+          <span>${item.distanceKm.toFixed(1)} km</span>
+        </div>
+        <div class="airport-nearby-name">${item.name}</div>
+        <div class="airport-nearby-meta">
+          ${item.operationalLabel}${item.municipality ? ` · ${item.municipality}` : ""}
+        </div>
         ${accessLine}
       `;
 
       button.addEventListener("click", () => {
         icaoInput.value = item.code;
         loadMetar();
+        window.scrollTo({ top: 0, behavior: "smooth" });
       });
 
       li.appendChild(button);
@@ -563,28 +572,31 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     function renderUlmNearbyItem(item) {
       const li = document.createElement("li");
+      li.className = "nearby-item";
 
-      const codeLabel = item.code || "Plateforme locale";
+      const card = document.createElement("div");
+      card.className = "airport-nearby-card airport-nearby-card--static";
+
       const accessLine = item.accessLabel
-        ? `<br><small>${item.accessLabel}</small>`
+        ? `<div class="airport-nearby-access">${item.accessLabel}</div>`
         : "";
-      const weatherLine = item.weatherCapable
-        ? `<br><small>Météo terrain potentiellement exploitable via ${item.weatherCode}</small>`
-        : `<br><small>Pas de METAR / TAF direct dans l’outil</small>`;
 
-      li.innerHTML = `
-        <div class="airport-nearby-btn" style="cursor: default;">
-          <strong>${codeLabel}</strong> — ${item.name}
-          <br>
-          <small>
-            ${item.operationalLabel}
-            · ${item.distanceKm.toFixed(1)} km
-          </small>
-          ${accessLine}
-          ${weatherLine}
+      const weatherLine = item.weatherCapable
+        ? `<div class="airport-nearby-note">Code météo possible : ${item.weatherCode}</div>`
+        : `<div class="airport-nearby-note">Pas de METAR / TAF direct dans l’outil</div>`;
+
+      card.innerHTML = `
+        <div class="airport-nearby-top">
+          <strong>${item.code || "Plateforme locale"}</strong>
+          <span>${item.distanceKm.toFixed(1)} km</span>
         </div>
+        <div class="airport-nearby-name">${item.name}</div>
+        <div class="airport-nearby-meta">${item.operationalLabel}</div>
+        ${accessLine}
+        ${weatherLine}
       `;
 
+      li.appendChild(card);
       nearbyAirports.appendChild(li);
     }
 
@@ -717,7 +729,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     async function getLocation() {
-      nearbyAirports.innerHTML = "<li>Recherche des terrains proches...</li>";
+      nearbyAirports.innerHTML = "<li class='nearby-loading'>Recherche des terrains proches...</li>";
 
       try {
         const center = await resolveNearbyCenter();
@@ -783,36 +795,32 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         renderNearbyGroupTitle("Terrains avec météo terrain exploitable");
         if (weatherNearby.length === 0) {
-          renderEmptyGroup(
-            "Aucun terrain météo exploitable trouvé dans le rayon retenu."
-          );
+          renderEmptyGroup("Aucun terrain météo exploitable trouvé dans le rayon retenu.");
         } else {
           weatherNearby.forEach(renderWeatherNearbyItem);
         }
 
         renderNearbyGroupTitle("Plateformes ULM et terrains spécifiques");
         if (ulmNearby.length === 0) {
-          renderEmptyGroup(
-            "Aucune plateforme ULM ou spécifique trouvée dans le rayon retenu."
-          );
+          renderEmptyGroup("Aucune plateforme ULM ou spécifique trouvée dans le rayon retenu.");
         } else {
           ulmNearby.forEach(renderUlmNearbyItem);
         }
       } catch (error) {
         if (error.message === "geolocation_not_supported") {
           nearbyAirports.innerHTML =
-            "<li>La géolocalisation n’est pas supportée sur cet appareil.</li>";
+            "<li class='nearby-empty'>La géolocalisation n’est pas supportée sur cet appareil.</li>";
           return;
         }
 
         if (error.message === "geolocation_failed") {
           nearbyAirports.innerHTML =
-            "<li>Impossible de récupérer la position. Saisis un terrain comme LFQQ puis relance la recherche.</li>";
+            "<li class='nearby-empty'>Impossible de récupérer la position. Saisis un terrain comme LFQQ puis relance la recherche.</li>";
           return;
         }
 
         nearbyAirports.innerHTML =
-          "<li>Impossible de charger les terrains proches pour le moment.</li>";
+          "<li class='nearby-empty'>Impossible de charger les terrains proches pour le moment.</li>";
         console.error(error);
       }
     }
@@ -839,20 +847,27 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     .tool-block input {
       min-width: 220px;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.05);
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      background: rgba(255, 255, 255, 0.04);
       color: white;
     }
 
-    .tool-block button {
+    .tool-action-btn {
       padding: 10px 14px;
-      border-radius: 8px;
-      background: var(--accent);
-      border: none;
-      color: white;
+      border-radius: 10px;
+      background: rgba(111, 184, 214, 0.18);
+      border: 1px solid rgba(111, 184, 214, 0.34);
+      color: #eaf8ff;
       cursor: pointer;
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+    }
+
+    .tool-action-btn:hover {
+      transform: translateY(-1px);
+      background: rgba(111, 184, 214, 0.24);
+      border-color: rgba(111, 184, 214, 0.48);
     }
 
     .decoded-grid {
@@ -889,41 +904,119 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     #nearbyAirports {
-      margin-top: 12px;
+      margin-top: 16px;
       padding-left: 0;
       list-style: none;
       display: grid;
-      gap: 10px;
+      gap: 12px;
     }
 
-    .airport-nearby-btn {
+    .nearby-loading,
+    .nearby-empty {
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+
+    .nearby-section-header {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .nearby-section-header strong {
+      font-size: 1.02rem;
+    }
+
+    .nearby-section-header small {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .nearby-group-title {
+      margin-top: 10px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: rgba(231, 238, 245, 0.96);
+    }
+
+    .nearby-item {
+      margin: 0;
+    }
+
+    .airport-nearby-card {
       width: 100%;
+      display: grid;
+      gap: 6px;
       text-align: left;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02)),
+        rgba(15,23,32,.72);
+      color: white;
+    }
+
+    .airport-nearby-card--clickable {
+      cursor: pointer;
+      transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease;
+    }
+
+    .airport-nearby-card--clickable:hover {
+      transform: translateY(-1px);
+      border-color: rgba(111, 184, 214, 0.40);
+      box-shadow: 0 0 0 4px rgba(111, 184, 214, 0.10);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.025)),
+        rgba(15,23,32,.78);
+    }
+
+    .airport-nearby-card--static {
+      opacity: 0.96;
+    }
+
+    .airport-nearby-top {
       display: flex;
       justify-content: space-between;
       gap: 12px;
       align-items: center;
-      padding: 12px 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(255, 255, 255, 0.03);
-      color: white;
-      cursor: pointer;
+      font-size: 0.98rem;
     }
 
-    .airport-nearby-btn span {
+    .airport-nearby-top span {
       color: var(--muted);
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       white-space: nowrap;
     }
 
+    .airport-nearby-name {
+      font-weight: 600;
+      color: rgba(231, 238, 245, 0.96);
+    }
+
+    .airport-nearby-meta,
+    .airport-nearby-access,
+    .airport-nearby-note {
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.45;
+    }
+
+    .airport-nearby-note {
+      color: rgba(231, 238, 245, 0.80);
+    }
+
     @media (max-width: 720px) {
-      .airport-nearby-btn {
+      .airport-nearby-top {
         flex-direction: column;
         align-items: flex-start;
       }
 
-      .airport-nearby-btn span {
+      .airport-nearby-top span {
         white-space: normal;
       }
     }
