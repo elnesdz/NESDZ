@@ -12,8 +12,15 @@ const FREQUENCIES_FILE = path.resolve(
 );
 const OUTPUT_FILE = path.resolve(__dirname, "../public/data/frequencies-fr.json");
 
+/**
+ * Source mondiale conservée.
+ * Première sortie utile pour NESDZ : France.
+ * Plus tard, on pourra factoriser ce script pour d'autres pays / zones.
+ */
+const COUNTRY_CODE = "FR";
+
 function parseCsvLine(line) {
-  const result = [];
+  const values = [];
   let current = "";
   let inQuotes = false;
 
@@ -32,7 +39,7 @@ function parseCsvLine(line) {
     }
 
     if (char === "," && !inQuotes) {
-      result.push(current);
+      values.push(current);
       current = "";
       continue;
     }
@@ -40,81 +47,80 @@ function parseCsvLine(line) {
     current += char;
   }
 
-  result.push(current);
-  return result;
+  values.push(current);
+  return values;
 }
 
 function parseCsv(content) {
-  const lines = content
-    .replace(/\r\n/g, "\n")
-    .replace(/\r/g, "\n")
-    .split("\n")
-    .filter((line) => line.trim().length > 0);
+  const normalized = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const lines = normalized.split("\n").filter((line) => line.trim().length > 0);
 
   if (lines.length === 0) return [];
 
   const headers = parseCsvLine(lines[0]).map((header) => header.trim());
 
   return lines.slice(1).map((line) => {
-    const values = parseCsvLine(line);
+    const rawValues = parseCsvLine(line);
     const row = {};
 
     headers.forEach((header, index) => {
-      row[header] = values[index] ?? "";
+      row[header] = rawValues[index] ?? "";
     });
 
     return row;
   });
 }
 
-function normalizeCode(value = "") {
-  return String(value).trim().toUpperCase();
-}
-
-function toNumberOrNull(value = "") {
-  const parsed = Number(String(value).trim());
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
 function cleanText(value = "") {
   return String(value).trim();
 }
 
-function getWeatherCode(airport) {
-  const ident = normalizeCode(airport.ident || "");
-  if (/^[A-Z]{4}$/.test(ident)) return ident;
-
-  const gpsCode = normalizeCode(airport.gps_code || "");
-  if (/^[A-Z]{4}$/.test(gpsCode)) return gpsCode;
-
-  return "";
+function normalizeCode(value = "") {
+  return cleanText(value).toUpperCase();
 }
 
-function isFrenchAirport(airport) {
-  return (
-    cleanText(airport.iso_country) === "FR" &&
-    cleanText(airport.type) !== "closed"
-  );
+function toNumberOrNull(value = "") {
+  const parsed = Number(cleanText(value));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function getWeatherCode(airport) {
+  const ident = normalizeCode(airport.ident);
+  if (/^[A-Z]{4}$/.test(ident)) return ident;
+
+  const gpsCode = normalizeCode(airport.gps_code);
+  if (/^[A-Z]{4}$/.test(gpsCode)) return gpsCode;
+
+  return null;
+}
+
+function isAirportInTargetCountry(airport) {
+  return cleanText(airport.iso_country) === COUNTRY_CODE;
+}
+
+function isAirportUsable(airport) {
+  return cleanText(airport.type) !== "closed";
 }
 
 function buildAirportIndex(airportsRows) {
   const index = new Map();
 
   airportsRows
-    .filter(isFrenchAirport)
+    .filter(isAirportInTargetCountry)
+    .filter(isAirportUsable)
     .forEach((airport) => {
-      const ident = normalizeCode(airport.ident || "");
+      const ident = normalizeCode(airport.ident);
       if (!ident) return;
 
       index.set(ident, {
         ident,
-        icao: normalizeCode(airport.ident || ""),
-        gps_code: normalizeCode(airport.gps_code || ""),
-        weather_code: getWeatherCode(airport) || null,
-        name: cleanText(airport.name || ""),
-        type: cleanText(airport.type || ""),
-        municipality: cleanText(airport.municipality || ""),
-        region: cleanText(airport.iso_region || ""),
+        weather_code: getWeatherCode(airport),
+        airport_name: cleanText(airport.name),
+        airport_type: cleanText(airport.type),
+        municipality: cleanText(airport.municipality),
+        region: cleanText(airport.iso_region),
+        gps_code: normalizeCode(airport.gps_code),
+        icao: normalizeCode(airport.ident),
       });
     });
 
@@ -124,19 +130,16 @@ function buildAirportIndex(airportsRows) {
 function normalizeFrequencyType(type = "", description = "") {
   const value = normalizeCode(`${type} ${description}`);
 
-  if (value.includes("TWR")) return "tower";
-  if (value.includes("GROUND")) return "ground";
-  if (value.includes("GND")) return "ground";
+  if (value.includes("TWR") || value.includes("TOWER")) return "tower";
   if (value.includes("AFIS")) return "afis";
-  if (value.includes("APP")) return "approach";
-  if (value.includes("APPROACH")) return "approach";
-  if (value.includes("DEP")) return "departure";
-  if (value.includes("DEPARTURE")) return "departure";
   if (value.includes("ATIS")) return "atis";
+  if (value.includes("GROUND") || value.includes("GND")) return "ground";
+  if (value.includes("APP") || value.includes("APPROACH")) return "approach";
+  if (value.includes("DEP") || value.includes("DEPARTURE")) return "departure";
   if (value.includes("CTAF")) return "ctaf";
   if (value.includes("UNICOM")) return "unicom";
-  if (value.includes("RADIO")) return "radio";
   if (value.includes("INFO")) return "information";
+  if (value.includes("RADIO")) return "radio";
 
   return "other";
 }
@@ -150,7 +153,7 @@ function buildFrequencyLabel(type = "", description = "") {
   return "Fréquence";
 }
 
-function mainFrequencySortScore(item) {
+function frequencyPriority(entry) {
   const order = {
     tower: 0,
     afis: 1,
@@ -165,7 +168,18 @@ function mainFrequencySortScore(item) {
     other: 10,
   };
 
-  return order[item.frequency_type] ?? 99;
+  return order[entry.frequency_type] ?? 99;
+}
+
+function dedupeFrequencies(list) {
+  const seen = new Set();
+
+  return list.filter((item) => {
+    const key = `${item.frequency_type}|${item.label}|${item.frequency_mhz}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 async function main() {
@@ -180,26 +194,26 @@ async function main() {
   const airportIndex = buildAirportIndex(airportsRows);
   const grouped = new Map();
 
-  frequenciesRows.forEach((row) => {
-    const airportIdent = normalizeCode(row.airport_ident || "");
-    if (!airportIdent) return;
+  for (const row of frequenciesRows) {
+    const airportIdent = normalizeCode(row.airport_ident);
+    if (!airportIdent) continue;
 
     const airport = airportIndex.get(airportIdent);
-    if (!airport) return;
+    if (!airport) continue;
 
-    const frequencyMhz = toNumberOrNull(row.frequency_mhz || "");
-    if (frequencyMhz == null) return;
+    const frequencyMhz = toNumberOrNull(row.frequency_mhz);
+    if (frequencyMhz == null) continue;
 
-    const entry = {
+    const frequency = {
       airport_ident: airport.ident,
       weather_code: airport.weather_code,
-      airport_name: airport.name,
-      airport_type: airport.type,
+      airport_name: airport.airport_name,
+      airport_type: airport.airport_type,
       municipality: airport.municipality,
       region: airport.region,
-      frequency_type: normalizeFrequencyType(row.type || "", row.description || ""),
-      label: buildFrequencyLabel(row.type || "", row.description || ""),
-      description: cleanText(row.description || ""),
+      frequency_type: normalizeFrequencyType(row.type, row.description),
+      label: buildFrequencyLabel(row.type, row.description),
+      description: cleanText(row.description),
       frequency_mhz: frequencyMhz,
     };
 
@@ -207,25 +221,24 @@ async function main() {
       grouped.set(airport.ident, {
         airport_ident: airport.ident,
         weather_code: airport.weather_code,
-        airport_name: airport.name,
-        airport_type: airport.type,
+        airport_name: airport.airport_name,
+        airport_type: airport.airport_type,
         municipality: airport.municipality,
         region: airport.region,
         frequencies: [],
       });
     }
 
-    grouped.get(airport.ident).frequencies.push(entry);
-  });
+    grouped.get(airport.ident).frequencies.push(frequency);
+  }
 
   const result = Array.from(grouped.values())
     .map((airport) => {
-      const frequencies = airport.frequencies
-        .sort((a, b) => {
-          const scoreDiff = mainFrequencySortScore(a) - mainFrequencySortScore(b);
-          if (scoreDiff !== 0) return scoreDiff;
-          return a.frequency_mhz - b.frequency_mhz;
-        });
+      const frequencies = dedupeFrequencies(airport.frequencies).sort((a, b) => {
+        const typeDiff = frequencyPriority(a) - frequencyPriority(b);
+        if (typeDiff !== 0) return typeDiff;
+        return a.frequency_mhz - b.frequency_mhz;
+      });
 
       return {
         ...airport,
@@ -242,11 +255,13 @@ async function main() {
   await mkdir(path.dirname(OUTPUT_FILE), { recursive: true });
   await writeFile(OUTPUT_FILE, JSON.stringify(result, null, 2) + "\n", "utf8");
 
-  console.log(`Base fréquences France générée : ${result.length} terrains exportés`);
+  console.log(
+    `Base fréquences ${COUNTRY_CODE} générée : ${result.length} terrains exportés`
+  );
   console.log(`Fichier écrit : ${OUTPUT_FILE}`);
 }
 
 main().catch((error) => {
-  console.error("Erreur pendant la génération des fréquences France :", error);
+  console.error("Erreur pendant la génération des fréquences :", error);
   process.exit(1);
 });
