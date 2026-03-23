@@ -1,6 +1,7 @@
 from pathlib import Path
 import json
 import re
+import unicodedata
 
 from openpyxl import load_workbook
 
@@ -18,6 +19,26 @@ VAC_IDENT_RE = re.compile(r"\bVAC[-_.\s]*([A-Z]{4})\b", re.IGNORECASE)
 AIRPORT_IDENT_IN_PATH_RE = re.compile(r"/([A-Z]{4})(?:/|\.|_|-|\b)")
 TWO_LETTER_AD_CODE_RE = re.compile(r"\[[A-Z0-9]{2}\]\[([A-Z0-9]{2})\]")
 
+GENERIC_ALIAS_TOKENS = {
+    "AERODROME",
+    "AERODROMES",
+    "AIRFIELD",
+    "AIRFIELDS",
+    "AEROPORT",
+    "AIRPORT",
+    "BASE",
+    "PLATEFORME",
+    "PLATEFORMES",
+    "ULM",
+    "HELIPORT",
+    "HELISTATION",
+    "ALTISURFACE",
+    "ALTIPORT",
+    "SAINT",
+    "STE",
+    "SAINTE",
+}
+
 
 def normalize_text(value):
     if value is None:
@@ -31,6 +52,20 @@ def normalize_code(value):
 
 def normalize_spaces(value):
     return re.sub(r"\s+", " ", normalize_text(value))
+
+
+def strip_accents(value):
+    text = normalize_text(value)
+    return "".join(
+        ch for ch in unicodedata.normalize("NFKD", text)
+        if not unicodedata.combining(ch)
+    )
+
+
+def normalize_match_text(value):
+    text = strip_accents(value).upper()
+    text = re.sub(r"[^A-Z0-9]+", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def to_float_or_none(value):
@@ -140,9 +175,36 @@ def first_non_empty(*values):
     return ""
 
 
+def build_name_aliases(name_values):
+    aliases = set()
+
+    for raw_value in name_values:
+        full = normalize_match_text(raw_value)
+        if not full:
+            continue
+
+        if len(full) >= 5:
+            aliases.add(full)
+
+        tokens = [
+            token for token in full.split(" ")
+            if len(token) >= 5 and token not in GENERIC_ALIAS_TOKENS
+        ]
+
+        for token in tokens:
+            aliases.add(token)
+
+        if len(tokens) >= 2:
+            aliases.add(" ".join(tokens[-2:]))
+
+    aliases = {alias for alias in aliases if len(alias) >= 5}
+    return sorted(aliases, key=len, reverse=True)
+
+
 def build_ad_index(ad_rows):
     index = {}
     ident_to_ad_code = {}
+    alias_to_ident_candidates = {}
 
     for row in ad_rows:
         ad_code = normalize_code(
@@ -155,25 +217,25 @@ def build_ad_index(ad_rows):
         if not ad_code:
             continue
 
-        airport_ident = ""
         ident_candidates = []
 
         for value in row.values():
             ident_candidates.extend(extract_airport_ident_candidates(value))
 
-        if ident_candidates:
-            airport_ident = ident_candidates[0]
+        airport_ident = ident_candidates[0] if ident_candidates else ""
 
-        airport_name = first_non_empty(
-            row.get("AdNomComplet"),
-            row.get("AdNomCarto"),
-            row.get("Nom"),
-        )
+        airport_names = [
+            first_non_empty(row.get("AdNomComplet")),
+            first_non_empty(row.get("AdNomCarto")),
+            first_non_empty(row.get("Nom")),
+        ]
+        airport_names = [name for name in airport_names if name]
 
         entry = {
             "ad_code": ad_code,
             "airport_ident": airport_ident,
-            "airport_name": airport_name,
+            "airport_name": first_non_empty(*airport_names),
+            "airport_names": airport_names,
             "airport_status": first_non_empty(
                 row.get("AdStatut"),
                 row.get("Statut"),
@@ -189,7 +251,17 @@ def build_ad_index(ad_rows):
         if airport_ident:
             ident_to_ad_code[airport_ident] = ad_code
 
-    return index, ident_to_ad_code
+            for alias in build_name_aliases(airport_names):
+                alias_to_ident_candidates.setdefault(alias, set()).add(airport_ident)
+
+    alias_index = [
+        (alias, list(identifiers)[0])
+        for alias, identifiers in alias_to_ident_candidates.items()
+        if len(identifiers) == 1
+    ]
+    alias_index.sort(key=lambda item: len(item[0]), reverse=True)
+
+    return index, ident_to_ad_code, alias_index
 
 
 def normalize_service_code(value):
@@ -199,7 +271,7 @@ def normalize_service_code(value):
     return code
 
 
-def extract_service_airport_ident(service_row, ad_index, ident_to_ad_code):
+def extract_service_airport_ident(service_row, ad_index, ident_to_ad_code, alias_index):
     # 1. Liens explicites
     for value in iter_link_values(service_row):
         candidates = extract_airport_ident_candidates(value)
@@ -224,7 +296,7 @@ def extract_service_airport_ident(service_row, ad_index, ident_to_ad_code):
         if candidates:
             return candidates[0]
 
-    # 4. Fallback via code terrain
+    # 4. Fallback via code terrain 2 lettres
     ad_code = normalize_code(
         first_non_empty(
             service_row.get("AdCode"),
@@ -242,9 +314,28 @@ def extract_service_airport_ident(service_row, ad_index, ident_to_ad_code):
     if ad_code and ad_code in ad_index:
         return normalize_code(ad_index[ad_code].get("airport_ident"))
 
-    # 5. Cas où le code complet est déjà présent
     if ad_code and len(ad_code) == 4 and ad_code in ident_to_ad_code:
         return ad_code
+
+    # 5. Fallback par nom terrain / lieu
+    haystack_parts = []
+    for candidate in [
+        service_row.get("IndicLieu"),
+        service_row.get("IndicService"),
+        service_row.get("Service"),
+        service_row.get("Lieu"),
+        service_row.get("Nom"),
+        *service_row.values(),
+    ]:
+        normalized = normalize_match_text(candidate)
+        if normalized:
+            haystack_parts.append(normalized)
+
+    if haystack_parts:
+        haystack = f" {' '.join(haystack_parts)} "
+        for alias, ident in alias_index:
+            if f" {alias} " in haystack:
+                return ident
 
     return ""
 
@@ -348,7 +439,7 @@ def main():
     service_rows = sheet_to_dicts(workbook, "ServiceS")
     ad_rows = sheet_to_dicts(workbook, "AdS")
 
-    ad_index, ident_to_ad_code = build_ad_index(ad_rows)
+    ad_index, ident_to_ad_code, alias_index = build_ad_index(ad_rows)
 
     service_by_pk = {}
     unresolved_services = 0
@@ -363,7 +454,12 @@ def main():
         except Exception:
             continue
 
-        airport_ident = extract_service_airport_ident(row, ad_index, ident_to_ad_code)
+        airport_ident = extract_service_airport_ident(
+            row,
+            ad_index,
+            ident_to_ad_code,
+            alias_index,
+        )
         if not airport_ident:
             unresolved_services += 1
             continue
