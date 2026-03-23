@@ -1,46 +1,5 @@
 [
   {
-    "airport_ident": "AFIS",
-    "weather_code": "AFIS",
-    "airport_name": "SAINT INGLEVERT LES DEUX CAPS",
-    "airport_type": "",
-    "airport_status": "CAP",
-    "airport_situation": "",
-    "municipality": "",
-    "region": "",
-    "source": "SIA primary + OurAirports fallback",
-    "frequencies": [
-      {
-        "frequency_type": "afis",
-        "service_code": "AFIS",
-        "label": "AFIS MIQUELON Information",
-        "description": "",
-        "frequency_mhz": 118.275,
-        "hours_code": "HX",
-        "hours_text": "",
-        "spacing": "",
-        "remark": "",
-        "sector": "",
-        "suppletive": "non",
-        "language": "fr"
-      }
-    ],
-    "primary_frequency": {
-      "frequency_type": "afis",
-      "service_code": "AFIS",
-      "label": "AFIS MIQUELON Information",
-      "description": "",
-      "frequency_mhz": 118.275,
-      "hours_code": "HX",
-      "hours_text": "",
-      "spacing": "",
-      "remark": "",
-      "sector": "",
-      "suppletive": "non",
-      "language": "fr"
-    }
-  },
-  {
     "airport_ident": "EAST",
     "weather_code": "EAST",
     "airport_name": "STRASBOURG ENTZHEIM",
@@ -35695,6 +35654,144 @@
     }
   },
   {
+    "airport_ident": "LFVM",
+    "weather_code": "LFVM",
+    "airport_name": "MIQUELON",
+    "airport_type": "",
+    "airport_status": "CAP",
+    "airport_situation": "500 m ouest de MIQUELON\\\\500 m west from MIQUELON city",
+    "municipality": "",
+    "region": "",
+    "source": "SIA primary + OurAirports fallback",
+    "frequencies": [
+      {
+        "frequency_type": "afis",
+        "service_code": "AFIS",
+        "label": "AFIS MIQUELON Information",
+        "description": "",
+        "frequency_mhz": 118.275,
+        "hours_code": "HX",
+        "hours_text": "",
+        "spacing": "",
+        "remark": "",
+        "sector": "",
+        "suppletive": "non",
+        "language": "fr"
+      }
+    ],
+    "primary_frequency": {
+      "frequency_type": "afis",
+      "service_code": "AFIS",
+      "label": "AFIS MIQUELON Information",
+      "description": "",
+      "frequency_mhz": 118.275,
+      "hours_code": "HX",
+      "hours_text": "",
+      "spacing": "",
+      "remark": "",
+      "sector": "",
+      "suppletive": "non",
+      "language": "fr"
+    }
+  },
+  {
+    "airport_ident": "LFVP",
+    "weather_code": "LFVP",
+    "airport_name": "SAINT PIERRE",
+    "airport_type": "",
+    "airport_status": "CAP",
+    "airport_situation": "1 NM S de SAINT PIERRE\\\\1 NM S of SAINT PIERRE",
+    "municipality": "",
+    "region": "",
+    "source": "SIA primary + OurAirports fallback",
+    "frequencies": [
+      {
+        "frequency_type": "tower",
+        "service_code": "TWR",
+        "label": "TWR SAINT PIERRE Tour",
+        "description": "",
+        "frequency_mhz": 118.5,
+        "hours_code": "HO",
+        "hours_text": "HOR ATS",
+        "spacing": "",
+        "remark": "",
+        "sector": "",
+        "suppletive": "non",
+        "language": "fr"
+      },
+      {
+        "frequency_type": "tower",
+        "service_code": "TWR",
+        "label": "TWR SAINT PIERRE Tour",
+        "description": "",
+        "frequency_mhz": 119.1,
+        "hours_code": "HO",
+        "hours_text": "HOR ATS",
+        "spacing": "",
+        "remark": "",
+        "sector": "",
+        "suppletive": "non",
+        "language": "fr"
+      },
+      {
+        "frequency_type": "approach",
+        "service_code": "APP",
+        "label": "APP SAINT PIERRE Approche",
+        "description": "",
+        "frequency_mhz": 118.5,
+        "hours_code": "HO",
+        "hours_text": "HOR ATS",
+        "spacing": "",
+        "remark": "",
+        "sector": "",
+        "suppletive": "non",
+        "language": "fr"
+      },
+      {
+        "frequency_type": "approach",
+        "service_code": "APP",
+        "label": "APP SAINT PIERRE Approche",
+        "description": "",
+        "frequency_mhz": 119.1,
+        "hours_code": "HO",
+        "hours_text": "HOR ATS",
+        "spacing": "",
+        "remark": "",
+        "sector": "",
+        "suppletive": "non",
+        "language": "fr"
+      },
+      {
+        "frequency_type": "other",
+        "service_code": "VDF",
+        "label": "VDF SAINT PIERRE Gonio",
+        "description": "",
+        "frequency_mhz": 119.1,
+        "hours_code": "HO",
+        "hours_text": "HOR ATS",
+        "spacing": "",
+        "remark": "",
+        "sector": "",
+        "suppletive": "non",
+        "language": "fr"
+      }
+    ],
+    "primary_frequency": {
+      "frequency_type": "tower",
+      "service_code": "TWR",
+      "label": "TWR SAINT PIERRE Tour",
+      "description": "",
+      "frequency_mhz": 118.5,
+      "hours_code": "HO",
+      "hours_text": "HOR ATS",
+      "spacing": "",
+      "remark": "",
+      "sector": "",
+      "suppletive": "non",
+      "language": "fr"
+    }
+  },
+  {
     "airport_ident": "LFXA",
     "weather_code": "LFXA",
     "airport_name": "AMBERIEU",
@@ -39559,34 +39656,6 @@
         "remark": "",
         "sector": "",
         "suppletive": "",
-        "language": "fr"
-      },
-      {
-        "frequency_type": "tower",
-        "service_code": "TWR",
-        "label": "TWR SAINT PIERRE Tour",
-        "description": "",
-        "frequency_mhz": 118.5,
-        "hours_code": "HO",
-        "hours_text": "HOR ATS",
-        "spacing": "",
-        "remark": "",
-        "sector": "",
-        "suppletive": "non",
-        "language": "fr"
-      },
-      {
-        "frequency_type": "tower",
-        "service_code": "TWR",
-        "label": "TWR SAINT PIERRE Tour",
-        "description": "",
-        "frequency_mhz": 119.1,
-        "hours_code": "HO",
-        "hours_text": "HOR ATS",
-        "spacing": "",
-        "remark": "",
-        "sector": "",
-        "suppletive": "non",
         "language": "fr"
       }
     ],
