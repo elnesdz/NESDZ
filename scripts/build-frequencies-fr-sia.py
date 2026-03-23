@@ -10,6 +10,15 @@ INPUT_XLSX = BASE_DIR / "data-source" / "sia" / "_AIP_XML_SIA_AAAA-MM-JJ.xlsx"
 OUTPUT_JSON = BASE_DIR / "public" / "data" / "frequencies-fr-sia.json"
 
 
+FOUR_LETTER_IDENT_RE = re.compile(r"\b([A-Z]{4})\b")
+BRACKET_IDENT_RE = re.compile(r"\[([A-Z0-9]{2})\]\[([A-Z0-9]{2})\]")
+BRACKET_SINGLE_IDENT_RE = re.compile(r"\[([A-Z]{4})\]")
+AD_2_IDENT_RE = re.compile(r"\bAD[-_.\s]*2[-_.\s]*([A-Z]{4})\b", re.IGNORECASE)
+VAC_IDENT_RE = re.compile(r"\bVAC[-_.\s]*([A-Z]{4})\b", re.IGNORECASE)
+AIRPORT_IDENT_IN_PATH_RE = re.compile(r"/([A-Z]{4})(?:/|\.|_|-|\b)")
+TWO_LETTER_AD_CODE_RE = re.compile(r"\[[A-Z0-9]{2}\]\[([A-Z0-9]{2})\]")
+
+
 def normalize_text(value):
     if value is None:
         return ""
@@ -18,6 +27,10 @@ def normalize_text(value):
 
 def normalize_code(value):
     return normalize_text(value).upper()
+
+
+def normalize_spaces(value):
+    return re.sub(r"\s+", " ", normalize_text(value))
 
 
 def to_float_or_none(value):
@@ -62,7 +75,7 @@ def iter_link_values(row):
 
 def extract_bracket_airport_ident(text):
     text = normalize_text(text)
-    match = re.search(r"\[([A-Z0-9]{2})\]\[([A-Z0-9]{2})\]", text)
+    match = BRACKET_IDENT_RE.search(text)
     if match:
         return f"{normalize_code(match.group(1))}{normalize_code(match.group(2))}"
     return ""
@@ -70,7 +83,7 @@ def extract_bracket_airport_ident(text):
 
 def extract_four_letter_ident(text):
     text = normalize_code(text)
-    match = re.search(r"\b([A-Z]{4})\b", text)
+    match = FOUR_LETTER_IDENT_RE.search(text)
     if match:
         return match.group(1)
     return ""
@@ -78,10 +91,45 @@ def extract_four_letter_ident(text):
 
 def extract_two_letter_ad_code(text):
     text = normalize_text(text)
-    match = re.search(r"\[[A-Z0-9]{2}\]\[([A-Z0-9]{2})\]", text)
+    match = TWO_LETTER_AD_CODE_RE.search(text)
     if match:
         return normalize_code(match.group(1))
     return ""
+
+
+def extract_airport_ident_candidates(text):
+    text_norm = normalize_code(text)
+    if not text_norm:
+        return []
+
+    candidates = []
+
+    bracket_ident = extract_bracket_airport_ident(text_norm)
+    if bracket_ident:
+        candidates.append(bracket_ident)
+
+    single_match = BRACKET_SINGLE_IDENT_RE.search(text_norm)
+    if single_match:
+        candidates.append(normalize_code(single_match.group(1)))
+
+    for regex in [
+        AD_2_IDENT_RE,
+        VAC_IDENT_RE,
+        AIRPORT_IDENT_IN_PATH_RE,
+        FOUR_LETTER_IDENT_RE,
+    ]:
+        for match in regex.finditer(text_norm):
+            ident = normalize_code(match.group(1))
+            if len(ident) == 4:
+                candidates.append(ident)
+
+    seen = set()
+    result = []
+    for ident in candidates:
+        if ident and ident not in seen:
+            seen.add(ident)
+            result.append(ident)
+    return result
 
 
 def first_non_empty(*values):
@@ -94,6 +142,7 @@ def first_non_empty(*values):
 
 def build_ad_index(ad_rows):
     index = {}
+    ident_to_ad_code = {}
 
     for row in ad_rows:
         ad_code = normalize_code(
@@ -107,22 +156,24 @@ def build_ad_index(ad_rows):
             continue
 
         airport_ident = ""
-        for value in row.values():
-            airport_ident = (
-                extract_bracket_airport_ident(value)
-                or extract_four_letter_ident(value)
-            )
-            if airport_ident:
-                break
+        ident_candidates = []
 
-        index[ad_code] = {
+        for value in row.values():
+            ident_candidates.extend(extract_airport_ident_candidates(value))
+
+        if ident_candidates:
+            airport_ident = ident_candidates[0]
+
+        airport_name = first_non_empty(
+            row.get("AdNomComplet"),
+            row.get("AdNomCarto"),
+            row.get("Nom"),
+        )
+
+        entry = {
             "ad_code": ad_code,
             "airport_ident": airport_ident,
-            "airport_name": first_non_empty(
-                row.get("AdNomComplet"),
-                row.get("AdNomCarto"),
-                row.get("Nom"),
-            ),
+            "airport_name": airport_name,
             "airport_status": first_non_empty(
                 row.get("AdStatut"),
                 row.get("Statut"),
@@ -133,28 +184,47 @@ def build_ad_index(ad_rows):
             ),
         }
 
-    return index
+        index[ad_code] = entry
+
+        if airport_ident:
+            ident_to_ad_code[airport_ident] = ad_code
+
+    return index, ident_to_ad_code
 
 
-def extract_service_airport_ident(service_row, ad_index):
-    # 1. Cas le plus propre : lien de type [LF][QD]
+def normalize_service_code(value):
+    code = normalize_code(value)
+    if code in {"A/A", "AA", "AUTO", "AUTO INFO", "AUTO-INFO"}:
+        return "A/A"
+    return code
+
+
+def extract_service_airport_ident(service_row, ad_index, ident_to_ad_code):
+    # 1. Liens explicites
     for value in iter_link_values(service_row):
-        ident = extract_bracket_airport_ident(value)
-        if ident:
-            return ident
+        candidates = extract_airport_ident_candidates(value)
+        if candidates:
+            return candidates[0]
 
-    # 2. Cherche un vrai code 4 lettres dans les colonnes les plus probables
+    # 2. Colonnes les plus probables
     for candidate in [
         service_row.get("IndicLieu"),
         service_row.get("IndicService"),
         service_row.get("Service"),
-        *service_row.values(),
+        service_row.get("Lieu"),
+        service_row.get("Nom"),
     ]:
-        ident = extract_four_letter_ident(candidate)
-        if ident:
-            return ident
+        candidates = extract_airport_ident_candidates(candidate)
+        if candidates:
+            return candidates[0]
 
-    # 3. Fallback via code terrain 2 lettres, puis lookup dans AdS
+    # 3. Balayage complet de la ligne
+    for candidate in service_row.values():
+        candidates = extract_airport_ident_candidates(candidate)
+        if candidates:
+            return candidates[0]
+
+    # 4. Fallback via code terrain
     ad_code = normalize_code(
         first_non_empty(
             service_row.get("AdCode"),
@@ -172,13 +242,17 @@ def extract_service_airport_ident(service_row, ad_index):
     if ad_code and ad_code in ad_index:
         return normalize_code(ad_index[ad_code].get("airport_ident"))
 
+    # 5. Cas où le code complet est déjà présent
+    if ad_code and len(ad_code) == 4 and ad_code in ident_to_ad_code:
+        return ad_code
+
     return ""
 
 
 def build_service_label(service_row):
-    service_code = normalize_code(service_row.get("Service"))
-    indic_lieu = normalize_text(service_row.get("IndicLieu"))
-    indic_service = normalize_text(service_row.get("IndicService"))
+    service_code = normalize_service_code(service_row.get("Service"))
+    indic_lieu = normalize_spaces(service_row.get("IndicLieu"))
+    indic_service = normalize_spaces(service_row.get("IndicService"))
 
     if indic_service == ".":
         indic_service = ""
@@ -198,7 +272,7 @@ def build_service_label(service_row):
 
 
 def normalize_frequency_type(service_code):
-    code = normalize_code(service_code)
+    code = normalize_service_code(service_code)
 
     mapping = {
         "A/A": "air_to_air",
@@ -246,7 +320,7 @@ def dedupe_frequencies(entries):
     for entry in entries:
         key = (
             normalize_code(entry.get("frequency_type")),
-            normalize_text(entry.get("label")),
+            normalize_spaces(entry.get("label")).upper(),
             entry.get("frequency_mhz"),
         )
 
@@ -274,7 +348,7 @@ def main():
     service_rows = sheet_to_dicts(workbook, "ServiceS")
     ad_rows = sheet_to_dicts(workbook, "AdS")
 
-    ad_index = build_ad_index(ad_rows)
+    ad_index, ident_to_ad_code = build_ad_index(ad_rows)
 
     service_by_pk = {}
     unresolved_services = 0
@@ -289,18 +363,20 @@ def main():
         except Exception:
             continue
 
-        airport_ident = extract_service_airport_ident(row, ad_index)
+        airport_ident = extract_service_airport_ident(row, ad_index, ident_to_ad_code)
         if not airport_ident:
             unresolved_services += 1
             continue
 
+        service_code = normalize_service_code(row.get("Service"))
+
         service_by_pk[pk] = {
             "pk": pk,
             "airport_ident": airport_ident,
-            "service_code": normalize_code(row.get("Service")),
+            "service_code": service_code,
             "label": build_service_label(row),
-            "indic_lieu": normalize_text(row.get("IndicLieu")),
-            "indic_service": normalize_text(row.get("IndicService")),
+            "indic_lieu": normalize_spaces(row.get("IndicLieu")),
+            "indic_service": normalize_spaces(row.get("IndicService")),
             "language": normalize_text(row.get("Langue")),
         }
 
@@ -325,7 +401,10 @@ def main():
             continue
 
         airport_ident = service["airport_ident"]
-        ad_code = airport_ident[2:] if len(airport_ident) == 4 else ""
+        ad_code = ident_to_ad_code.get(
+            airport_ident,
+            airport_ident[2:] if len(airport_ident) == 4 else "",
+        )
         ad_info = ad_index.get(ad_code, {})
 
         frequency_entry = {
@@ -363,7 +442,7 @@ def main():
             key=lambda entry: (
                 frequency_priority(entry),
                 entry.get("frequency_mhz", 9999),
-                normalize_text(entry.get("label")),
+                normalize_spaces(entry.get("label")).upper(),
             )
         )
 
