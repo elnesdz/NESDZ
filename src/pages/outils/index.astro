@@ -15,7 +15,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           <label for="icaoInput">Code OACI</label>
           <div class="row tool-row">
             <input id="icaoInput" placeholder="Ex : LFQQ" value="LFQQ" />
-            <button id="loadMetarBtn" class="tool-action-btn" type="button">
+            <button
+              id="loadMetarBtn"
+              class="tool-action-btn tool-action-btn--primary"
+              type="button"
+            >
               Voir METAR / TAF
             </button>
           </div>
@@ -122,9 +126,28 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           <pre id="tafOutput">Aucune donnée</pre>
         </div>
 
+        <div
+          id="weatherRefsBlock"
+          class="tool-block weather-refs-block"
+          hidden
+        >
+          <div class="weather-refs-head">
+            <div>
+              <h2>Repères météo voisins</h2>
+              <p class="weather-refs-note">Aide au briefing uniquement</p>
+            </div>
+          </div>
+
+          <ul id="weatherRefsList" class="weather-refs-list"></ul>
+        </div>
+
         <div class="tool-block">
           <h2>Aérodromes à proximité</h2>
-          <button id="nearbyBtn" class="tool-action-btn" type="button">
+          <button
+            id="nearbyBtn"
+            class="tool-action-btn tool-action-btn--secondary"
+            type="button"
+          >
             Terrains proches
           </button>
           <ul id="nearbyAirports" class="nearby-list"></ul>
@@ -161,6 +184,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const radioList = document.getElementById("radioList");
     const tafSummaryValue = document.getElementById("tafSummaryValue");
 
+    const weatherRefsBlock = document.getElementById("weatherRefsBlock");
+    const weatherRefsList = document.getElementById("weatherRefsList");
+
     let airportsCache = null;
     let airportsPromise = null;
 
@@ -189,6 +215,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       if (radioList) radioList.innerHTML = "";
 
       tafSummaryValue.textContent = "Aucune donnée";
+    }
+
+    function resetWeatherReferences() {
+      if (weatherRefsBlock) weatherRefsBlock.hidden = true;
+      if (weatherRefsList) weatherRefsList.innerHTML = "";
     }
 
     function normalizeCode(value) {
@@ -548,7 +579,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         return (
           allFrequencies.find(
             (item) =>
-              item.weather_code === normalized || item.airport_ident === normalized
+              item.weather_code === normalized ||
+              item.airport_ident === normalized
           ) || null
         );
       } catch (error) {
@@ -567,7 +599,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     function getRadioServiceKey(frequency) {
-      const rawType = String(frequency?.frequency_type || "").trim().toLowerCase();
+      const rawType = String(frequency?.frequency_type || "")
+        .trim()
+        .toLowerCase();
 
       if (rawType === "tower" || rawType === "twr") return "tower";
       if (rawType === "ground" || rawType === "gnd") return "ground";
@@ -685,7 +719,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               .split("-")
               .map((part) => {
                 if (!part) return "";
-                return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+                return (
+                  part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+                );
               })
               .join("-");
           }
@@ -736,7 +772,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     function getRadioRank(frequency) {
       const label = getRadioDisplayLabel(frequency);
       const hasServiceCode = frequency?.service_code ? 10 : 0;
-      const hasDescription = normalizeRadioText(frequency?.description).length ? 4 : 0;
+      const hasDescription = normalizeRadioText(frequency?.description).length
+        ? 4
+        : 0;
 
       return label.length + hasServiceCode + hasDescription;
     }
@@ -905,7 +943,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           )
         : null;
 
-      const primaryFrequency = primaryCandidate || dedupedFrequencies[0] || null;
+      const primaryFrequency =
+        primaryCandidate || dedupedFrequencies[0] || null;
 
       if (!primaryFrequency) {
         radioTypeValue.textContent = "Radio";
@@ -1000,6 +1039,158 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       });
 
       return map;
+    }
+
+    async function fetchWeatherSnapshot(icao) {
+      const normalized = normalizeCode(icao);
+      if (!normalized) return null;
+
+      try {
+        const res = await fetch(
+          `${WORKER_URL}?icao=${encodeURIComponent(normalized)}`
+        );
+
+        if (!res.ok) return null;
+
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0) return null;
+
+        const item = data[0];
+
+        if (!item || typeof item !== "object" || !item.rawOb) return null;
+
+        return {
+          icao: normalized,
+          rawOb: item.rawOb || "",
+          taf: item.taf || "",
+          fltCat: item.fltCat || "",
+        };
+      } catch (error) {
+        console.error(error);
+        return null;
+      }
+    }
+
+    function formatWeatherReferenceMeta(snapshot) {
+      const parts = ["METAR disponible"];
+      parts.push(snapshot?.taf ? "TAF disponible" : "TAF indisponible");
+
+      if (snapshot?.fltCat) {
+        parts.push(snapshot.fltCat);
+      }
+
+      return parts.join(" · ");
+    }
+
+    function getWeatherReferenceCenter(matchedAirport, matchedUlm) {
+      if (
+        matchedAirport &&
+        Number.isFinite(matchedAirport.latitude) &&
+        Number.isFinite(matchedAirport.longitude)
+      ) {
+        return {
+          latitude: matchedAirport.latitude,
+          longitude: matchedAirport.longitude,
+        };
+      }
+
+      if (
+        matchedUlm &&
+        Number.isFinite(matchedUlm.latitude) &&
+        Number.isFinite(matchedUlm.longitude)
+      ) {
+        return {
+          latitude: matchedUlm.latitude,
+          longitude: matchedUlm.longitude,
+        };
+      }
+
+      return null;
+    }
+
+    async function loadWeatherReferences(targetCode, matchedAirport, matchedUlm) {
+      resetWeatherReferences();
+
+      const center = getWeatherReferenceCenter(matchedAirport, matchedUlm);
+      if (!center || !weatherRefsBlock || !weatherRefsList) return;
+
+      try {
+        const airports = await loadAirports();
+
+        const nearbyCandidates = airports
+          .filter((airport) => airport.weatherCode !== normalizeCode(targetCode))
+          .map((airport) => ({
+            airport,
+            distanceKm: getDistanceKm(
+              center.latitude,
+              center.longitude,
+              airport.latitude,
+              airport.longitude
+            ),
+          }))
+          .filter((item) => item.distanceKm <= 180)
+          .sort((a, b) => a.distanceKm - b.distanceKm)
+          .slice(0, 10);
+
+        if (nearbyCandidates.length === 0) return;
+
+        const candidateResults = await Promise.all(
+          nearbyCandidates.map(async (item) => {
+            const snapshot = await fetchWeatherSnapshot(item.airport.weatherCode);
+            return snapshot
+              ? {
+                  airport: item.airport,
+                  distanceKm: item.distanceKm,
+                  snapshot,
+                }
+              : null;
+          })
+        );
+
+        const references = candidateResults.filter(Boolean).slice(0, 3);
+
+        if (references.length === 0) {
+          weatherRefsBlock.hidden = false;
+          weatherRefsList.innerHTML = `
+            <li class="weather-ref-empty">
+              Aucun repère météo voisin exploitable trouvé automatiquement.
+            </li>
+          `;
+          return;
+        }
+
+        weatherRefsList.innerHTML = "";
+        weatherRefsBlock.hidden = false;
+
+        references.forEach((reference) => {
+          const li = document.createElement("li");
+
+          li.innerHTML = `
+            <button type="button" class="weather-ref-card">
+              <div class="weather-ref-top">
+                <strong>${reference.airport.weatherCode}</strong>
+                <span>${reference.distanceKm.toFixed(1)} km</span>
+              </div>
+              <div class="weather-ref-name">${reference.airport.name}</div>
+              <div class="weather-ref-meta">${formatWeatherReferenceMeta(reference.snapshot)}</div>
+              <div class="weather-ref-action">Voir ce terrain</div>
+            </button>
+          `;
+
+          const button = li.querySelector("button");
+
+          button?.addEventListener("click", () => {
+            icaoInput.value = reference.airport.weatherCode;
+            loadMetar();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          });
+
+          weatherRefsList.appendChild(li);
+        });
+      } catch (error) {
+        console.error(error);
+      }
     }
 
     async function resolveNearbyCenter() {
@@ -1143,6 +1334,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     async function loadMetar() {
       const icao = normalizeCode(icaoInput?.value);
 
+      resetWeatherReferences();
+
       if (!icao) {
         syncIcaoInUrl("");
         metarOutput.textContent = "Entre un code OACI.";
@@ -1183,12 +1376,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         if (!res.ok) {
           metarOutput.textContent =
-            `Aucune météo exploitable trouvée pour ${icao}. Ce terrain ne publie peut-être pas de METAR, ou la source n’a pas de donnée disponible actuellement.`;
+            `Aucun METAR exploitable trouvé pour ${icao}. Ce terrain ne publie peut-être pas de météo terrain disponible actuellement.`;
           tafOutput.textContent =
-            `Aucune prévision TAF exploitable trouvée pour ${icao}.`;
+            `Aucun TAF exploitable trouvé pour ${icao}.`;
 
           resetDecoded();
-          statusValue.textContent = "⚠️ Météo indisponible";
+          statusValue.textContent = "⚠️ Pas de météo terrain publiée";
           nameValue.textContent =
             formatMatchedDisplayName(matchedAirport, matchedUlm) || icao;
           windValue.textContent = "Non disponible";
@@ -1199,6 +1392,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           fltCatValue.textContent = "Non disponible";
           renderFrequencyPanel(matchedFrequency);
           tafSummaryValue.textContent = "Prévision indisponible";
+          await loadWeatherReferences(icao, matchedAirport, matchedUlm);
           return;
         }
 
@@ -1221,6 +1415,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           fltCatValue.textContent = "Non disponible";
           renderFrequencyPanel(matchedFrequency);
           tafSummaryValue.textContent = "Prévision indisponible";
+          await loadWeatherReferences(icao, matchedAirport, matchedUlm);
           return;
         }
 
@@ -1242,6 +1437,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           fltCatValue.textContent = "Indisponible";
           renderFrequencyPanel(matchedFrequency);
           tafSummaryValue.textContent = "Prévision indisponible";
+          await loadWeatherReferences(icao, matchedAirport, matchedUlm);
           return;
         }
 
@@ -1263,6 +1459,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         fltCatValue.textContent = item.fltCat || "—";
         renderFrequencyPanel(matchedFrequency);
         tafSummaryValue.textContent = buildSimpleTaf(item.taf, item, icao);
+
+        if (!item.rawOb) {
+          await loadWeatherReferences(icao, matchedAirport, matchedUlm);
+        }
       } catch (error) {
         metarOutput.textContent =
           `Impossible de joindre la météo pour ${icao} pour le moment. Réessaie dans quelques instants ou teste un terrain plus couvert comme LFQQ ou LFPN.`;
@@ -1281,6 +1481,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         fltCatValue.textContent = "Non disponible";
         renderFrequencyPanel(matchedFrequency);
         tafSummaryValue.textContent = "Prévision indisponible";
+        await loadWeatherReferences(icao, matchedAirport, matchedUlm);
         console.error(error);
       }
     }
@@ -1321,7 +1522,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           .sort((a, b) => a.distanceKm - b.distanceKm)
           .slice(0, 10);
 
-        const weatherCodesShown = new Set(weatherNearby.map((item) => item.code));
+        const weatherCodesShown = new Set(
+          weatherNearby.map((item) => item.code)
+        );
 
         const ulmNearby = ulmBases
           .map((item) => ({
@@ -1415,6 +1618,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .tool-page .tool-row {
       gap: 12px;
       flex-wrap: wrap;
+      align-items: center;
     }
 
     .tool-page .tool-block input {
@@ -1427,22 +1631,102 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     .tool-page .tool-action-btn {
-      padding: 10px 14px;
-      border-radius: 10px;
-      background: rgba(111, 184, 214, 0.18);
-      border: 1px solid rgba(111, 184, 214, 0.34);
-      color: #eaf8ff;
+      appearance: none;
+      -webkit-appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 44px;
+      padding: 11px 16px;
+      border-radius: 12px;
+      font: inherit;
+      font-weight: 650;
+      letter-spacing: 0.01em;
       cursor: pointer;
       transition:
         transform 0.18s ease,
         background 0.18s ease,
-        border-color 0.18s ease;
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        color 0.18s ease;
     }
 
-    .tool-page .tool-action-btn:hover {
+    .tool-page .tool-action-btn:focus-visible {
+      outline: none;
+    }
+
+    .tool-page .tool-action-btn--primary {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(111, 184, 214, 0.30),
+          rgba(111, 184, 214, 0.18)
+        ),
+        rgba(20, 40, 54, 0.88);
+      border: 1px solid rgba(111, 184, 214, 0.52);
+      color: #f3fbff;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        0 0 0 1px rgba(111, 184, 214, 0.08);
+    }
+
+    .tool-page .tool-action-btn--primary:hover {
       transform: translateY(-1px);
-      background: rgba(111, 184, 214, 0.24);
-      border-color: rgba(111, 184, 214, 0.48);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(111, 184, 214, 0.38),
+          rgba(111, 184, 214, 0.23)
+        ),
+        rgba(20, 40, 54, 0.94);
+      border-color: rgba(111, 184, 214, 0.70);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 0 0 4px rgba(111, 184, 214, 0.12),
+        0 10px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .tool-page .tool-action-btn--primary:focus-visible {
+      border-color: rgba(111, 184, 214, 0.78);
+      box-shadow:
+        0 0 0 4px rgba(111, 184, 214, 0.16),
+        0 0 0 1px rgba(111, 184, 214, 0.28);
+    }
+
+    .tool-page .tool-action-btn--secondary {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.08),
+          rgba(255, 255, 255, 0.04)
+        ),
+        rgba(22, 28, 36, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: rgba(235, 243, 250, 0.96);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .tool-page .tool-action-btn--secondary:hover {
+      transform: translateY(-1px);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.12),
+          rgba(255, 255, 255, 0.06)
+        ),
+        rgba(24, 31, 40, 0.90);
+      border-color: rgba(255, 255, 255, 0.24);
+      box-shadow:
+        0 0 0 4px rgba(255, 255, 255, 0.05),
+        0 8px 18px rgba(0, 0, 0, 0.14);
+    }
+
+    .tool-page .tool-action-btn--secondary:focus-visible {
+      border-color: rgba(255, 255, 255, 0.30);
+      box-shadow:
+        0 0 0 4px rgba(255, 255, 255, 0.08),
+        0 0 0 1px rgba(255, 255, 255, 0.12);
     }
 
     .tool-page .decoded-grid {
@@ -1580,6 +1864,132 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       color: var(--muted);
       font-size: 0.94rem;
       white-space: nowrap;
+    }
+
+    .tool-page .weather-refs-block {
+      padding-top: 2px;
+    }
+
+    .tool-page .weather-refs-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .tool-page .weather-refs-head h2 {
+      margin: 0;
+    }
+
+    .tool-page .weather-refs-note {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .tool-page .weather-refs-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .tool-page .weather-ref-card {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 100%;
+      display: grid;
+      gap: 7px;
+      text-align: left;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(111, 184, 214, 0.20);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(111, 184, 214, 0.05),
+          rgba(255, 255, 255, 0.02)
+        ),
+        rgba(17, 25, 34, 0.74);
+      color: white;
+      font: inherit;
+      cursor: pointer;
+      transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease;
+    }
+
+    .tool-page .weather-ref-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(111, 184, 214, 0.42);
+      box-shadow:
+        0 0 0 4px rgba(111, 184, 214, 0.10),
+        0 10px 24px rgba(0, 0, 0, 0.16);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(111, 184, 214, 0.08),
+          rgba(255, 255, 255, 0.025)
+        ),
+        rgba(18, 27, 37, 0.80);
+    }
+
+    .tool-page .weather-ref-card:focus-visible {
+      outline: none;
+      border-color: rgba(111, 184, 214, 0.54);
+      box-shadow:
+        0 0 0 4px rgba(111, 184, 214, 0.14),
+        0 0 0 1px rgba(111, 184, 214, 0.24);
+    }
+
+    .tool-page .weather-ref-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tool-page .weather-ref-top strong {
+      font-size: 1rem;
+      color: #eef7ff;
+    }
+
+    .tool-page .weather-ref-top span {
+      color: var(--muted);
+      font-size: 0.92rem;
+      white-space: nowrap;
+    }
+
+    .tool-page .weather-ref-name {
+      color: rgba(231, 238, 245, 0.98);
+      font-weight: 620;
+    }
+
+    .tool-page .weather-ref-meta {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .tool-page .weather-ref-action {
+      color: rgba(193, 231, 249, 0.96);
+      font-size: 0.92rem;
+      font-weight: 620;
+    }
+
+    .tool-page .weather-ref-empty {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
     }
 
     .tool-page pre {
@@ -1824,6 +2234,23 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     @media (max-width: 720px) {
+      .tool-page .tool-row {
+        align-items: stretch;
+      }
+
+      .tool-page .tool-action-btn {
+        width: 100%;
+      }
+
+      .tool-page .weather-ref-top {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .tool-page .weather-ref-top span {
+        white-space: normal;
+      }
+
       .tool-page .airport-nearby-top {
         flex-direction: column;
         align-items: flex-start;
