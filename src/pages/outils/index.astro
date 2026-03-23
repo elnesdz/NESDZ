@@ -1606,31 +1606,86 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     .tool-page .nearby-section-header {
       display: grid;
-      gap: 6px;
-      margin-bottom: 4px;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.03),
+          rgba(255, 255, 255, 0.015)
+        ),
+        rgba(15, 23, 32, 0.55);
     }
 
     .tool-page .nearby-section-header strong {
-      font-size: 1.02rem;
+      font-size: 1.04rem;
+      color: #eef7ff;
     }
 
     .tool-page .nearby-section-header small {
       color: var(--muted);
-      line-height: 1.5;
+      line-height: 1.55;
     }
 
     .tool-page .nearby-group-title {
-      margin-top: 12px;
+      display: grid;
+      gap: 6px;
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
       font-size: 1rem;
       font-weight: 700;
+      letter-spacing: 0.01em;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tool-page .nearby-group-title::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      bottom: 10px;
+      width: 4px;
+      border-radius: 999px;
     }
 
     .tool-page .nearby-group-title--airports {
-      color: rgba(185, 220, 235, 0.98);
+      color: rgba(222, 242, 252, 0.98);
+      border-color: rgba(111, 184, 214, 0.22);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(111, 184, 214, 0.1),
+          rgba(111, 184, 214, 0.03)
+        ),
+        rgba(18, 28, 38, 0.68);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .tool-page .nearby-group-title--airports::before {
+      background: rgba(111, 184, 214, 0.85);
     }
 
     .tool-page .nearby-group-title--ulm {
-      color: rgba(214, 193, 150, 0.98);
+      color: rgba(236, 220, 178, 0.98);
+      border-color: rgba(214, 193, 150, 0.22);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(214, 193, 150, 0.1),
+          rgba(214, 193, 150, 0.03)
+        ),
+        rgba(24, 24, 20, 0.66);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+    }
+
+    .tool-page .nearby-group-title--ulm::before {
+      background: rgba(214, 193, 150, 0.82);
     }
 
     .tool-page .nearby-item {
@@ -1640,9 +1695,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .tool-page .airport-nearby-card {
       width: 100%;
       display: grid;
-      gap: 6px;
+      gap: 8px;
       text-align: left;
-      padding: 14px 16px;
+      padding: 15px 16px 15px 18px;
       border-radius: 14px;
       border: 1px solid rgba(255, 255, 255, 0.08);
       background:
@@ -1654,6 +1709,19 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         rgba(15, 23, 32, 0.72);
       color: white;
       font: inherit;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tool-page .airport-nearby-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      bottom: 10px;
+      width: 3px;
+      border-radius: 999px;
+      background: rgba(111, 184, 214, 0.72);
     }
 
     .tool-page button.airport-nearby-card {
@@ -1679,12 +1747,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     .tool-page .airport-nearby-card--clickable:hover {
       transform: translateY(-1px);
-      border-color: rgba(111, 184, 214, 0.4);
-      box-shadow: 0 0 0 4px rgba(111, 184, 214, 0.1);
+      border-color: rgba(111, 184, 214, 0.42);
+      box-shadow:
+        0 0 0 4px rgba(111, 184, 214, 0.1),
+        0 10px 24px rgba(0, 0, 0, 0.16);
       background:
         linear-gradient(
           180deg,
-          rgba(255, 255, 255, 0.04),
+          rgba(111, 184, 214, 0.05),
           rgba(255, 255, 255, 0.025)
         ),
         rgba(15, 23, 32, 0.78);
@@ -1695,14 +1765,18 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     .tool-page .airport-nearby-card--ulm {
-      border-color: rgba(214, 193, 150, 0.18);
+      border-color: rgba(214, 193, 150, 0.22);
       background:
         linear-gradient(
           180deg,
-          rgba(214, 193, 150, 0.035),
+          rgba(214, 193, 150, 0.05),
           rgba(214, 193, 150, 0.018)
         ),
         rgba(18, 24, 31, 0.74);
+    }
+
+    .tool-page .airport-nearby-card--ulm::before {
+      background: rgba(214, 193, 150, 0.8);
     }
 
     .tool-page .airport-nearby-top {
@@ -1713,6 +1787,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       font-size: 0.98rem;
     }
 
+    .tool-page .airport-nearby-top strong {
+      font-size: 1.02rem;
+      color: #eef7ff;
+    }
+
     .tool-page .airport-nearby-top span {
       color: var(--muted);
       font-size: 0.92rem;
@@ -1720,8 +1799,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     .tool-page .airport-nearby-name {
-      font-weight: 600;
-      color: rgba(231, 238, 245, 0.96);
+      font-weight: 650;
+      color: rgba(231, 238, 245, 0.98);
     }
 
     .tool-page .airport-nearby-meta,
@@ -1729,11 +1808,19 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .tool-page .airport-nearby-note {
       color: var(--muted);
       font-size: 0.94rem;
-      line-height: 1.45;
+      line-height: 1.48;
+    }
+
+    .tool-page .airport-nearby-access {
+      color: rgba(222, 233, 243, 0.84);
+    }
+
+    .tool-page .airport-nearby-card--ulm .airport-nearby-access {
+      color: rgba(233, 220, 190, 0.92);
     }
 
     .tool-page .airport-nearby-note {
-      color: rgba(231, 238, 245, 0.8);
+      color: rgba(231, 238, 245, 0.82);
     }
 
     @media (max-width: 720px) {
