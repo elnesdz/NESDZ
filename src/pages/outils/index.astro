@@ -73,7 +73,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                   <div class="radio-primary-head">
                     <span id="radioTypeValue" class="radio-badge">Radio</span>
                     <span class="radio-primary-note">
-                      Fréquence principale retenue pour le briefing
+                      Fréquence principale retenue pour le briefing. Confirmer la
+                      fréquence active dans les publications officielles.
                     </span>
                   </div>
 
@@ -86,7 +87,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
                 <div id="radioSecondaryBlock" class="radio-secondary" hidden>
                   <div class="radio-secondary-title">
-                    Autres fréquences utiles
+                    Autres fréquences à connaître
                   </div>
                   <ul id="radioList" class="radio-list"></ul>
                 </div>
@@ -656,6 +657,22 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       }
     }
 
+    function getRadioServicePriorityByLabel(serviceLabel) {
+      const normalized = normalizeRadioText(serviceLabel).toLowerCase();
+
+      if (normalized === "atis") return 1;
+      if (normalized === "sol") return 2;
+      if (normalized === "tour") return 3;
+      if (normalized === "approche") return 4;
+      if (normalized === "info") return 5;
+      if (normalized === "auto-info") return 6;
+      return 9;
+    }
+
+    function getRadioServicePriority(frequency) {
+      return getRadioServicePriorityByLabel(getRadioServiceLabel(frequency));
+    }
+
     function formatRadioPlaceName(text) {
       return String(text || "")
         .split(" ")
@@ -710,49 +727,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       return placeLabel ? `${serviceLabel} ${placeLabel}` : serviceLabel;
     }
 
-    function getRadioServicePriority(frequency) {
-      switch (getRadioServiceKey(frequency)) {
-        case "atis":
-          return 1;
-        case "ground":
-          return 2;
-        case "tower":
-          return 3;
-        case "approach":
-          return 4;
-        case "information":
-          return 5;
-        case "air_to_air":
-          return 6;
-        default:
-          return 9;
-      }
-    }
-
-    function compareRadioFrequencies(a, b) {
-      const priorityDiff =
-        getRadioServicePriority(a) - getRadioServicePriority(b);
-
-      if (priorityDiff !== 0) return priorityDiff;
-
-      const labelA = getRadioDisplayLabel(a);
-      const labelB = getRadioDisplayLabel(b);
-      const labelDiff = labelA.localeCompare(labelB, "fr", {
-        sensitivity: "base",
-      });
-
-      if (labelDiff !== 0) return labelDiff;
-
-      const mhzA = Number(a?.frequency_mhz);
-      const mhzB = Number(b?.frequency_mhz);
-
-      if (Number.isFinite(mhzA) && Number.isFinite(mhzB)) {
-        return mhzA - mhzB;
-      }
-
-      return 0;
-    }
-
     function getRadioGroupKey(frequency) {
       return `${getRadioServiceKey(frequency)}|${formatFrequencyMhz(
         frequency?.frequency_mhz
@@ -789,23 +763,112 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       return Array.from(groups.values());
     }
 
-    function shouldShowRadioDetail(displayLabel, serviceLabel) {
-      if (!displayLabel || !serviceLabel || serviceLabel === "Radio") {
-        return false;
-      }
+    function mergeRadioFrequenciesByMhz(frequencies = []) {
+      const buckets = new Map();
 
-      const normalizedDisplay = normalizeRadioText(displayLabel).toLowerCase();
-      const normalizedService = normalizeRadioText(serviceLabel).toLowerCase();
+      frequencies.forEach((frequency) => {
+        const mhzLabel = formatFrequencyMhz(frequency?.frequency_mhz);
+        if (!mhzLabel) return;
 
-      if (normalizedDisplay === normalizedService) {
-        return false;
-      }
+        if (!buckets.has(mhzLabel)) {
+          buckets.set(mhzLabel, {
+            key: mhzLabel,
+            frequency_mhz: Number(frequency?.frequency_mhz),
+            bestItem: frequency,
+            services: new Map(),
+            places: new Map(),
+          });
+        }
 
-      if (normalizedDisplay.startsWith(`${normalizedService} `)) {
-        return false;
-      }
+        const bucket = buckets.get(mhzLabel);
 
-      return true;
+        if (getRadioRank(frequency) > getRadioRank(bucket.bestItem)) {
+          bucket.bestItem = frequency;
+        }
+
+        const serviceLabel = getRadioServiceLabel(frequency);
+        if (serviceLabel && serviceLabel !== "Radio") {
+          bucket.services.set(serviceLabel.toLowerCase(), serviceLabel);
+        }
+
+        const placeLabel = extractRadioPlaceLabel(
+          frequency?.label || frequency?.description || ""
+        );
+
+        if (placeLabel) {
+          bucket.places.set(
+            placeLabel,
+            (bucket.places.get(placeLabel) || 0) + 1
+          );
+        }
+      });
+
+      return Array.from(buckets.values())
+        .map((bucket) => {
+          const mergedServices = Array.from(bucket.services.values()).sort(
+            (a, b) => {
+              const priorityDiff =
+                getRadioServicePriorityByLabel(a) -
+                getRadioServicePriorityByLabel(b);
+
+              if (priorityDiff !== 0) return priorityDiff;
+
+              return a.localeCompare(b, "fr", { sensitivity: "base" });
+            }
+          );
+
+          const dominantPlace =
+            Array.from(bucket.places.entries()).sort((a, b) => {
+              if (b[1] !== a[1]) return b[1] - a[1];
+              return a[0].localeCompare(b[0], "fr", {
+                sensitivity: "base",
+              });
+            })[0]?.[0] || "";
+
+          let displayLabel = "";
+
+          if (mergedServices.length > 0 && dominantPlace) {
+            displayLabel = `${mergedServices.join(" / ")} ${dominantPlace}`;
+          } else if (mergedServices.length > 0) {
+            displayLabel = mergedServices.join(" / ");
+          } else if (dominantPlace) {
+            displayLabel = dominantPlace;
+          } else {
+            displayLabel = getRadioDisplayLabel(bucket.bestItem);
+          }
+
+          return {
+            key: bucket.key,
+            frequency_mhz: bucket.frequency_mhz,
+            displayLabel,
+            priority:
+              mergedServices.length > 0
+                ? getRadioServicePriorityByLabel(mergedServices[0])
+                : getRadioServicePriority(bucket.bestItem),
+          };
+        })
+        .sort((a, b) => {
+          if (a.priority !== b.priority) {
+            return a.priority - b.priority;
+          }
+
+          const labelDiff = a.displayLabel.localeCompare(
+            b.displayLabel,
+            "fr",
+            { sensitivity: "base" }
+          );
+
+          if (labelDiff !== 0) return labelDiff;
+
+          const mhzA = Number(a.frequency_mhz);
+          const mhzB = Number(b.frequency_mhz);
+
+          if (Number.isFinite(mhzA) && Number.isFinite(mhzB)) {
+            return mhzA - mhzB;
+          }
+
+          return 0;
+        });
     }
 
     function renderFrequencyPanel(record) {
@@ -857,30 +920,27 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         formatFrequencyMhz(primaryFrequency.frequency_mhz) || "—";
       radioLabelValue.textContent = getRadioDisplayLabel(primaryFrequency);
 
-      const primaryKey = getRadioGroupKey(primaryFrequency);
+      const primaryMhzLabel = formatFrequencyMhz(primaryFrequency.frequency_mhz);
 
-      const secondaryFrequencies = dedupedFrequencies
-        .filter((frequency) => getRadioGroupKey(frequency) !== primaryKey)
-        .sort(compareRadioFrequencies);
+      const secondaryBuckets = mergeRadioFrequenciesByMhz(
+        dedupedFrequencies.filter(
+          (frequency) =>
+            formatFrequencyMhz(frequency.frequency_mhz) !== primaryMhzLabel
+        )
+      );
 
-      if (!radioList || secondaryFrequencies.length === 0) return;
+      if (!radioList || secondaryBuckets.length === 0) return;
 
       if (radioSecondaryBlock) radioSecondaryBlock.hidden = false;
 
-      secondaryFrequencies.forEach((frequency) => {
+      secondaryBuckets.forEach((entry) => {
         const item = document.createElement("li");
-        const displayLabel = getRadioDisplayLabel(frequency);
-        const serviceLabel = getRadioServiceLabel(frequency);
-        const detail = shouldShowRadioDetail(displayLabel, serviceLabel)
-          ? serviceLabel
-          : "";
 
         item.innerHTML = `
           <div>
-            <strong>${displayLabel}</strong>
-            ${detail ? `<small>${detail}</small>` : ""}
+            <strong>${entry.displayLabel}</strong>
           </div>
-          <span>${formatFrequencyMhz(frequency.frequency_mhz) || "—"}</span>
+          <span>${formatFrequencyMhz(entry.frequency_mhz) || "—"}</span>
         `;
 
         radioList.appendChild(item);
@@ -1514,14 +1574,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       font-size: 0.95rem;
       font-weight: 600;
       color: rgba(231, 238, 245, 0.94);
-    }
-
-    .tool-page .radio-list small {
-      display: block;
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 0.84rem;
-      line-height: 1.35;
     }
 
     .tool-page .radio-list span {
