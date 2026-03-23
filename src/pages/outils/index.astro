@@ -253,6 +253,15 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       if (weatherRefsList) weatherRefsList.innerHTML = "";
     }
 
+    function showWeatherReferencesMessage(message) {
+      if (!weatherRefsBlock || !weatherRefsList) return;
+
+      weatherRefsBlock.hidden = false;
+      weatherRefsList.innerHTML = `
+        <li class="weather-ref-empty">${message}</li>
+      `;
+    }
+
     function normalizeCode(value) {
       return String(value || "").trim().toUpperCase();
     }
@@ -716,7 +725,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         case "atis":
           return "ATIS";
         case "air_to_air":
-          return "Auto-info";
+          return "Auto-information";
         default:
           return "Radio";
       }
@@ -730,7 +739,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       if (normalized === "tour") return 3;
       if (normalized === "approche") return 4;
       if (normalized === "info") return 5;
-      if (normalized === "auto-info") return 6;
+      if (normalized === "auto-information") return 6;
       return 9;
     }
 
@@ -1141,10 +1150,20 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     async function loadWeatherReferences(targetCode, matchedAirport, matchedUlm) {
-      resetWeatherReferences();
+      if (!weatherRefsBlock || !weatherRefsList) return;
+
+      weatherRefsBlock.hidden = false;
+      weatherRefsList.innerHTML = `
+        <li class="weather-ref-empty">Recherche de repères météo voisins...</li>
+      `;
 
       const center = getWeatherReferenceCenter(matchedAirport, matchedUlm);
-      if (!center || !weatherRefsBlock || !weatherRefsList) return;
+      if (!center) {
+        showWeatherReferencesMessage(
+          "Aucun repère météo voisin exploitable trouvé pour ce terrain."
+        );
+        return;
+      }
 
       try {
         const airports = await loadAirports();
@@ -1160,11 +1179,16 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               airport.longitude
             ),
           }))
-          .filter((item) => item.distanceKm <= 180)
+          .filter((item) => item.distanceKm <= 220)
           .sort((a, b) => a.distanceKm - b.distanceKm)
-          .slice(0, 10);
+          .slice(0, 12);
 
-        if (nearbyCandidates.length === 0) return;
+        if (nearbyCandidates.length === 0) {
+          showWeatherReferencesMessage(
+            "Aucun repère météo voisin exploitable trouvé dans le rayon retenu."
+          );
+          return;
+        }
 
         const candidateResults = await Promise.all(
           nearbyCandidates.map(async (item) => {
@@ -1182,17 +1206,13 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         const references = candidateResults.filter(Boolean).slice(0, 3);
 
         if (references.length === 0) {
-          weatherRefsBlock.hidden = false;
-          weatherRefsList.innerHTML = `
-            <li class="weather-ref-empty">
-              Aucun repère météo voisin exploitable trouvé automatiquement.
-            </li>
-          `;
+          showWeatherReferencesMessage(
+            "Aucun repère météo voisin exploitable trouvé automatiquement."
+          );
           return;
         }
 
         weatherRefsList.innerHTML = "";
-        weatherRefsBlock.hidden = false;
 
         references.forEach((reference) => {
           const li = document.createElement("li");
@@ -1205,7 +1225,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               </div>
               <div class="weather-ref-name">${reference.airport.name}</div>
               <div class="weather-ref-meta">${formatWeatherReferenceMeta(reference.snapshot)}</div>
-              <div class="weather-ref-action">Voir ce terrain</div>
+              <div class="weather-ref-action">Charger ce terrain</div>
             </button>
           `;
 
@@ -1221,6 +1241,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         });
       } catch (error) {
         console.error(error);
+        showWeatherReferencesMessage(
+          "Impossible de charger les repères météo voisins pour le moment."
+        );
       }
     }
 
@@ -1319,6 +1342,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           ${item.operationalLabel}${item.municipality ? ` · ${item.municipality}` : ""}
         </div>
         ${accessLine}
+        <div class="airport-nearby-action">Voir METAR / TAF</div>
       `;
 
       button.addEventListener("click", () => {
@@ -1407,9 +1431,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         if (!res.ok) {
           metarOutput.textContent =
-            `Aucun METAR exploitable trouvé pour ${icao}. Ce terrain ne publie peut-être pas de météo terrain disponible actuellement.`;
+            `Aucune météo exploitable trouvée pour ${icao}. Ce terrain ne publie peut-être pas de METAR, ou la source n’a pas de donnée disponible actuellement.`;
           tafOutput.textContent =
-            `Aucun TAF exploitable trouvé pour ${icao}.`;
+            `Aucune prévision TAF exploitable trouvée pour ${icao}.`;
 
           resetDecoded();
           statusValue.textContent = "⚠️ Pas de météo terrain publiée";
@@ -1660,8 +1684,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       min-width: 220px;
       padding: 10px 12px;
       border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.05);
       color: white;
     }
 
@@ -1672,11 +1696,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       align-items: center;
       justify-content: center;
       gap: 8px;
-      min-height: 44px;
+      min-height: 46px;
       padding: 11px 16px;
       border-radius: 12px;
       font: inherit;
-      font-weight: 650;
+      font-weight: 700;
       letter-spacing: 0.01em;
       cursor: pointer;
       transition:
@@ -1695,15 +1719,15 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       background:
         linear-gradient(
           180deg,
-          rgba(111, 184, 214, 0.30),
-          rgba(111, 184, 214, 0.18)
+          rgba(111, 184, 214, 0.42),
+          rgba(111, 184, 214, 0.26)
         ),
-        rgba(20, 40, 54, 0.88);
-      border: 1px solid rgba(111, 184, 214, 0.52);
-      color: #f3fbff;
+        rgba(20, 40, 54, 0.94);
+      border: 1px solid rgba(111, 184, 214, 0.72);
+      color: #f4fbff;
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.06),
-        0 0 0 1px rgba(111, 184, 214, 0.08);
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 0 0 1px rgba(111, 184, 214, 0.12);
     }
 
     .tool-page .tool-action-btn--primary:hover {
@@ -1711,35 +1735,37 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       background:
         linear-gradient(
           180deg,
-          rgba(111, 184, 214, 0.38),
-          rgba(111, 184, 214, 0.23)
+          rgba(111, 184, 214, 0.52),
+          rgba(111, 184, 214, 0.32)
         ),
-        rgba(20, 40, 54, 0.94);
-      border-color: rgba(111, 184, 214, 0.70);
+        rgba(20, 40, 54, 0.98);
+      border-color: rgba(111, 184, 214, 0.86);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.08),
-        0 0 0 4px rgba(111, 184, 214, 0.12),
-        0 10px 24px rgba(0, 0, 0, 0.18);
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 0 4px rgba(111, 184, 214, 0.14),
+        0 10px 24px rgba(0, 0, 0, 0.2);
     }
 
     .tool-page .tool-action-btn--primary:focus-visible {
-      border-color: rgba(111, 184, 214, 0.78);
+      border-color: rgba(111, 184, 214, 0.92);
       box-shadow:
-        0 0 0 4px rgba(111, 184, 214, 0.16),
-        0 0 0 1px rgba(111, 184, 214, 0.28);
+        0 0 0 4px rgba(111, 184, 214, 0.18),
+        0 0 0 1px rgba(111, 184, 214, 0.32);
     }
 
     .tool-page .tool-action-btn--secondary {
       background:
         linear-gradient(
           180deg,
-          rgba(255, 255, 255, 0.08),
-          rgba(255, 255, 255, 0.04)
+          rgba(220, 236, 246, 0.16),
+          rgba(220, 236, 246, 0.08)
         ),
-        rgba(22, 28, 36, 0.82);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      color: rgba(235, 243, 250, 0.96);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        rgba(23, 30, 39, 0.92);
+      border: 1px solid rgba(220, 236, 246, 0.30);
+      color: rgba(244, 249, 252, 0.98);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        0 0 0 1px rgba(255, 255, 255, 0.03);
     }
 
     .tool-page .tool-action-btn--secondary:hover {
@@ -1747,21 +1773,21 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       background:
         linear-gradient(
           180deg,
-          rgba(255, 255, 255, 0.12),
-          rgba(255, 255, 255, 0.06)
+          rgba(220, 236, 246, 0.22),
+          rgba(220, 236, 246, 0.11)
         ),
-        rgba(24, 31, 40, 0.90);
-      border-color: rgba(255, 255, 255, 0.24);
+        rgba(25, 33, 43, 0.98);
+      border-color: rgba(220, 236, 246, 0.42);
       box-shadow:
-        0 0 0 4px rgba(255, 255, 255, 0.05),
-        0 8px 18px rgba(0, 0, 0, 0.14);
+        0 0 0 4px rgba(220, 236, 246, 0.08),
+        0 10px 22px rgba(0, 0, 0, 0.16);
     }
 
     .tool-page .tool-action-btn--secondary:focus-visible {
-      border-color: rgba(255, 255, 255, 0.30);
+      border-color: rgba(220, 236, 246, 0.48);
       box-shadow:
-        0 0 0 4px rgba(255, 255, 255, 0.08),
-        0 0 0 1px rgba(255, 255, 255, 0.12);
+        0 0 0 4px rgba(220, 236, 246, 0.1),
+        0 0 0 1px rgba(220, 236, 246, 0.14);
     }
 
     .tool-page .decoded-grid {
@@ -1774,8 +1800,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .tool-page .decoded-card {
       padding: 14px;
       border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.035);
     }
 
     .tool-page .decoded-card-wide {
@@ -1806,11 +1832,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       gap: 10px;
       padding: 14px;
       border-radius: 14px;
-      border: 1px solid rgba(111, 184, 214, 0.22);
+      border: 1px solid rgba(111, 184, 214, 0.26);
       background:
         linear-gradient(
           180deg,
-          rgba(111, 184, 214, 0.1),
+          rgba(111, 184, 214, 0.12),
           rgba(255, 255, 255, 0.04)
         ),
         rgba(255, 255, 255, 0.03);
@@ -1830,11 +1856,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       justify-content: center;
       padding: 5px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(111, 184, 214, 0.34);
-      background: rgba(111, 184, 214, 0.16);
+      border: 1px solid rgba(111, 184, 214, 0.42);
+      background: rgba(111, 184, 214, 0.2);
       color: #eaf8ff;
       font-size: 0.84rem;
-      font-weight: 600;
+      font-weight: 700;
       line-height: 1;
     }
 
@@ -1863,7 +1889,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     .tool-page .radio-secondary-title {
       font-size: 0.82rem;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: 0.06em;
       text-transform: uppercase;
       color: var(--muted);
@@ -1884,15 +1910,15 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       gap: 12px;
       padding: 10px 12px;
       border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: #ffffff05;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
     }
 
     .tool-page .radio-list strong {
       display: block;
       font-size: 0.95rem;
-      font-weight: 600;
-      color: rgba(231, 238, 245, 0.94);
+      font-weight: 650;
+      color: rgba(231, 238, 245, 0.96);
     }
 
     .tool-page .radio-list span {
@@ -1937,18 +1963,18 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       -webkit-appearance: none;
       width: 100%;
       display: grid;
-      gap: 7px;
+      gap: 8px;
       text-align: left;
-      padding: 14px 16px;
+      padding: 15px 16px;
       border-radius: 14px;
-      border: 1px solid rgba(111, 184, 214, 0.20);
+      border: 1px solid rgba(111, 184, 214, 0.34);
       background:
         linear-gradient(
           180deg,
-          rgba(111, 184, 214, 0.05),
-          rgba(255, 255, 255, 0.02)
+          rgba(111, 184, 214, 0.09),
+          rgba(255, 255, 255, 0.025)
         ),
-        rgba(17, 25, 34, 0.74);
+        rgba(17, 25, 34, 0.84);
       color: white;
       font: inherit;
       cursor: pointer;
@@ -1957,28 +1983,29 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         border-color 0.18s ease,
         background 0.18s ease,
         box-shadow 0.18s ease;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
     .tool-page .weather-ref-card:hover {
       transform: translateY(-1px);
-      border-color: rgba(111, 184, 214, 0.42);
+      border-color: rgba(111, 184, 214, 0.56);
       box-shadow:
-        0 0 0 4px rgba(111, 184, 214, 0.10),
+        0 0 0 4px rgba(111, 184, 214, 0.12),
         0 10px 24px rgba(0, 0, 0, 0.16);
       background:
         linear-gradient(
           180deg,
-          rgba(111, 184, 214, 0.08),
-          rgba(255, 255, 255, 0.025)
+          rgba(111, 184, 214, 0.13),
+          rgba(255, 255, 255, 0.03)
         ),
-        rgba(18, 27, 37, 0.80);
+        rgba(18, 27, 37, 0.9);
     }
 
     .tool-page .weather-ref-card:focus-visible {
       outline: none;
-      border-color: rgba(111, 184, 214, 0.54);
+      border-color: rgba(111, 184, 214, 0.62);
       box-shadow:
-        0 0 0 4px rgba(111, 184, 214, 0.14),
+        0 0 0 4px rgba(111, 184, 214, 0.16),
         0 0 0 1px rgba(111, 184, 214, 0.24);
     }
 
@@ -2002,26 +2029,26 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     .tool-page .weather-ref-name {
       color: rgba(231, 238, 245, 0.98);
-      font-weight: 620;
+      font-weight: 650;
     }
 
     .tool-page .weather-ref-meta {
-      color: var(--muted);
+      color: rgba(220, 231, 239, 0.84);
       font-size: 0.92rem;
       line-height: 1.45;
     }
 
     .tool-page .weather-ref-action {
-      color: rgba(193, 231, 249, 0.96);
-      font-size: 0.92rem;
-      font-weight: 620;
+      color: rgba(200, 236, 252, 0.98);
+      font-size: 0.93rem;
+      font-weight: 700;
     }
 
     .tool-page .weather-ref-empty {
-      padding: 12px 14px;
+      padding: 13px 14px;
       border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
       color: var(--muted);
       font-size: 0.95rem;
       line-height: 1.5;
@@ -2114,16 +2141,16 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       display: grid;
       gap: 8px;
       margin-bottom: 8px;
-      padding: 14px 16px;
+      padding: 15px 16px;
       border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       background:
         linear-gradient(
           180deg,
-          rgba(255, 255, 255, 0.03),
-          rgba(255, 255, 255, 0.015)
+          rgba(255, 255, 255, 0.035),
+          rgba(255, 255, 255, 0.02)
         ),
-        rgba(15, 23, 32, 0.55);
+        rgba(15, 23, 32, 0.62);
     }
 
     .tool-page .nearby-section-header strong {
@@ -2140,9 +2167,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       display: grid;
       gap: 6px;
       margin-top: 14px;
-      padding: 14px 16px;
+      padding: 15px 16px 15px 18px;
       border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       font-size: 1rem;
       font-weight: 700;
       letter-spacing: 0.01em;
@@ -2161,37 +2188,37 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     .tool-page .nearby-group-title--airports {
-      color: rgba(222, 242, 252, 0.98);
-      border-color: rgba(111, 184, 214, 0.22);
+      color: rgba(226, 244, 252, 0.98);
+      border-color: rgba(111, 184, 214, 0.28);
       background:
         linear-gradient(
           180deg,
-          rgba(111, 184, 214, 0.1),
-          rgba(111, 184, 214, 0.03)
+          rgba(111, 184, 214, 0.14),
+          rgba(111, 184, 214, 0.05)
         ),
-        rgba(18, 28, 38, 0.68);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        rgba(18, 28, 38, 0.76);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
     .tool-page .nearby-group-title--airports::before {
-      background: rgba(111, 184, 214, 0.85);
+      background: rgba(111, 184, 214, 0.92);
     }
 
     .tool-page .nearby-group-title--ulm {
-      color: rgba(236, 220, 178, 0.98);
-      border-color: rgba(214, 193, 150, 0.22);
+      color: rgba(244, 226, 181, 0.99);
+      border-color: rgba(214, 193, 150, 0.34);
       background:
         linear-gradient(
           180deg,
-          rgba(214, 193, 150, 0.1),
-          rgba(214, 193, 150, 0.03)
+          rgba(214, 193, 150, 0.18),
+          rgba(214, 193, 150, 0.06)
         ),
-        rgba(24, 24, 20, 0.66);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+        rgba(31, 27, 20, 0.76);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     }
 
     .tool-page .nearby-group-title--ulm::before {
-      background: rgba(214, 193, 150, 0.82);
+      background: rgba(214, 193, 150, 0.92);
     }
 
     .tool-page .nearby-item {
@@ -2205,18 +2232,19 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       text-align: left;
       padding: 15px 16px 15px 18px;
       border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       background:
         linear-gradient(
           180deg,
-          rgba(255, 255, 255, 0.03),
-          rgba(255, 255, 255, 0.02)
+          rgba(255, 255, 255, 0.04),
+          rgba(255, 255, 255, 0.025)
         ),
-        rgba(15, 23, 32, 0.72);
+        rgba(15, 23, 32, 0.78);
       color: white;
       font: inherit;
       position: relative;
       overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     }
 
     .tool-page .airport-nearby-card::before {
@@ -2225,21 +2253,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       left: 0;
       top: 10px;
       bottom: 10px;
-      width: 3px;
+      width: 4px;
       border-radius: 999px;
-      background: rgba(111, 184, 214, 0.72);
+      background: rgba(111, 184, 214, 0.84);
     }
 
     .tool-page button.airport-nearby-card {
       appearance: none;
       -webkit-appearance: none;
-      background:
-        linear-gradient(
-          180deg,
-          rgba(255, 255, 255, 0.03),
-          rgba(255, 255, 255, 0.02)
-        ),
-        rgba(15, 23, 32, 0.72);
     }
 
     .tool-page .airport-nearby-card--clickable {
@@ -2253,36 +2274,40 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     .tool-page .airport-nearby-card--clickable:hover {
       transform: translateY(-1px);
-      border-color: rgba(111, 184, 214, 0.42);
+      border-color: rgba(111, 184, 214, 0.48);
       box-shadow:
-        0 0 0 4px rgba(111, 184, 214, 0.1),
-        0 10px 24px rgba(0, 0, 0, 0.16);
+        0 0 0 4px rgba(111, 184, 214, 0.12),
+        0 10px 24px rgba(0, 0, 0, 0.18);
       background:
         linear-gradient(
           180deg,
-          rgba(111, 184, 214, 0.05),
-          rgba(255, 255, 255, 0.025)
+          rgba(111, 184, 214, 0.08),
+          rgba(255, 255, 255, 0.03)
         ),
-        rgba(15, 23, 32, 0.78);
+        rgba(15, 23, 32, 0.84);
     }
 
     .tool-page .airport-nearby-card--static {
-      opacity: 0.98;
+      opacity: 0.99;
     }
 
     .tool-page .airport-nearby-card--ulm {
-      border-color: rgba(214, 193, 150, 0.22);
+      border-color: rgba(214, 193, 150, 0.34);
       background:
         linear-gradient(
           180deg,
-          rgba(214, 193, 150, 0.05),
-          rgba(214, 193, 150, 0.018)
+          rgba(214, 193, 150, 0.12),
+          rgba(214, 193, 150, 0.04)
         ),
-        rgba(18, 24, 31, 0.74);
+        rgba(27, 24, 20, 0.84);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        0 0 0 1px rgba(214, 193, 150, 0.05);
     }
 
     .tool-page .airport-nearby-card--ulm::before {
-      background: rgba(214, 193, 150, 0.8);
+      background: rgba(214, 193, 150, 0.94);
+      width: 4px;
     }
 
     .tool-page .airport-nearby-top {
@@ -2299,7 +2324,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     .tool-page .airport-nearby-top span {
-      color: var(--muted);
+      color: rgba(219, 229, 236, 0.82);
       font-size: 0.92rem;
       white-space: nowrap;
     }
@@ -2312,21 +2337,28 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .tool-page .airport-nearby-meta,
     .tool-page .airport-nearby-access,
     .tool-page .airport-nearby-note {
-      color: var(--muted);
+      color: rgba(218, 229, 237, 0.78);
       font-size: 0.94rem;
       line-height: 1.48;
     }
 
     .tool-page .airport-nearby-access {
-      color: rgba(222, 233, 243, 0.84);
+      color: rgba(229, 238, 244, 0.86);
     }
 
     .tool-page .airport-nearby-card--ulm .airport-nearby-access {
-      color: rgba(233, 220, 190, 0.92);
+      color: rgba(240, 227, 198, 0.96);
     }
 
     .tool-page .airport-nearby-note {
-      color: rgba(231, 238, 245, 0.82);
+      color: rgba(239, 228, 204, 0.9);
+    }
+
+    .tool-page .airport-nearby-action {
+      color: rgba(198, 236, 252, 0.98);
+      font-size: 0.93rem;
+      font-weight: 700;
+      margin-top: 2px;
     }
 
     @media (max-width: 720px) {
