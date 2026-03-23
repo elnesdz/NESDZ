@@ -65,17 +65,29 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             </div>
 
             <div class="decoded-card decoded-card-wide">
-              <span class="decoded-label">Radio</span>
+  <span class="decoded-label">Radio</span>
 
-              <div class="radio-panel">
-                <div class="radio-primary">
-                  <strong id="radioValue">—</strong>
-                </div>
+  <div class="radio-panel">
+    <div class="radio-primary">
+      <div class="radio-primary-head">
+        <span id="radioTypeValue" class="radio-badge">Radio</span>
+        <span class="radio-primary-note">
+          Fréquence principale retenue pour le briefing
+        </span>
+      </div>
 
-                <ul id="radioList" class="radio-list"></ul>
-              </div>
-            </div>
-          </div>
+      <div id="radioValue" class="radio-primary-main">—</div>
+      <div id="radioLabelValue" class="radio-primary-label">
+        Aucune fréquence disponible
+      </div>
+    </div>
+
+    <div id="radioSecondaryBlock" class="radio-secondary" hidden>
+      <div class="radio-secondary-title">Autres fréquences utiles</div>
+      <ul id="radioList" class="radio-list"></ul>
+    </div>
+  </div>
+</div>
 
           <p class="decoded-note">
             Données fournies pour le briefing pilote. Pour toute exploitation,
