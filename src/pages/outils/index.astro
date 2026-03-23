@@ -656,12 +656,58 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       }
     }
 
+    function formatRadioPlaceName(text) {
+      return String(text || "")
+        .split(" ")
+        .filter(Boolean)
+        .map((word) => {
+          if (!word) return "";
+
+          if (word.includes("-")) {
+            return word
+              .split("-")
+              .map((part) => {
+                if (!part) return "";
+                return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+              })
+              .join("-");
+          }
+
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        })
+        .join(" ");
+    }
+
+    function extractRadioPlaceLabel(rawLabel) {
+      const cleaned = normalizeRadioText(rawLabel)
+        .replace(
+          /\b(TWR|TOWER|TOUR|GND|GROUND|SOL|APP|APPROACH|APPROCHE|INFO|INFORMATION|AFIS|FIS|ATIS|AUTO-INFO|AUTO INFO|AUTO|A\/A|UNICOM|CTAF|RADIO)\b/gi,
+          " "
+        )
+        .replace(/[·|/]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      return formatRadioPlaceName(cleaned);
+    }
+
     function getRadioDisplayLabel(frequency) {
       const rawLabel = normalizeRadioText(
         frequency?.label || frequency?.description || ""
       );
+      const serviceLabel = getRadioServiceLabel(frequency);
 
-      return rawLabel || getRadioServiceLabel(frequency) || "Fréquence";
+      if (!rawLabel) {
+        return serviceLabel || "Fréquence";
+      }
+
+      const placeLabel = extractRadioPlaceLabel(rawLabel);
+
+      if (serviceLabel === "Radio") {
+        return placeLabel || rawLabel || "Fréquence";
+      }
+
+      return placeLabel ? `${serviceLabel} ${placeLabel}` : serviceLabel;
     }
 
     function getRadioServicePriority(frequency) {
@@ -743,6 +789,25 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       return Array.from(groups.values());
     }
 
+    function shouldShowRadioDetail(displayLabel, serviceLabel) {
+      if (!displayLabel || !serviceLabel || serviceLabel === "Radio") {
+        return false;
+      }
+
+      const normalizedDisplay = normalizeRadioText(displayLabel).toLowerCase();
+      const normalizedService = normalizeRadioText(serviceLabel).toLowerCase();
+
+      if (normalizedDisplay === normalizedService) {
+        return false;
+      }
+
+      if (normalizedDisplay.startsWith(`${normalizedService} `)) {
+        return false;
+      }
+
+      return true;
+    }
+
     function renderFrequencyPanel(record) {
       if (!radioValue || !radioTypeValue || !radioLabelValue) return;
 
@@ -806,7 +871,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         const item = document.createElement("li");
         const displayLabel = getRadioDisplayLabel(frequency);
         const serviceLabel = getRadioServiceLabel(frequency);
-        const detail = displayLabel !== serviceLabel ? serviceLabel : "";
+        const detail = shouldShowRadioDetail(displayLabel, serviceLabel)
+          ? serviceLabel
+          : "";
 
         item.innerHTML = `
           <div>
