@@ -4083,6 +4083,19 @@
       {
         "frequency_type": "approach",
         "service_code": "APP",
+        "label": "APP BLAGNAC Approche",
+        "frequency_mhz": 121.105,
+        "hours_code": "H24",
+        "hours_text": "",
+        "spacing": "",
+        "remark": "Jusqu'au FL100.#\nAppareils non-équipés 8,33 KHz : voir AD 2 LFBO.23.#\nUp to FL100.#\nAircraft non 8.33 KHz-equipped : see AD 2 LFBO.23.",
+        "sector": "",
+        "suppletive": "",
+        "language": "fr"
+      },
+      {
+        "frequency_type": "approach",
+        "service_code": "APP",
         "label": "APP TOULOUSE Approche",
         "frequency_mhz": 123.85,
         "hours_code": "H24",
@@ -13372,6 +13385,32 @@
       {
         "frequency_type": "information",
         "service_code": "FIS",
+        "label": "FIS MARSEILLE Information",
+        "frequency_mhz": 119.75,
+        "hours_code": "HX",
+        "hours_text": "",
+        "spacing": "",
+        "remark": "#Sur instruction FIC/On FIC instruction.",
+        "sector": "",
+        "suppletive": "oui",
+        "language": "fr"
+      },
+      {
+        "frequency_type": "information",
+        "service_code": "FIS",
+        "label": "FIS MARSEILLE Information",
+        "frequency_mhz": 120.55,
+        "hours_code": "HX",
+        "hours_text": "",
+        "spacing": "",
+        "remark": "ETE : 0700-SS+30 limité à 1800.#HIV : 0800-SS+30 limité à 1730.#Contact radio non garanti : région Vercors sous 8000 ft AMSL ; Nord Sisteron sous 6000 ft AMSL ; secteur Barcelonnette en dessous de 10000 ft AMSL ; en mer Méditerranée en dessous de 3000 ft AMSL.#\nContact radar non garanti : dans toute la FIR LFMM en dessous de 1500 ft AMSL ; dans les Alpes en dessous de 8000 ft AMSL ; région Montagne de Lure ; région entre Château-Arnoux et Gap en dessous de 5000 ft AMSL.#\nSUM : 0700-SS+30 limited to 1800.#\nWIN : 0800-SS+30 limited to 1730.# \nRadio contact not guaranteed : in Vercors region below 8000 ft AMSL ; North Sisteron below 6000 ft AMSL ; Barcelonnette area below 10000 ft AMSL ; over Mediterranean sea below 3000 ft AMSL.# \nRadar contact not guaranteed : within LFMM FIR below 1500 ft AMSL ; over Alps mountains below 8000 ft AMSL ; Lure Mountain region ; between Château-Arnoux and Gap below 5000 ft AMSL.",
+        "sector": "SUD",
+        "suppletive": "",
+        "language": "fr"
+      },
+      {
+        "frequency_type": "information",
+        "service_code": "FIS",
         "label": "FIS PROVENCE Information",
         "frequency_mhz": 124.35,
         "hours_code": "H24",
@@ -13379,6 +13418,19 @@
         "spacing": "",
         "remark": "SIV 2",
         "sector": "",
+        "suppletive": "",
+        "language": "fr"
+      },
+      {
+        "frequency_type": "information",
+        "service_code": "FIS",
+        "label": "FIS MARSEILLE Information",
+        "frequency_mhz": 124.5,
+        "hours_code": "HX",
+        "hours_text": "",
+        "spacing": "",
+        "remark": "ETE : 0700-SS+30 limité à 1800.#HIV : 0800-SS+30 limité à 1730.#Contact radio non garanti : région Vercors sous 8000 ft AMSL ; région nord Mont-Dauphin en dessous de 14000 ft AMSL.#\nContact radar non garanti : dans toute la FIR LFMM en dessous de 1500 ft AMSL ; dans les Alpes en dessous de 8000 ft AMSL ; région Montagne de Lure ; région située entre Château-Arnoux et Gap en dessous de 5000 ft AMSL.#\nSUM : 0700-SS+30 limited to 1800.#\nWIN : 0800-SS+30 limited to 1730.#\nRadio contact not guaranteed : in Vercors region below 8000 ft AMSL ; in the North of Mont-Dauphin below 14000 ft AMSL.# \nRadar contact not guaranteed : within LFMM FIR below 1500 ft AMSL ; over Alps mountains below 8000 ft AMSL ; Lure Mountain region; between Château-Arnoux and Gap below 5000 ft AMSL.",
+        "sector": "NORD",
         "suppletive": "",
         "language": "fr"
       },
@@ -21051,6 +21103,45 @@
         "language": "fr"
       },
       {
+        "frequency_type": "control",
+        "service_code": "ACS",
+        "label": "ACS BREST Contrôle",
+        "frequency_mhz": 124.065,
+        "hours_code": "H24",
+        "hours_text": "",
+        "spacing": "",
+        "remark": "Canal 8.33",
+        "sector": "GS",
+        "suppletive": "",
+        "language": "fr"
+      },
+      {
+        "frequency_type": "control",
+        "service_code": "ACS",
+        "label": "ACS BREST Contrôle",
+        "frequency_mhz": 124.675,
+        "hours_code": "H24",
+        "hours_text": "",
+        "spacing": "",
+        "remark": "",
+        "sector": "AS",
+        "suppletive": "",
+        "language": "fr"
+      },
+      {
+        "frequency_type": "control",
+        "service_code": "ACS",
+        "label": "ACS BREST Contrôle",
+        "frequency_mhz": 129.505,
+        "hours_code": "H24",
+        "hours_text": "",
+        "spacing": "",
+        "remark": "Canal 8.33",
+        "sector": "WS",
+        "suppletive": "",
+        "language": "fr"
+      },
+      {
         "frequency_type": "other",
         "service_code": "VDF",
         "label": "VDF BRETAGNE Gonio",
@@ -22984,6 +23075,19 @@
         "hours_text": "",
         "spacing": "",
         "remark": "En l'absence AFIS A/A en FR seulement.",
+        "sector": "",
+        "suppletive": "",
+        "language": "fr"
+      },
+      {
+        "frequency_type": "other",
+        "service_code": "CCM",
+        "label": "CCM ARMOR CCM",
+        "frequency_mhz": 124.725,
+        "hours_code": "HO",
+        "hours_text": "",
+        "spacing": "",
+        "remark": "Coordinations des activités ops. de la marine.",
         "sector": "",
         "suppletive": "",
         "language": "fr"
