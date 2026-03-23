@@ -23,6 +23,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         <div class="tool-block">
           <h2>Lecture rapide</h2>
+
           <div class="decoded-grid">
             <div class="decoded-card">
               <span class="decoded-label">Statut</span>
@@ -65,29 +66,33 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             </div>
 
             <div class="decoded-card decoded-card-wide">
-  <span class="decoded-label">Radio</span>
+              <span class="decoded-label">Radio</span>
 
-  <div class="radio-panel">
-    <div class="radio-primary">
-      <div class="radio-primary-head">
-        <span id="radioTypeValue" class="radio-badge">Radio</span>
-        <span class="radio-primary-note">
-          Fréquence principale retenue pour le briefing
-        </span>
-      </div>
+              <div class="radio-panel">
+                <div class="radio-primary">
+                  <div class="radio-primary-head">
+                    <span id="radioTypeValue" class="radio-badge">Radio</span>
+                    <span class="radio-primary-note">
+                      Fréquence principale retenue pour le briefing
+                    </span>
+                  </div>
 
-      <div id="radioValue" class="radio-primary-main">—</div>
-      <div id="radioLabelValue" class="radio-primary-label">
-        Aucune fréquence disponible
-      </div>
-    </div>
+                  <div id="radioValue" class="radio-primary-main">—</div>
 
-    <div id="radioSecondaryBlock" class="radio-secondary" hidden>
-      <div class="radio-secondary-title">Autres fréquences utiles</div>
-      <ul id="radioList" class="radio-list"></ul>
-    </div>
-  </div>
-</div>
+                  <div id="radioLabelValue" class="radio-primary-label">
+                    Aucune fréquence disponible
+                  </div>
+                </div>
+
+                <div id="radioSecondaryBlock" class="radio-secondary" hidden>
+                  <div class="radio-secondary-title">
+                    Autres fréquences utiles
+                  </div>
+                  <ul id="radioList" class="radio-list"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <p class="decoded-note">
             Données fournies pour le briefing pilote. Pour toute exploitation,
@@ -131,7 +136,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const WORKER_URL = "https://metar-proxy-nesdz.elnesdz.workers.dev/";
     const AIRPORTS_URL = "/data/airports-fr-full.json";
     const ULM_URL = "/data/ulm-fr.json";
-    const FREQUENCIES_URL = "/data/frequencies-fr.json";
+    const FREQUENCIES_URL = "/data/frequencies-fr-merged.json";
 
     const icaoInput = document.getElementById("icaoInput");
     const metarOutput = document.getElementById("metarOutput");
@@ -149,6 +154,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const pressureValue = document.getElementById("pressureValue");
     const fltCatValue = document.getElementById("fltCatValue");
     const radioValue = document.getElementById("radioValue");
+    const radioTypeValue = document.getElementById("radioTypeValue");
+    const radioLabelValue = document.getElementById("radioLabelValue");
+    const radioSecondaryBlock = document.getElementById("radioSecondaryBlock");
     const radioList = document.getElementById("radioList");
     const tafSummaryValue = document.getElementById("tafSummaryValue");
 
@@ -170,8 +178,15 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       tempValue.textContent = "—";
       pressureValue.textContent = "—";
       fltCatValue.textContent = "—";
+
       radioValue.textContent = "—";
+      if (radioTypeValue) radioTypeValue.textContent = "Radio";
+      if (radioLabelValue) {
+        radioLabelValue.textContent = "Aucune fréquence disponible";
+      }
+      if (radioSecondaryBlock) radioSecondaryBlock.hidden = true;
       if (radioList) radioList.innerHTML = "";
+
       tafSummaryValue.textContent = "Aucune donnée";
     }
 
@@ -468,14 +483,29 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       }
     }
 
+    function normalizeFrequencyItem(entry) {
+      return {
+        ...entry,
+        frequency_type: String(entry?.frequency_type || "").trim(),
+        label: String(entry?.label || "").trim(),
+        description: String(entry?.description || "").trim(),
+        service_code: String(entry?.service_code || "").trim(),
+        frequency_mhz: Number(entry?.frequency_mhz),
+      };
+    }
+
     function normalizeFrequencyRecord(item) {
       return {
         ...item,
         airport_ident: normalizeCode(item?.airport_ident || ""),
         weather_code: normalizeCode(item?.weather_code || ""),
         airport_name: String(item?.airport_name || "").trim(),
-        frequencies: Array.isArray(item?.frequencies) ? item.frequencies : [],
-        primary_frequency: item?.primary_frequency || null,
+        frequencies: Array.isArray(item?.frequencies)
+          ? item.frequencies.map(normalizeFrequencyItem)
+          : [],
+        primary_frequency: item?.primary_frequency
+          ? normalizeFrequencyItem(item.primary_frequency)
+          : null,
       };
     }
 
@@ -531,60 +561,219 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       return Number.isFinite(parsed) ? `${parsed.toFixed(3)} MHz` : "";
     }
 
-    function getFrequencyKey(entry) {
-      return [
-        entry?.frequency_type || "",
-        entry?.label || "",
-        entry?.description || "",
-        entry?.frequency_mhz || "",
-      ].join("|");
+    function normalizeRadioText(value) {
+      return String(value || "").trim().replace(/\s+/g, " ");
     }
 
-    function formatFrequencyEntry(entry) {
-      if (!entry) return "Non disponible";
+    function getRadioServiceKey(frequency) {
+      const rawType = String(frequency?.frequency_type || "").trim().toLowerCase();
 
-      const label = String(
-        entry.label || entry.description || "Fréquence"
-      ).trim();
-      const mhz = formatFrequencyMhz(entry.frequency_mhz);
+      if (rawType === "tower" || rawType === "twr") return "tower";
+      if (rawType === "ground" || rawType === "gnd") return "ground";
+      if (rawType === "approach" || rawType === "app") return "approach";
+      if (
+        rawType === "information" ||
+        rawType === "afis" ||
+        rawType === "info" ||
+        rawType === "fis"
+      ) {
+        return "information";
+      }
+      if (rawType === "atis") return "atis";
+      if (
+        rawType === "air_to_air" ||
+        rawType === "air-to-air" ||
+        rawType === "ctaf" ||
+        rawType === "unicom"
+      ) {
+        return "air_to_air";
+      }
 
-      return mhz ? `${label} · ${mhz}` : label || "Non disponible";
+      const rawLabel = normalizeRadioText(
+        frequency?.label || frequency?.description
+      ).toUpperCase();
+
+      if (rawLabel.includes("ATIS")) return "atis";
+      if (
+        rawLabel.includes("GND") ||
+        rawLabel.includes("GROUND") ||
+        rawLabel.includes("SOL")
+      ) {
+        return "ground";
+      }
+      if (
+        rawLabel.includes("APP") ||
+        rawLabel.includes("APPROACH") ||
+        rawLabel.includes("APPROCHE")
+      ) {
+        return "approach";
+      }
+      if (
+        rawLabel.includes("INFO") ||
+        rawLabel.includes("INFORMATION") ||
+        rawLabel.includes("AFIS") ||
+        rawLabel.includes("FIS")
+      ) {
+        return "information";
+      }
+      if (
+        rawLabel.includes("TWR") ||
+        rawLabel.includes("TOUR") ||
+        rawLabel.includes("TOWER")
+      ) {
+        return "tower";
+      }
+      if (
+        rawLabel.includes("AUTO") ||
+        rawLabel.includes("AUTO-INFO") ||
+        rawLabel.includes("AUTO INFO") ||
+        rawLabel.includes("A/A") ||
+        rawLabel.includes("UNICOM") ||
+        rawLabel.includes("CTAF")
+      ) {
+        return "air_to_air";
+      }
+
+      return rawType || "other";
+    }
+
+    function getRadioServiceLabel(frequency) {
+      switch (getRadioServiceKey(frequency)) {
+        case "tower":
+          return "Tour";
+        case "ground":
+          return "Sol";
+        case "approach":
+          return "Approche";
+        case "information":
+          return "Info";
+        case "atis":
+          return "ATIS";
+        case "air_to_air":
+          return "Auto-info";
+        default:
+          return "Radio";
+      }
+    }
+
+    function getRadioDisplayLabel(frequency) {
+      const rawLabel = normalizeRadioText(
+        frequency?.label || frequency?.description || ""
+      );
+
+      return rawLabel || getRadioServiceLabel(frequency) || "Fréquence";
+    }
+
+    function getRadioGroupKey(frequency) {
+      return `${getRadioServiceKey(frequency)}|${formatFrequencyMhz(
+        frequency?.frequency_mhz
+      )}`;
+    }
+
+    function getRadioRank(frequency) {
+      const label = getRadioDisplayLabel(frequency);
+      const hasServiceCode = frequency?.service_code ? 10 : 0;
+      const hasDescription = normalizeRadioText(frequency?.description).length ? 4 : 0;
+
+      return label.length + hasServiceCode + hasDescription;
+    }
+
+    function pickBestRadioFrequency(frequencies = []) {
+      return frequencies.reduce((best, current) => {
+        if (!best) return current;
+        return getRadioRank(current) > getRadioRank(best) ? current : best;
+      }, null);
+    }
+
+    function dedupeRadioFrequencies(frequencies = []) {
+      const groups = new Map();
+
+      frequencies.forEach((frequency) => {
+        const key = getRadioGroupKey(frequency);
+        const current = groups.get(key);
+
+        if (!current || getRadioRank(frequency) > getRadioRank(current)) {
+          groups.set(key, frequency);
+        }
+      });
+
+      return Array.from(groups.values());
     }
 
     function renderFrequencyPanel(record) {
-      if (!radioValue) return;
+      if (!radioValue || !radioTypeValue || !radioLabelValue) return;
+
       if (radioList) radioList.innerHTML = "";
+      if (radioSecondaryBlock) radioSecondaryBlock.hidden = true;
 
       if (
         !record ||
         !Array.isArray(record.frequencies) ||
         record.frequencies.length === 0
       ) {
+        radioTypeValue.textContent = "Radio";
         radioValue.textContent = "Non disponible";
+        radioLabelValue.textContent =
+          "Aucune fréquence exploitable trouvée pour ce terrain.";
         return;
       }
 
-      const primary = record.primary_frequency || record.frequencies[0];
-      radioValue.textContent = formatFrequencyEntry(primary);
+      const allFrequencies = Array.isArray(record.frequencies)
+        ? record.frequencies
+        : [];
 
-      const primaryKey = getFrequencyKey(primary);
-      const otherFrequencies = record.frequencies.filter(
-        (entry) => getFrequencyKey(entry) !== primaryKey
+      const dedupedFrequencies = dedupeRadioFrequencies(allFrequencies);
+
+      const primaryCandidate = record.primary_frequency
+        ? pickBestRadioFrequency(
+            allFrequencies.filter(
+              (frequency) =>
+                getRadioGroupKey(frequency) ===
+                getRadioGroupKey(record.primary_frequency)
+            )
+          )
+        : null;
+
+      const primaryFrequency = primaryCandidate || dedupedFrequencies[0] || null;
+
+      if (!primaryFrequency) {
+        radioTypeValue.textContent = "Radio";
+        radioValue.textContent = "Non disponible";
+        radioLabelValue.textContent =
+          "Aucune fréquence exploitable trouvée pour ce terrain.";
+        return;
+      }
+
+      radioTypeValue.textContent = getRadioServiceLabel(primaryFrequency);
+      radioValue.textContent =
+        formatFrequencyMhz(primaryFrequency.frequency_mhz) || "—";
+      radioLabelValue.textContent = getRadioDisplayLabel(primaryFrequency);
+
+      const primaryKey = getRadioGroupKey(primaryFrequency);
+
+      const secondaryFrequencies = dedupedFrequencies.filter(
+        (frequency) => getRadioGroupKey(frequency) !== primaryKey
       );
 
-      if (!radioList || otherFrequencies.length === 0) return;
+      if (!radioList || secondaryFrequencies.length === 0) return;
 
-      otherFrequencies.forEach((entry) => {
-        const li = document.createElement("li");
+      if (radioSecondaryBlock) radioSecondaryBlock.hidden = false;
 
-        li.innerHTML = `
-          <strong>${String(
-            entry.label || entry.description || "Fréquence"
-          ).trim()}</strong>
-          <span>${formatFrequencyMhz(entry.frequency_mhz) || "—"}</span>
+      secondaryFrequencies.forEach((frequency) => {
+        const item = document.createElement("li");
+        const displayLabel = getRadioDisplayLabel(frequency);
+        const serviceLabel = getRadioServiceLabel(frequency);
+        const detail = displayLabel !== serviceLabel ? serviceLabel : "";
+
+        item.innerHTML = `
+          <div>
+            <strong>${displayLabel}</strong>
+            ${detail ? `<small>${detail}</small>` : ""}
+          </div>
+          <span>${formatFrequencyMhz(frequency.frequency_mhz) || "—"}</span>
         `;
 
-        radioList.appendChild(li);
+        radioList.appendChild(item);
       });
     }
 
@@ -802,8 +991,15 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       tempValue.textContent = "…";
       pressureValue.textContent = "…";
       fltCatValue.textContent = "…";
+
       radioValue.textContent = "Chargement...";
+      if (radioTypeValue) radioTypeValue.textContent = "Radio";
+      if (radioLabelValue) {
+        radioLabelValue.textContent = "Recherche des fréquences utiles...";
+      }
+      if (radioSecondaryBlock) radioSecondaryBlock.hidden = true;
       if (radioList) radioList.innerHTML = "";
+
       tafSummaryValue.textContent = "Chargement...";
 
       const matchedAirport = await findAirportByCode(icao);
@@ -1113,18 +1309,75 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     .tool-page .radio-panel {
       display: grid;
-      gap: 10px;
+      gap: 12px;
     }
 
     .tool-page .radio-primary {
-      color: rgba(231, 238, 245, 0.98);
-      font-size: 1rem;
-      line-height: 1.5;
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(111, 184, 214, 0.22);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(111, 184, 214, 0.1),
+          rgba(255, 255, 255, 0.04)
+        ),
+        rgba(255, 255, 255, 0.03);
     }
 
-    .tool-page .radio-primary strong {
-      font-size: 1rem;
+    .tool-page .radio-primary-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tool-page .radio-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(111, 184, 214, 0.34);
+      background: rgba(111, 184, 214, 0.16);
+      color: #eaf8ff;
+      font-size: 0.84rem;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    .tool-page .radio-primary-note {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .tool-page .radio-primary-main {
+      font-size: 1.18rem;
       font-weight: 700;
+      color: #eef7ff;
+      letter-spacing: 0.01em;
+    }
+
+    .tool-page .radio-primary-label {
+      font-size: 0.96rem;
+      line-height: 1.5;
+      color: #dbe6ef;
+    }
+
+    .tool-page .radio-secondary {
+      display: grid;
+      gap: 8px;
+    }
+
+    .tool-page .radio-secondary-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
     }
 
     .tool-page .radio-list {
@@ -1136,20 +1389,29 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     .tool-page .radio-list li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
       gap: 12px;
       padding: 10px 12px;
       border-radius: 10px;
       border: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(255, 255, 255, 0.02);
+      background: #ffffff05;
     }
 
     .tool-page .radio-list strong {
+      display: block;
       font-size: 0.95rem;
       font-weight: 600;
       color: rgba(231, 238, 245, 0.94);
+    }
+
+    .tool-page .radio-list small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.35;
     }
 
     .tool-page .radio-list span {
@@ -1222,7 +1484,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       border-radius: 14px;
       border: 1px solid rgba(255, 255, 255, 0.08);
       background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.02)),
+        linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.03),
+          rgba(255, 255, 255, 0.02)
+        ),
         rgba(15, 23, 32, 0.72);
       color: white;
       font: inherit;
@@ -1232,7 +1498,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       appearance: none;
       -webkit-appearance: none;
       background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.02)),
+        linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.03),
+          rgba(255, 255, 255, 0.02)
+        ),
         rgba(15, 23, 32, 0.72);
     }
 
@@ -1250,7 +1520,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       border-color: rgba(111, 184, 214, 0.4);
       box-shadow: 0 0 0 4px rgba(111, 184, 214, 0.1);
       background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.025)),
+        linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.04),
+          rgba(255, 255, 255, 0.025)
+        ),
         rgba(15, 23, 32, 0.78);
     }
 
@@ -1261,7 +1535,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     .tool-page .airport-nearby-card--ulm {
       border-color: rgba(214, 193, 150, 0.18);
       background:
-        linear-gradient(180deg, rgba(214, 193, 150, 0.035), rgba(214, 193, 150, 0.018)),
+        linear-gradient(
+          180deg,
+          rgba(214, 193, 150, 0.035),
+          rgba(214, 193, 150, 0.018)
+        ),
         rgba(18, 24, 31, 0.74);
     }
 
@@ -1306,9 +1584,13 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         white-space: normal;
       }
 
-      .tool-page .radio-list li {
-        flex-direction: column;
+      .tool-page .radio-primary-head {
         align-items: flex-start;
+      }
+
+      .tool-page .radio-list li {
+        grid-template-columns: 1fr;
+        gap: 6px;
       }
 
       .tool-page .radio-list span {
