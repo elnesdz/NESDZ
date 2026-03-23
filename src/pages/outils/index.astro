@@ -664,6 +664,49 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       return rawLabel || getRadioServiceLabel(frequency) || "Fréquence";
     }
 
+    function getRadioServicePriority(frequency) {
+      switch (getRadioServiceKey(frequency)) {
+        case "atis":
+          return 1;
+        case "ground":
+          return 2;
+        case "tower":
+          return 3;
+        case "approach":
+          return 4;
+        case "information":
+          return 5;
+        case "air_to_air":
+          return 6;
+        default:
+          return 9;
+      }
+    }
+
+    function compareRadioFrequencies(a, b) {
+      const priorityDiff =
+        getRadioServicePriority(a) - getRadioServicePriority(b);
+
+      if (priorityDiff !== 0) return priorityDiff;
+
+      const labelA = getRadioDisplayLabel(a);
+      const labelB = getRadioDisplayLabel(b);
+      const labelDiff = labelA.localeCompare(labelB, "fr", {
+        sensitivity: "base",
+      });
+
+      if (labelDiff !== 0) return labelDiff;
+
+      const mhzA = Number(a?.frequency_mhz);
+      const mhzB = Number(b?.frequency_mhz);
+
+      if (Number.isFinite(mhzA) && Number.isFinite(mhzB)) {
+        return mhzA - mhzB;
+      }
+
+      return 0;
+    }
+
     function getRadioGroupKey(frequency) {
       return `${getRadioServiceKey(frequency)}|${formatFrequencyMhz(
         frequency?.frequency_mhz
@@ -751,9 +794,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
       const primaryKey = getRadioGroupKey(primaryFrequency);
 
-      const secondaryFrequencies = dedupedFrequencies.filter(
-        (frequency) => getRadioGroupKey(frequency) !== primaryKey
-      );
+      const secondaryFrequencies = dedupedFrequencies
+        .filter((frequency) => getRadioGroupKey(frequency) !== primaryKey)
+        .sort(compareRadioFrequencies);
 
       if (!radioList || secondaryFrequencies.length === 0) return;
 
