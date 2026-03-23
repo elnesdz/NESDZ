@@ -1,1 +1,48 @@
+name: Build Frequencies France SIA
 
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'data-source/sia/_AIP_XML_SIA_AAAA-MM-JJ.xlsx'
+      - 'scripts/build-frequencies-fr-sia.py'
+      - '.github/workflows/build-frequencies-fr-sia.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-frequencies-fr-sia:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install openpyxl
+
+      - name: Generate France frequencies JSON from SIA
+        run: python scripts/build-frequencies-fr-sia.py
+
+      - name: Commit generated JSON if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add public/data/frequencies-fr-sia.json
+
+          if git diff --cached --quiet; then
+            echo "Aucun changement à commit"
+            exit 0
+          fi
+
+          git commit -m "build: generate France frequencies JSON from SIA"
+          git push
