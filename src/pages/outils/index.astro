@@ -11,10 +11,27 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       <div class="pad">
         <h1>Météo & terrains</h1>
 
-        <div class="tool-block">
-          <label for="icaoInput">Code OACI</label>
+        <div class="tool-block tool-entry-block">
+          <label for="icaoInput" class="tool-entry-label">
+            Aérodrome / code OACI
+          </label>
+          <p class="tool-entry-help">
+            Saisir un terrain comme <strong>LFQQ</strong>, <strong>LFPN</strong>
+            ou <strong>LFPA</strong> pour afficher la météo aviation, la radio
+            utile et les terrains proches.
+          </p>
+
           <div class="row tool-row">
-            <input id="icaoInput" placeholder="Ex : LFQQ" value="LFQQ" />
+            <input
+              id="icaoInput"
+              placeholder="Ex : LFQQ"
+              value="LFQQ"
+              inputmode="text"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+              aria-label="Aérodrome ou code OACI"
+            />
             <button
               id="loadMetarBtn"
               class="tool-action-btn tool-action-btn--primary"
@@ -1225,7 +1242,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               </div>
               <div class="weather-ref-name">${reference.airport.name}</div>
               <div class="weather-ref-meta">${formatWeatherReferenceMeta(reference.snapshot)}</div>
-              <div class="weather-ref-action">Charger ce terrain</div>
+              <div class="weather-ref-action">Voir METAR / TAF</div>
             </button>
           `;
 
@@ -1674,6 +1691,43 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       margin-top: 20px;
     }
 
+    .tool-page .tool-entry-block {
+      margin-top: 8px;
+      padding: 16px 18px 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.035),
+          rgba(255, 255, 255, 0.02)
+        ),
+        rgba(12, 18, 26, 0.52);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    }
+
+    .tool-page .tool-entry-label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.3;
+      color: rgba(241, 247, 252, 0.98);
+      letter-spacing: 0.01em;
+    }
+
+    .tool-page .tool-entry-help {
+      margin: 0 0 14px;
+      font-size: 0.94rem;
+      line-height: 1.55;
+      color: rgba(211, 223, 234, 0.82);
+    }
+
+    .tool-page .tool-entry-help strong {
+      color: rgba(239, 246, 252, 0.98);
+      font-weight: 700;
+    }
+
     .tool-page .tool-row {
       gap: 12px;
       flex-wrap: wrap;
@@ -1681,12 +1735,35 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     .tool-page .tool-block input {
-      min-width: 220px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(255, 255, 255, 0.05);
+      min-width: 240px;
+      min-height: 52px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.06);
       color: white;
+      font-size: 1.02rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      transition:
+        border-color 0.18s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease;
+    }
+
+    .tool-page .tool-block input::placeholder {
+      color: rgba(214, 225, 234, 0.56);
+      font-weight: 500;
+    }
+
+    .tool-page .tool-block input:focus {
+      outline: none;
+      border-color: rgba(111, 184, 214, 0.6);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow:
+        0 0 0 4px rgba(111, 184, 214, 0.12),
+        0 0 0 1px rgba(111, 184, 214, 0.1);
     }
 
     .tool-page .tool-action-btn {
@@ -1761,7 +1838,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           rgba(220, 236, 246, 0.08)
         ),
         rgba(23, 30, 39, 0.92);
-      border: 1px solid rgba(220, 236, 246, 0.30);
+      border: 1px solid rgba(220, 236, 246, 0.3);
       color: rgba(244, 249, 252, 0.98);
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.06),
@@ -2362,30 +2439,61 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     @media (max-width: 720px) {
+      .tool-page .tool-block {
+        margin-top: 20px;
+      }
+
+      .tool-page .tool-entry-block {
+        padding: 14px 14px 16px;
+        margin-top: 6px;
+      }
+
+      .tool-page h1 {
+        font-size: clamp(2.4rem, 11vw, 3.4rem);
+        line-height: 1.02;
+        margin-bottom: 18px;
+      }
+
+      .tool-page h2 {
+        line-height: 1.08;
+      }
+
+      .tool-page .tool-entry-label {
+        font-size: 1.08rem;
+      }
+
+      .tool-page .tool-entry-help {
+        font-size: 0.92rem;
+        margin-bottom: 12px;
+      }
+
       .tool-page .tool-row {
         align-items: stretch;
+        gap: 10px;
+      }
+
+      .tool-page .tool-block input {
+        width: 100%;
+        min-width: 0;
+        min-height: 54px;
+        font-size: 1.06rem;
       }
 
       .tool-page .tool-action-btn {
         width: 100%;
+        min-height: 48px;
       }
 
-      .tool-page .weather-ref-top {
-        flex-direction: column;
-        align-items: flex-start;
+      .tool-page .decoded-card {
+        padding: 13px;
       }
 
-      .tool-page .weather-ref-top span {
-        white-space: normal;
+      .tool-page .decoded-grid {
+        gap: 10px;
       }
 
-      .tool-page .airport-nearby-top {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .tool-page .airport-nearby-top span {
-        white-space: normal;
+      .tool-page .radio-primary {
+        padding: 13px;
       }
 
       .tool-page .radio-primary-head {
@@ -2399,6 +2507,60 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
       .tool-page .radio-list span {
         white-space: normal;
+      }
+
+      .tool-page pre {
+        font-size: 0.98rem;
+        line-height: 1.52;
+        padding: 11px 12px;
+      }
+
+      .tool-page .weather-refs-head {
+        margin-bottom: 8px;
+      }
+
+      .tool-page .weather-ref-card {
+        padding: 14px 14px 15px;
+      }
+
+      .tool-page .weather-ref-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+
+      .tool-page .weather-ref-top span {
+        white-space: normal;
+      }
+
+      .tool-page .nearby-section-header {
+        padding: 14px 14px 15px;
+      }
+
+      .tool-page .nearby-group-title {
+        padding: 14px 14px 14px 16px;
+      }
+
+      .tool-page .airport-nearby-card {
+        padding: 14px 14px 15px 16px;
+      }
+
+      .tool-page .airport-nearby-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+
+      .tool-page .airport-nearby-top span {
+        white-space: normal;
+      }
+
+      .tool-page .tool-disclosure summary {
+        padding: 13px 14px;
+      }
+
+      .tool-page .tool-disclosure-content {
+        padding: 0 14px 14px;
       }
     }
   </style>
