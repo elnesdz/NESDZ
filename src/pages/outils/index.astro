@@ -3,300 +3,2607 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout
-  title="NESDZ"
-  description="ULM, aviation légère, journal éditorial, annuaire ULM et outil météo & terrains pour le briefing pilote."
+  title="Météo & terrains"
+  description="Météo aviation, METAR, TAF et terrains proches."
 >
-  <section class="container home-page" style="padding: 24px 0 36px;">
-    <div class="home-hero card">
-      <div class="pad home-hero-pad">
-        <div class="home-hero-copy">
-          <p class="home-kicker">ULM · aviation légère · briefing pilote</p>
+  <section class="container tool-page" style="padding: 20px 0;">
+    <div class="card">
+      <div class="pad">
+        <h1>Météo & terrains</h1>
 
-          <h1>NESDZ</h1>
-
-          <p class="home-intro">
-            Un site pensé pour les pilotes et passionnés d’aviation légère :
-            journal, annuaire ULM, contenus éditoriaux et outil météo &amp;
-            terrains pour préparer un vol plus clairement.
+        <div class="tool-block tool-entry-block">
+          <label for="icaoInput" class="tool-entry-label">
+            Aérodrome / code OACI
+          </label>
+          <p class="tool-entry-help">
+            Entrer un terrain comme <strong>LFQQ</strong>, <strong>LFPN</strong>
+            ou <strong>LFPA</strong> pour afficher la météo aviation, la radio
+            utile et les terrains proches.
           </p>
 
-          <div class="home-actions">
-            <a class="home-primary-cta" href="/outils/">
-              <span class="home-primary-cta__eyebrow">Outil pilote</span>
-              <span class="home-primary-cta__label">Météo &amp; terrains</span>
-            </a>
+          <div class="row tool-row">
+            <input
+              id="icaoInput"
+              placeholder="Ex : LFQQ"
+              value="LFQQ"
+              inputmode="text"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+              aria-label="Aérodrome ou code OACI"
+            />
+            <button
+              id="loadMetarBtn"
+              class="tool-action-btn tool-action-btn--primary"
+              type="button"
+            >
+              Voir METAR / TAF
+            </button>
+          </div>
+        </div>
 
-            <div class="home-secondary-actions">
-              <a class="home-secondary-link" href="/journal/">Journal</a>
-              <a class="home-secondary-link" href="/modeles/">Annuaire ULM</a>
-              <a class="home-secondary-link" href="/edito/">Édito</a>
+        <div class="tool-block">
+          <h2>Lecture rapide</h2>
+
+          <div class="decoded-grid">
+            <div class="decoded-card">
+              <span class="decoded-label">Statut</span>
+              <strong id="statusValue">Aucune donnée</strong>
+            </div>
+
+            <div class="decoded-card">
+              <span class="decoded-label">Terrain</span>
+              <strong id="nameValue">—</strong>
+            </div>
+
+            <div class="decoded-card">
+              <span class="decoded-label">Vent</span>
+              <strong id="windValue">—</strong>
+            </div>
+
+            <div class="decoded-card">
+              <span class="decoded-label">Visibilité</span>
+              <strong id="visibilityValue">—</strong>
+            </div>
+
+            <div class="decoded-card">
+              <span class="decoded-label">Nuages</span>
+              <strong id="cloudsValue">—</strong>
+            </div>
+
+            <div class="decoded-card">
+              <span class="decoded-label">Température</span>
+              <strong id="tempValue">—</strong>
+            </div>
+
+            <div class="decoded-card">
+              <span class="decoded-label">Pression</span>
+              <strong id="pressureValue">—</strong>
+            </div>
+
+            <div class="decoded-card">
+              <span class="decoded-label">Catégorie vol</span>
+              <strong id="fltCatValue">—</strong>
+            </div>
+
+            <div class="decoded-card decoded-card-wide">
+              <span class="decoded-label">Radio</span>
+
+              <div class="radio-panel">
+                <div class="radio-primary">
+                  <div class="radio-primary-head">
+                    <span id="radioTypeValue" class="radio-badge">Radio</span>
+                    <span class="radio-primary-note">
+                      Fréquence principale retenue pour le briefing. Confirmer la
+                      fréquence active dans les publications officielles.
+                    </span>
+                  </div>
+
+                  <div id="radioValue" class="radio-primary-main">—</div>
+
+                  <div id="radioLabelValue" class="radio-primary-label">
+                    Aucune fréquence disponible
+                  </div>
+                </div>
+
+                <div id="radioSecondaryBlock" class="radio-secondary" hidden>
+                 <div class="radio-secondary-title">
+  Fréquences complémentaires
+</div>
+                  <ul id="radioList" class="radio-list"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="decoded-note">
+            Données fournies pour le briefing pilote. Pour toute exploitation,
+            confirmer les informations utiles dans les publications officielles
+            et consignes locales (AIP, VAC, NOTAM, SUP AIP).
+          </p>
+        </div>
+
+        <div class="tool-block">
+          <h2>Lecture prévision</h2>
+          <div class="decoded-grid">
+            <div class="decoded-card decoded-card-wide">
+              <span class="decoded-label">Tendance</span>
+              <strong id="tafSummaryValue">Aucune donnée</strong>
             </div>
           </div>
         </div>
 
-        <div class="home-hero-panel">
-          <div class="home-hero-panel-card home-hero-panel-card--primary">
-            <span class="home-panel-kicker">Accès rapide</span>
-            <h2>Météo &amp; terrains</h2>
-            <p>
-              METAR, TAF, radio utile, terrains voisins, plateformes ULM et
-              repères météo proches dans une interface pensée briefing.
-            </p>
-            <a class="home-panel-link" href="/outils/">Ouvrir l’outil</a>
+        <div class="tool-block">
+          <h2>METAR brut</h2>
+          <pre id="metarOutput">Aucune donnée</pre>
+        </div>
+
+        <div class="tool-block">
+          <h2>TAF brut</h2>
+          <pre id="tafOutput">Aucune donnée</pre>
+        </div>
+
+        <div
+          id="weatherRefsBlock"
+          class="tool-block weather-refs-block"
+          hidden
+        >
+          <div class="weather-refs-head">
+            <div>
+              <h2>Repères météo voisins</h2>
+              <p class="weather-refs-note">Aide au briefing uniquement</p>
+            </div>
           </div>
 
-          <div class="home-hero-panel-grid">
-            <a class="home-mini-card" href="/journal/">
-              <span class="home-mini-card__kicker">Journal</span>
-              <strong>Derniers articles</strong>
-              <p>Analyses, billets et contenus aviation légère.</p>
-            </a>
+          <ul id="weatherRefsList" class="weather-refs-list"></ul>
+        </div>
 
-            <a class="home-mini-card" href="/modeles/">
-              <span class="home-mini-card__kicker">Annuaire ULM</span>
-              <strong>Modèles en vedette</strong>
-              <p>Explorer la base ULM et les fiches utiles.</p>
-            </a>
+        <div class="tool-block">
+          <h2>Aérodromes à proximité</h2>
+          <button
+            id="nearbyBtn"
+            class="tool-action-btn tool-action-btn--secondary"
+            type="button"
+          >
+            Afficher les terrains proches
+          </button>
+          <ul id="nearbyAirports" class="nearby-list"></ul>
+        </div>
 
-            <a class="home-mini-card" href="/edito/">
-              <span class="home-mini-card__kicker">Édito</span>
-              <strong>Vision NESDZ</strong>
-              <p>Une ligne éditoriale premium, claire et utile.</p>
-            </a>
+        <div class="tool-block tool-block--compact">
+          <details class="tool-disclosure">
+            <summary>Sources officielles &amp; limites d’usage</summary>
 
-            <a class="home-mini-card" href="/a-propos/">
-              <span class="home-mini-card__kicker">À propos</span>
-              <strong>Le projet</strong>
-              <p>Comprendre l’ambition produit et l’approche du site.</p>
-            </a>
-          </div>
+            <div class="tool-disclosure-content">
+              <p>
+                <strong>Source météo</strong><br />
+                Aviation Weather Center — METAR / TAF officiels.
+              </p>
+
+              <p>
+                <strong>Fréquences radio</strong><br />
+                Base radio NESDZ croisée à partir des données SIA lorsqu’elles
+                sont disponibles, complétées par une source secondaire.
+              </p>
+
+              <p>
+                <strong>Terrains &amp; plateformes</strong><br />
+                Informations affichées à partir des bases terrains et ULM NESDZ.
+              </p>
+
+              <p>
+                <strong>Repère météo voisin</strong><br />
+                Lorsqu’un terrain ne publie pas de METAR / TAF, NESDZ peut
+                afficher un terrain météo voisin clairement identifié pour aider
+                au briefing.
+              </p>
+
+              <p>
+                <strong>Utilisation</strong><br />
+                Les informations affichées assistent le briefing pilote et ne
+                remplacent pas l’AIP, les cartes VAC, les NOTAM et les
+                consignes locales.
+              </p>
+            </div>
+          </details>
         </div>
       </div>
     </div>
-
-    <section class="home-section">
-      <div class="home-section-head">
-        <div>
-          <p class="home-section-kicker">Navigation rapide</p>
-          <h2>Les grandes entrées du site</h2>
-        </div>
-      </div>
-
-      <div class="home-grid">
-        <a class="home-feature-card home-feature-card--tool" href="/outils/">
-          <span class="home-feature-card__kicker">Outil du site</span>
-          <h3>Météo &amp; terrains</h3>
-          <p>
-            L’accès le plus direct vers la météo aviation, les radios utiles, les
-            terrains voisins et les plateformes spécifiques.
-          </p>
-          <span class="home-feature-card__cta">Accéder à l’outil</span>
-        </a>
-
-        <a class="home-feature-card" href="/journal/">
-          <span class="home-feature-card__kicker">Lecture</span>
-          <h3>Journal</h3>
-          <p>
-            Retrouver les derniers articles, analyses et billets publiés sur
-            NESDZ.
-          </p>
-          <span class="home-feature-card__cta">Lire le journal</span>
-        </a>
-
-        <a class="home-feature-card" href="/modeles/">
-          <span class="home-feature-card__kicker">Annuaire</span>
-          <h3>Annuaire ULM</h3>
-          <p>
-            Explorer les modèles, bases et entrées utiles liées à l’ULM et à
-            l’aviation légère.
-          </p>
-          <span class="home-feature-card__cta">Voir l’annuaire</span>
-        </a>
-      </div>
-    </section>
   </section>
 
-  <style is:global>
-    .home-page {
-      display: grid;
-      gap: 28px;
+  <script>
+    const WORKER_URL = "https://metar-proxy-nesdz.elnesdz.workers.dev/";
+    const AIRPORTS_URL = "/data/airports-fr-full.json";
+    const ULM_URL = "/data/ulm-fr.json";
+    const FREQUENCIES_URL = "/data/frequencies-fr-merged.json";
+    const WEATHER_REFERENCE_MAX_KM = 50 * 1.852;
+
+    const icaoInput = document.getElementById("icaoInput");
+    const metarOutput = document.getElementById("metarOutput");
+    const tafOutput = document.getElementById("tafOutput");
+    const nearbyAirports = document.getElementById("nearbyAirports");
+    const loadMetarBtn = document.getElementById("loadMetarBtn");
+    const nearbyBtn = document.getElementById("nearbyBtn");
+
+    const statusValue = document.getElementById("statusValue");
+    const nameValue = document.getElementById("nameValue");
+    const windValue = document.getElementById("windValue");
+    const visibilityValue = document.getElementById("visibilityValue");
+    const cloudsValue = document.getElementById("cloudsValue");
+    const tempValue = document.getElementById("tempValue");
+    const pressureValue = document.getElementById("pressureValue");
+    const fltCatValue = document.getElementById("fltCatValue");
+    const radioValue = document.getElementById("radioValue");
+    const radioTypeValue = document.getElementById("radioTypeValue");
+    const radioLabelValue = document.getElementById("radioLabelValue");
+    const radioSecondaryBlock = document.getElementById("radioSecondaryBlock");
+    const radioList = document.getElementById("radioList");
+    const tafSummaryValue = document.getElementById("tafSummaryValue");
+
+    const weatherRefsBlock = document.getElementById("weatherRefsBlock");
+    const weatherRefsList = document.getElementById("weatherRefsList");
+
+    let airportsCache = null;
+    let airportsPromise = null;
+
+    let ulmCache = null;
+    let ulmPromise = null;
+
+    let frequenciesCache = null;
+    let frequenciesPromise = null;
+
+    function resetDecoded() {
+      statusValue.textContent = "Aucune donnée";
+      nameValue.textContent = "—";
+      windValue.textContent = "—";
+      visibilityValue.textContent = "—";
+      cloudsValue.textContent = "—";
+      tempValue.textContent = "—";
+      pressureValue.textContent = "—";
+      fltCatValue.textContent = "—";
+
+      radioValue.textContent = "—";
+      if (radioTypeValue) radioTypeValue.textContent = "Radio";
+      if (radioLabelValue) {
+        radioLabelValue.textContent = "Aucune fréquence disponible";
+      }
+      if (radioSecondaryBlock) radioSecondaryBlock.hidden = true;
+      if (radioList) radioList.innerHTML = "";
+
+      tafSummaryValue.textContent = "Aucune donnée";
     }
 
-    .home-page .home-hero {
-      overflow: hidden;
-      border-radius: 24px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background:
-        radial-gradient(
-          circle at top right,
-          rgba(111, 184, 214, 0.14),
-          transparent 30%
-        ),
-        radial-gradient(
-          circle at left center,
-          rgba(111, 184, 214, 0.08),
-          transparent 32%
-        ),
-        linear-gradient(
-          135deg,
-          rgba(11, 18, 26, 0.98),
-          rgba(12, 22, 34, 0.96)
+    function resetWeatherReferences() {
+      if (weatherRefsBlock) weatherRefsBlock.hidden = true;
+      if (weatherRefsList) weatherRefsList.innerHTML = "";
+    }
+
+    function showWeatherReferencesMessage(message) {
+      if (!weatherRefsBlock || !weatherRefsList) return;
+
+      weatherRefsBlock.hidden = false;
+      weatherRefsList.innerHTML = `
+        <li class="weather-ref-empty">${message}</li>
+      `;
+    }
+
+    function normalizeCode(value) {
+      return String(value || "").trim().toUpperCase();
+    }
+
+    function isValidWeatherCode(code) {
+      return /^[A-Z]{4}$/.test(normalizeCode(code));
+    }
+
+    function getIcaoFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const value = normalizeCode(params.get("icao") || "");
+      return isValidWeatherCode(value) ? value : "";
+    }
+
+    function syncIcaoInUrl(icao) {
+      const url = new URL(window.location.href);
+
+      if (icao && isValidWeatherCode(icao)) {
+        url.searchParams.set("icao", icao);
+      } else {
+        url.searchParams.delete("icao");
+      }
+
+      const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+      window.history.replaceState({}, "", nextUrl);
+    }
+
+    function formatWind(dir, speed) {
+      if (dir == null || speed == null) return "—";
+      return `${dir}° à ${speed} kt`;
+    }
+
+    function formatVisibility(visib) {
+      if (visib == null) return "—";
+      if (Number(visib) >= 10) return "10 km ou plus";
+      return `${visib} km`;
+    }
+
+    function formatClouds(item) {
+      if (item?.cover && item?.clouds?.length) {
+        const firstCloud = item.clouds[0];
+        if (firstCloud?.base) {
+          return `${item.cover} à ${firstCloud.base} ft`;
+        }
+        return item.cover;
+      }
+
+      if (item?.cover) return item.cover;
+      return "—";
+    }
+
+    function formatTemp(temp, dewpoint) {
+      if (temp == null && dewpoint == null) return "—";
+      if (temp != null && dewpoint != null) {
+        return `${temp}°C / rosée ${dewpoint}°C`;
+      }
+      if (temp != null) return `${temp}°C`;
+      return `Rosée ${dewpoint}°C`;
+    }
+
+    function formatPressure(altim) {
+      if (altim == null) return "—";
+      return `${altim} hPa`;
+    }
+
+    function formatStatus(item) {
+      if (!item) return "Aucune donnée";
+      if (item.fltCat === "VFR") return "🟢 Conditions VFR (bonnes)";
+      if (item.fltCat === "MVFR") return "🟡 VFR marginal (à surveiller)";
+      if (item.fltCat === "IFR") return "🔴 IFR (dégradé)";
+      if (item.fltCat === "LIFR") return "🚨 IFR basse (très dégradé)";
+      return "Données météo reçues";
+    }
+
+    function buildSimpleTaf(rawOb, item, icao) {
+      if (!rawOb) {
+        return `Aucune prévision TAF disponible pour ${icao}. Ce terrain ne publie probablement pas de TAF.`;
+      }
+
+      if (item?.fltCat === "VFR") {
+        return "🟢 Prévision favorable : conditions VFR attendues si la tendance se maintient.";
+      }
+
+      if (item?.fltCat === "MVFR") {
+        return "🟡 Prévision à surveiller : conditions VFR marginales possibles.";
+      }
+
+      if (item?.fltCat === "IFR") {
+        return "🔴 Prévision dégradée : conditions IFR probables.";
+      }
+
+      if (item?.fltCat === "LIFR") {
+        return "🚨 Prévision critique : conditions très dégradées.";
+      }
+
+      return "Prévision disponible en brut ci-dessous.";
+    }
+
+    function getAirportWeatherCode(airport) {
+      const icao = normalizeCode(airport?.icao);
+      if (isValidWeatherCode(icao)) return icao;
+
+      const gpsCode = normalizeCode(airport?.gps_code);
+      if (isValidWeatherCode(gpsCode)) return gpsCode;
+
+      return "";
+    }
+
+    function normalizeAirportRecord(airport) {
+      const weatherCode = getAirportWeatherCode(airport);
+      const latitude = Number(airport?.latitude);
+      const longitude = Number(airport?.longitude);
+
+      return {
+        ...airport,
+        weatherCode,
+        latitude,
+        longitude,
+      };
+    }
+
+    function isUsableAirport(airport) {
+      return (
+        airport &&
+        airport.type !== "closed" &&
+        airport.weatherCode &&
+        Number.isFinite(airport.latitude) &&
+        Number.isFinite(airport.longitude)
+      );
+    }
+
+    function dedupeAirports(list) {
+      const seen = new Set();
+
+      return list.filter((airport) => {
+        const key = airport.weatherCode;
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    async function loadAirports() {
+      if (airportsCache) return airportsCache;
+
+      if (!airportsPromise) {
+        airportsPromise = fetch(AIRPORTS_URL)
+          .then(async (res) => {
+            if (!res.ok) {
+              throw new Error("Impossible de charger la base d’aérodromes.");
+            }
+
+            const data = await res.json();
+
+            if (!Array.isArray(data)) {
+              throw new Error("Format JSON inattendu pour la base d’aérodromes.");
+            }
+
+            airportsCache = dedupeAirports(
+              data.map(normalizeAirportRecord).filter(isUsableAirport)
+            );
+
+            return airportsCache;
+          })
+          .catch((error) => {
+            airportsPromise = null;
+            throw error;
+          });
+      }
+
+      return airportsPromise;
+    }
+
+    async function findAirportByCode(code) {
+      const normalized = normalizeCode(code);
+
+      if (!normalized) return null;
+
+      try {
+        const airports = await loadAirports();
+        return (
+          airports.find((airport) => airport.weatherCode === normalized) || null
         );
+      } catch (error) {
+        console.error(error);
+        return null;
+      }
+    }
+
+    function formatAirportDisplayName(airport, fallbackCode) {
+      if (!airport) return fallbackCode || "—";
+
+      const labelCode = airport.weatherCode || fallbackCode || "—";
+      const municipality = airport.municipality
+        ? ` — ${airport.municipality}`
+        : "";
+
+      return `${airport.name} (${labelCode})${municipality}`;
+    }
+
+    function formatMatchedDisplayName(matchedAirport, matchedUlm) {
+      if (matchedAirport) {
+        return formatAirportDisplayName(
+          matchedAirport,
+          matchedAirport.weatherCode
+        );
+      }
+
+      if (matchedUlm?.name) {
+        const codeLabel = matchedUlm.weatherCode || matchedUlm.code || "";
+        return codeLabel
+          ? `${matchedUlm.name} (${codeLabel})`
+          : matchedUlm.name;
+      }
+
+      return "";
+    }
+
+    function normalizeUlmRecord(item) {
+      const code = normalizeCode(item?.code || item?.source_id || "");
+      const weatherCode = isValidWeatherCode(item?.weather_code)
+        ? normalizeCode(item.weather_code)
+        : "";
+
+      return {
+        ...item,
+        code,
+        weatherCode,
+        latitude: Number(item?.latitude),
+        longitude: Number(item?.longitude),
+        platformType: item?.platform_type || "unknown",
+        operationalLabel: item?.operational_label || "Plateforme spécifique",
+        accessTags: Array.isArray(item?.access_tags) ? item.access_tags : [],
+        weatherCapable: Boolean(weatherCode),
+      };
+    }
+
+    function isUsableUlm(item) {
+      return (
+        item &&
+        Number.isFinite(item.latitude) &&
+        Number.isFinite(item.longitude) &&
+        item.platformType !== "helistation"
+      );
+    }
+
+    async function loadUlmBases() {
+      if (ulmCache) return ulmCache;
+
+      if (!ulmPromise) {
+        ulmPromise = fetch(ULM_URL)
+          .then(async (res) => {
+            if (!res.ok) {
+              throw new Error("Impossible de charger la base ULM.");
+            }
+
+            const data = await res.json();
+
+            if (!Array.isArray(data)) {
+              throw new Error("Format JSON inattendu pour la base ULM.");
+            }
+
+            ulmCache = data.map(normalizeUlmRecord).filter(isUsableUlm);
+            return ulmCache;
+          })
+          .catch((error) => {
+            ulmPromise = null;
+            throw error;
+          });
+      }
+
+      return ulmPromise;
+    }
+
+    async function findUlmByCode(code) {
+      const normalized = normalizeCode(code);
+
+      if (!normalized) return null;
+
+      try {
+        const ulmBases = await loadUlmBases();
+        return (
+          ulmBases.find(
+            (item) =>
+              item.code === normalized || item.weatherCode === normalized
+          ) || null
+        );
+      } catch (error) {
+        console.error(error);
+        return null;
+      }
+    }
+
+    function normalizeFrequencyItem(entry) {
+      return {
+        ...entry,
+        frequency_type: String(entry?.frequency_type || "").trim(),
+        label: String(entry?.label || "").trim(),
+        description: String(entry?.description || "").trim(),
+        service_code: String(entry?.service_code || "").trim(),
+        sector: String(entry?.sector || "").trim(),
+        remark: String(entry?.remark || "").trim(),
+        suppletive: String(entry?.suppletive || "").trim(),
+        frequency_mhz: Number(entry?.frequency_mhz),
+      };
+    }
+
+    function normalizeFrequencyRecord(item) {
+      return {
+        ...item,
+        airport_ident: normalizeCode(item?.airport_ident || ""),
+        weather_code: normalizeCode(item?.weather_code || ""),
+        airport_name: String(item?.airport_name || "").trim(),
+        frequencies: Array.isArray(item?.frequencies)
+          ? item.frequencies.map(normalizeFrequencyItem)
+          : [],
+        primary_frequency: item?.primary_frequency
+          ? normalizeFrequencyItem(item.primary_frequency)
+          : null,
+      };
+    }
+
+    async function loadFrequencies() {
+      if (frequenciesCache) return frequenciesCache;
+
+      if (!frequenciesPromise) {
+        frequenciesPromise = fetch(FREQUENCIES_URL)
+          .then(async (res) => {
+            if (!res.ok) {
+              throw new Error("Impossible de charger la base fréquences.");
+            }
+
+            const data = await res.json();
+
+            if (!Array.isArray(data)) {
+              throw new Error("Format JSON inattendu pour la base fréquences.");
+            }
+
+            frequenciesCache = data.map(normalizeFrequencyRecord);
+            return frequenciesCache;
+          })
+          .catch((error) => {
+            frequenciesPromise = null;
+            throw error;
+          });
+      }
+
+      return frequenciesPromise;
+    }
+
+    async function findFrequencyByCode(code) {
+      const normalized = normalizeCode(code);
+      if (!normalized) return null;
+
+      try {
+        const allFrequencies = await loadFrequencies();
+
+        return (
+          allFrequencies.find(
+            (item) =>
+              item.weather_code === normalized ||
+              item.airport_ident === normalized
+          ) || null
+        );
+      } catch (error) {
+        console.error(error);
+        return null;
+      }
+    }
+
+    function formatFrequencyMhz(value) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? `${parsed.toFixed(3)} MHz` : "";
+    }
+
+    function normalizeRadioText(value) {
+      return String(value || "").trim().replace(/\s+/g, " ");
+    }
+
+    function getRadioServiceKey(frequency) {
+      const rawType = String(frequency?.frequency_type || "")
+        .trim()
+        .toLowerCase();
+
+      const rawLabel = normalizeRadioText(
+        `${frequency?.label || ""} ${frequency?.description || ""}`
+      ).toUpperCase();
+
+      if (rawLabel.includes("D-ATIS") || rawLabel.includes("ATIS")) {
+        return "atis";
+      }
+
+      if (
+        rawLabel.includes("PREVOL") ||
+        rawLabel.includes("PRÉVOL") ||
+        rawLabel.includes("PREFLIGHT") ||
+        rawLabel.includes("PRE-FLIGHT")
+      ) {
+        return "preflight";
+      }
+
+      if (rawLabel.includes("TRAFIC") || rawLabel.includes("TRAFFIC")) {
+        return "traffic";
+      }
+
+      if (
+        rawLabel.includes("GND") ||
+        rawLabel.includes("GROUND") ||
+        rawLabel.includes("SOL")
+      ) {
+        return "ground";
+      }
+
+      if (
+        rawLabel.includes("APP") ||
+        rawLabel.includes("APPROACH") ||
+        rawLabel.includes("APPROCHE")
+      ) {
+        return "approach";
+      }
+
+      if (
+        rawLabel.includes("INFO") ||
+        rawLabel.includes("INFORMATION") ||
+        rawLabel.includes("AFIS") ||
+        rawLabel.includes("FIS")
+      ) {
+        return "information";
+      }
+
+      if (
+        rawLabel.includes("AUTO-INFORMATION") ||
+        rawLabel.includes("AUTO INFORMATION") ||
+        rawLabel.includes("AUTO-INFO") ||
+        rawLabel.includes("AUTO INFO") ||
+        rawLabel.includes("A/A") ||
+        rawLabel.includes("UNICOM") ||
+        rawLabel.includes("CTAF")
+      ) {
+        return "air_to_air";
+      }
+
+      if (
+        rawLabel.includes("DEP") ||
+        rawLabel.includes("DEPART") ||
+        rawLabel.includes("DÉPART") ||
+        rawLabel.includes("DEPARTURE")
+      ) {
+        return "departure";
+      }
+
+      if (
+        rawLabel.includes("ARR") ||
+        rawLabel.includes("ARRIVEE") ||
+        rawLabel.includes("ARRIVÉE") ||
+        rawLabel.includes("ARRIVAL")
+      ) {
+        return "arrival";
+      }
+
+      if (
+        rawLabel.includes("TWR") ||
+        rawLabel.includes("TOUR") ||
+        rawLabel.includes("TOWER")
+      ) {
+        return "tower";
+      }
+
+      if (rawType === "tower" || rawType === "twr") return "tower";
+      if (rawType === "ground" || rawType === "gnd") return "ground";
+      if (rawType === "approach" || rawType === "app") return "approach";
+      if (
+        rawType === "information" ||
+        rawType === "afis" ||
+        rawType === "info" ||
+        rawType === "fis"
+      ) {
+        return "information";
+      }
+      if (rawType === "atis") return "atis";
+      if (
+        rawType === "air_to_air" ||
+        rawType === "air-to-air" ||
+        rawType === "ctaf" ||
+        rawType === "unicom"
+      ) {
+        return "air_to_air";
+      }
+      if (rawType === "departure" || rawType === "dep") return "departure";
+      if (rawType === "arrival" || rawType === "arr") return "arrival";
+      if (rawType === "radar" || rawType === "rad") return "radar";
+      if (rawType === "control" || rawType === "acc" || rawType === "acs") {
+        return "control";
+      }
+
+      return rawType || "other";
+    }
+
+    function getRadioServiceLabel(frequency) {
+      switch (getRadioServiceKey(frequency)) {
+        case "tower":
+          return "Tour";
+        case "ground":
+          return "Sol";
+        case "approach":
+          return "Approche";
+        case "information":
+          return "Info";
+        case "atis":
+          return "ATIS";
+        case "air_to_air":
+          return "Auto-information";
+        case "preflight":
+          return "Prévol";
+        case "traffic":
+          return "Trafic";
+        case "departure":
+          return "Départ";
+        case "arrival":
+          return "Arrivée";
+        default:
+          return "Radio";
+      }
+    }
+
+    function getRadioServicePriorityByLabel(serviceLabel) {
+      const normalized = normalizeRadioText(serviceLabel).toLowerCase();
+
+      if (normalized === "atis") return 1;
+      if (normalized === "prévol" || normalized === "prevol") return 2;
+      if (normalized === "sol") return 3;
+      if (normalized === "tour") return 4;
+      if (normalized === "trafic") return 5;
+      if (normalized === "approche") return 6;
+      if (normalized === "info") return 7;
+      if (normalized === "départ" || normalized === "depart") return 8;
+      if (normalized === "arrivée" || normalized === "arrivee") return 9;
+      if (normalized === "auto-information") return 10;
+      return 99;
+    }
+
+    function getRadioServicePriority(frequency) {
+      return getRadioServicePriorityByLabel(getRadioServiceLabel(frequency));
+    }
+
+    function shouldHideFrequencyEntry(entry) {
+      const serviceCode = normalizeCode(entry?.service_code || "");
+      const labelText = normalizeRadioText(
+        `${entry?.label || ""} ${entry?.description || ""}`
+      ).toUpperCase();
+      const mhz = Number(entry?.frequency_mhz);
+
+      if (!Number.isFinite(mhz) || mhz <= 0) return true;
+      if (serviceCode === "VDF") return true;
+      if (labelText.includes("GONIO")) return true;
+      if (labelText.includes("HOMER")) return true;
+
+      return false;
+    }
+
+    function cleanOfficialQualifierText(value) {
+      return normalizeRadioText(value)
+        .replace(/#/g, " · ")
+        .replace(/Secteur\/Sector/gi, "Secteur")
+        .replace(/et\/and/gi, " et ")
+        .replace(/à\/to/gi, " à ")
+        .replace(/\bCanal\s+8\.33\b/gi, "")
+        .replace(/\bCanal\s+25\b/gi, "")
+        .replace(/\s*·\s*·\s*/g, " · ")
+        .replace(/\s+/g, " ")
+        .replace(/[.;]+$/g, "")
+        .trim();
+    }
+
+    function normalizeSivQualifierText(value) {
+      return cleanOfficialQualifierText(value)
+        .replace(/\bSIV\s+/gi, "SIV ")
+        .replace(/\s+et\s+/gi, " et ")
+        .replace(/\s*\/\s*/g, " / ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function extractOfficialQualifierFromRemark(remark) {
+      const cleaned = cleanOfficialQualifierText(remark);
+      if (!cleaned) return "";
+
+      const sectorWithSivMatch = cleaned.match(
+        /Secteur\s+([A-Z0-9.]+)\s*\((SIV[^)]+)\)/i
+      );
+      if (sectorWithSivMatch?.[1] && sectorWithSivMatch?.[2]) {
+        return `Secteur ${sectorWithSivMatch[1]} (${normalizeSivQualifierText(
+          sectorWithSivMatch[2]
+        )})`;
+      }
+
+      const sectorOnlyMatch = cleaned.match(/Secteur\s+([A-Z0-9.]+)/i);
+      if (sectorOnlyMatch?.[1]) {
+        return `Secteur ${sectorOnlyMatch[1]}`;
+      }
+
+      const infoRadarMatch = cleaned.match(
+        /Information\/Radar\s+(SIV\s+[^·]+)/i
+      );
+      if (infoRadarMatch?.[1]) {
+        return normalizeSivQualifierText(infoRadarMatch[1]);
+      }
+
+      const sivMatch = cleaned.match(
+        /(SIV\s+[0-9.]+(?:\s*(?:et|\/|à)\s*(?:SIV\s*)?[0-9.]+(?:\.[0-9]+)?)*)/i
+      );
+      if (sivMatch?.[1]) {
+        return normalizeSivQualifierText(sivMatch[1]);
+      }
+
+      return "";
+    }
+
+    function getOfficialFrequencyBaseLabel(entry) {
+      const label = normalizeRadioText(entry?.label || "");
+      const description = normalizeRadioText(entry?.description || "");
+      const serviceLabel = getRadioServiceLabel(entry);
+
+      if (label) return label;
+      if (description) return description;
+
+      if (
+        serviceLabel === "ATIS" ||
+        serviceLabel === "Sol" ||
+        serviceLabel === "Tour" ||
+        serviceLabel === "Approche" ||
+        serviceLabel === "Info" ||
+        serviceLabel === "Auto-information" ||
+        serviceLabel === "Prévol" ||
+        serviceLabel === "Trafic"
+      ) {
+        return serviceLabel;
+      }
+
+      return "Radio";
+    }
+
+    function getOfficialSectorSuffix(entry) {
+      const directSector = cleanOfficialQualifierText(entry?.sector || "");
+      if (directSector) return directSector;
+
+      const remarkQualifier = extractOfficialQualifierFromRemark(
+        entry?.remark || ""
+      );
+      if (remarkQualifier) return remarkQualifier;
+
+      const suppletive = cleanOfficialQualifierText(entry?.suppletive || "");
+      if (suppletive && normalizeCode(suppletive) !== "NON") {
+        return suppletive;
+      }
+
+      return "";
+    }
+
+    function getOperationalFrequencyLabel(entry) {
+      const baseLabel = getOfficialFrequencyBaseLabel(entry);
+      const sectorSuffix = getOfficialSectorSuffix(entry);
+
+      if (!sectorSuffix) return baseLabel;
+
+      return `${baseLabel} — ${sectorSuffix}`;
+    }
+
+    function getDisplayFrequencyKey(entry) {
+      return [
+        getOperationalFrequencyLabel(entry),
+        formatFrequencyMhz(entry?.frequency_mhz),
+      ].join("|");
+    }
+
+    function getFrequencyDetailScore(entry) {
+      return (
+        (normalizeRadioText(getOfficialSectorSuffix(entry)) ? 100 : 0) +
+        (normalizeRadioText(entry?.remark || "") ? 10 : 0) +
+        Math.min(
+          normalizeRadioText(getOfficialFrequencyBaseLabel(entry)).length,
+          40
+        )
+      );
+    }
+
+    function buildDisplayFrequencies(frequencies = []) {
+      const visibleFrequencies = frequencies.filter(
+        (entry) => !shouldHideFrequencyEntry(entry)
+      );
+
+      const grouped = new Map();
+
+      visibleFrequencies.forEach((entry) => {
+        const mhzLabel = formatFrequencyMhz(entry?.frequency_mhz);
+        if (!mhzLabel) return;
+
+        const baseKey = normalizeRadioText(
+          getOfficialFrequencyBaseLabel(entry)
+        ).toUpperCase();
+
+        const groupKey = [baseKey, mhzLabel].join("|");
+
+        if (!grouped.has(groupKey)) {
+          grouped.set(groupKey, []);
+        }
+
+        grouped.get(groupKey).push(entry);
+      });
+
+      const reduced = [];
+
+      grouped.forEach((entries) => {
+        const qualifiedEntries = entries.filter((entry) =>
+          normalizeRadioText(getOfficialSectorSuffix(entry))
+        );
+
+        const sourceEntries =
+          qualifiedEntries.length > 0 ? qualifiedEntries : entries;
+
+        const bestByQualifier = new Map();
+
+        sourceEntries.forEach((entry) => {
+          const qualifierKey =
+            normalizeRadioText(getOfficialSectorSuffix(entry)).toLowerCase() ||
+            "__default__";
+
+          const current = bestByQualifier.get(qualifierKey);
+
+          if (
+            current == null ||
+            getFrequencyDetailScore(entry) > getFrequencyDetailScore(current)
+          ) {
+            bestByQualifier.set(qualifierKey, entry);
+          }
+        });
+
+        reduced.push(...bestByQualifier.values());
+      });
+
+      return reduced.sort((a, b) => {
+        const serviceDiff =
+          getRadioServicePriority(a) - getRadioServicePriority(b);
+        if (serviceDiff !== 0) return serviceDiff;
+
+        const labelDiff = getOperationalFrequencyLabel(a).localeCompare(
+          getOperationalFrequencyLabel(b),
+          "fr",
+          { sensitivity: "base" }
+        );
+        if (labelDiff !== 0) return labelDiff;
+
+        const freqA = Number(a?.frequency_mhz);
+        const freqB = Number(b?.frequency_mhz);
+
+        if (Number.isFinite(freqA) && Number.isFinite(freqB) && freqA !== freqB) {
+          return freqA - freqB;
+        }
+
+        return 0;
+      });
+    }
+
+    function renderFrequencyPanel(record) {
+      if (!radioValue || !radioTypeValue || !radioLabelValue) return;
+
+      if (radioList) radioList.innerHTML = "";
+      if (radioSecondaryBlock) radioSecondaryBlock.hidden = true;
+
+      if (
+        !record ||
+        !Array.isArray(record.frequencies) ||
+        record.frequencies.length === 0
+      ) {
+        radioTypeValue.textContent = "Radio";
+        radioValue.textContent = "Non disponible";
+        radioLabelValue.textContent =
+          "Aucune fréquence exploitable trouvée pour ce terrain.";
+        return;
+      }
+
+      const allFrequencies = Array.isArray(record.frequencies)
+        ? record.frequencies
+        : [];
+
+      const displayFrequencies = buildDisplayFrequencies(allFrequencies);
+
+      if (!displayFrequencies.length) {
+        radioTypeValue.textContent = "Radio";
+        radioValue.textContent = "Non disponible";
+        radioLabelValue.textContent =
+          "Aucune fréquence exploitable trouvée pour ce terrain.";
+        return;
+      }
+
+      const primaryVisibleMatch = record.primary_frequency
+        ? displayFrequencies.find((entry) => {
+            return (
+              formatFrequencyMhz(entry.frequency_mhz) ===
+                formatFrequencyMhz(record.primary_frequency.frequency_mhz) &&
+              normalizeRadioText(getOfficialFrequencyBaseLabel(entry)) ===
+                normalizeRadioText(
+                  getOfficialFrequencyBaseLabel(record.primary_frequency)
+                )
+            );
+          })
+        : null;
+
+      const primaryFrequency =
+        primaryVisibleMatch || displayFrequencies[0] || null;
+
+      if (!primaryFrequency) {
+        radioTypeValue.textContent = "Radio";
+        radioValue.textContent = "Non disponible";
+        radioLabelValue.textContent =
+          "Aucune fréquence exploitable trouvée pour ce terrain.";
+        return;
+      }
+
+      radioTypeValue.textContent = getRadioServiceLabel(primaryFrequency);
+      radioValue.textContent =
+        formatFrequencyMhz(primaryFrequency.frequency_mhz) || "—";
+      radioLabelValue.textContent = getOperationalFrequencyLabel(primaryFrequency);
+
+      const primaryKey = getDisplayFrequencyKey(primaryFrequency);
+
+      const secondaryFrequencies = displayFrequencies.filter(
+        (entry) => getDisplayFrequencyKey(entry) !== primaryKey
+      );
+
+      if (!radioList || secondaryFrequencies.length === 0) return;
+
+      if (radioSecondaryBlock) radioSecondaryBlock.hidden = false;
+
+      secondaryFrequencies.forEach((entry) => {
+        const item = document.createElement("li");
+
+        item.innerHTML = `
+          <div>
+            <strong>${getOperationalFrequencyLabel(entry)}</strong>
+          </div>
+          <span>${formatFrequencyMhz(entry.frequency_mhz) || "—"}</span>
+        `;
+
+        radioList.appendChild(item);
+      });
+    }
+
+    function getDistanceKm(lat1, lon1, lat2, lon2) {
+      const toRad = (value) => (value * Math.PI) / 180;
+      const R = 6371;
+
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) *
+          Math.cos(toRad(lat2)) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    function formatDistanceLabel(distanceKm) {
+      if (!Number.isFinite(distanceKm)) return "";
+      const distanceNm = distanceKm / 1.852;
+      return `${distanceNm.toFixed(0)} NM · ${distanceKm.toFixed(1)} km`;
+    }
+
+    function formatReferenceIdentity(reference) {
+      if (!reference?.airport) return "";
+
+      const code = reference.airport.weatherCode || reference.snapshot?.icao || "";
+      const name = reference.airport.name || code || "Terrain voisin";
+
+      return code ? `${name} (${code})` : name;
+    }
+
+    function formatNeighborStatus(reference) {
+      const identity = formatReferenceIdentity(reference);
+
+      if (reference?.snapshot?.fltCat === "VFR") {
+        return `🟢 VFR voisin — ${identity}`;
+      }
+
+      if (reference?.snapshot?.fltCat === "MVFR") {
+        return `🟡 MVFR voisin — ${identity}`;
+      }
+
+      if (reference?.snapshot?.fltCat === "IFR") {
+        return `🔴 IFR voisin — ${identity}`;
+      }
+
+      if (reference?.snapshot?.fltCat === "LIFR") {
+        return `🚨 LIFR voisin — ${identity}`;
+      }
+
+      return `Repère météo voisin — ${identity}`;
+    }
+
+function formatNeighborFlightCategory(reference) {
+  const category = reference?.snapshot?.fltCat;
+  return category || "Non disponible";
+}
+
+    function buildNeighborMetarOutput(reference, targetCode, fallbackMessage) {
+      if (!reference?.snapshot?.rawOb) return fallbackMessage;
+
+      const identity = formatReferenceIdentity(reference);
+      const distanceLabel = formatDistanceLabel(reference.distanceKm);
+
+      return `Aucun METAR publié pour ${targetCode}.
+Repère voisin retenu : ${identity}${distanceLabel ? ` — ${distanceLabel}` : ""}.
+
+${reference.snapshot.rawOb}`;
+    }
+
+    function buildNeighborTafOutput(reference, targetCode, fallbackMessage) {
+      if (!reference) return fallbackMessage;
+
+      const identity = formatReferenceIdentity(reference);
+      const distanceLabel = formatDistanceLabel(reference.distanceKm);
+
+      if (reference?.snapshot?.taf) {
+        return `Aucun TAF publié pour ${targetCode}.
+Repère voisin retenu : ${identity}${distanceLabel ? ` — ${distanceLabel}` : ""}.
+
+${reference.snapshot.taf}`;
+      }
+
+      return `Aucun TAF publié pour ${targetCode}.
+Repère voisin retenu : ${identity}${distanceLabel ? ` — ${distanceLabel}` : ""}.
+
+TAF voisin indisponible sur ce terrain de référence.`;
+    }
+
+    function buildNeighborTafSummary(reference) {
+      if (!reference) return "Prévision indisponible";
+
+      const identity = formatReferenceIdentity(reference);
+
+      if (!reference?.snapshot?.taf) {
+        return `Prévision voisine indisponible — ${identity}`;
+      }
+
+      if (reference?.snapshot?.fltCat === "VFR") {
+        return `🟢 Tendance voisine VFR — ${identity}`;
+      }
+
+      if (reference?.snapshot?.fltCat === "MVFR") {
+        return `🟡 Tendance voisine MVFR — ${identity}`;
+      }
+
+      if (reference?.snapshot?.fltCat === "IFR") {
+        return `🔴 Tendance voisine IFR — ${identity}`;
+      }
+
+      if (reference?.snapshot?.fltCat === "LIFR") {
+        return `🚨 Tendance voisine LIFR — ${identity}`;
+      }
+
+      return `Prévision voisine disponible — ${identity}`;
+    }
+
+    function getAirportOperationalLabel(airport, basulmOverlay) {
+      if (basulmOverlay?.operationalLabel) return basulmOverlay.operationalLabel;
+
+      if (airport.type === "large_airport") return "Aérodrome principal";
+      if (airport.type === "medium_airport") return "Aérodrome";
+      if (airport.type === "small_airport") return "Aérodrome";
+      return "Plateforme aéronautique";
+    }
+
+    function formatAccessTags(tags = []) {
+      const labels = [];
+
+      if (tags.includes("open_to_ulm")) labels.push("Ouvert aux ULM");
+      if (tags.includes("authorization_required")) {
+        labels.push("Autorisation obligatoire");
+      }
+      if (tags.includes("private")) labels.push("Privé");
+      if (tags.includes("restricted")) labels.push("Restrictions");
+      if (tags.includes("specific_rules")) labels.push("Règles spécifiques");
+      if (tags.includes("in_service")) labels.push("En service");
+
+      return labels.join(" · ");
+    }
+
+    function buildBasulmIndexByWeatherCode(ulmBases) {
+      const map = new Map();
+
+      ulmBases.forEach((item) => {
+        if (!item.weatherCode) return;
+        if (!map.has(item.weatherCode)) {
+          map.set(item.weatherCode, item);
+        }
+      });
+
+      return map;
+    }
+
+async function fetchWeatherSnapshot(icao) {
+  const normalized = normalizeCode(icao);
+  if (!normalized) return null;
+
+  try {
+    const res = await fetch(
+      `${WORKER_URL}?icao=${encodeURIComponent(normalized)}`
+    );
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+
+    if (!Array.isArray(data) || data.length === 0) return null;
+
+    const item = data[0];
+
+    if (!item || typeof item !== "object" || !item.rawOb) return null;
+
+    return {
+      icao: normalized,
+      rawOb: item.rawOb || "",
+      taf: item.taf || "",
+      fltCat: item.fltCat || "",
+      wdir: item.wdir ?? null,
+      wspd: item.wspd ?? null,
+      visib: item.visib ?? null,
+      cover: item.cover ?? "",
+      clouds: Array.isArray(item.clouds) ? item.clouds : [],
+      temp: item.temp ?? null,
+      dewp: item.dewp ?? null,
+      altim: item.altim ?? null,
+    };
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+    function formatWeatherReferenceMeta(snapshot) {
+      const parts = ["METAR disponible"];
+      parts.push(snapshot?.taf ? "TAF disponible" : "TAF indisponible");
+
+      if (snapshot?.fltCat) {
+        parts.push(snapshot.fltCat);
+      }
+
+      return parts.join(" · ");
+    }
+
+    function getWeatherReferenceCenter(matchedAirport, matchedUlm) {
+      if (
+        matchedAirport &&
+        Number.isFinite(matchedAirport.latitude) &&
+        Number.isFinite(matchedAirport.longitude)
+      ) {
+        return {
+          latitude: matchedAirport.latitude,
+          longitude: matchedAirport.longitude,
+        };
+      }
+
+      if (
+        matchedUlm &&
+        Number.isFinite(matchedUlm.latitude) &&
+        Number.isFinite(matchedUlm.longitude)
+      ) {
+        return {
+          latitude: matchedUlm.latitude,
+          longitude: matchedUlm.longitude,
+        };
+      }
+
+      return null;
+    }
+
+    async function findNearbyWeatherReferences(
+      targetCode,
+      matchedAirport,
+      matchedUlm
+    ) {
+      const center = getWeatherReferenceCenter(matchedAirport, matchedUlm);
+      if (!center) return [];
+
+      try {
+        const airports = await loadAirports();
+
+        const nearbyCandidates = airports
+          .filter((airport) => airport.weatherCode !== normalizeCode(targetCode))
+          .map((airport) => ({
+            airport,
+            distanceKm: getDistanceKm(
+              center.latitude,
+              center.longitude,
+              airport.latitude,
+              airport.longitude
+            ),
+          }))
+          .filter((item) => item.distanceKm <= WEATHER_REFERENCE_MAX_KM)
+          .sort((a, b) => a.distanceKm - b.distanceKm)
+          .slice(0, 12);
+
+        if (nearbyCandidates.length === 0) return [];
+
+        const candidateResults = await Promise.all(
+          nearbyCandidates.map(async (item) => {
+            const snapshot = await fetchWeatherSnapshot(item.airport.weatherCode);
+
+            return snapshot
+              ? {
+                  airport: item.airport,
+                  distanceKm: item.distanceKm,
+                  snapshot,
+                }
+              : null;
+          })
+        );
+
+        return candidateResults.filter(Boolean).slice(0, 3);
+      } catch (error) {
+        console.error(error);
+        return [];
+      }
+    }
+
+    async function loadWeatherReferences(
+      targetCode,
+      matchedAirport,
+      matchedUlm,
+      precomputedReferences = null
+    ) {
+      if (!weatherRefsBlock || !weatherRefsList) return;
+
+      const references =
+        precomputedReferences ||
+        (await findNearbyWeatherReferences(targetCode, matchedAirport, matchedUlm));
+
+      if (!references || references.length === 0) {
+        showWeatherReferencesMessage(
+          "Aucun repère météo publié trouvé dans un rayon de 50 NM autour de ce terrain."
+        );
+        return;
+      }
+
+      weatherRefsBlock.hidden = false;
+      weatherRefsList.innerHTML = "";
+
+      references.forEach((reference) => {
+        const li = document.createElement("li");
+
+        li.innerHTML = `
+          <button type="button" class="weather-ref-card">
+            <div class="weather-ref-top">
+              <strong>${reference.airport.weatherCode}</strong>
+              <span>${formatDistanceLabel(reference.distanceKm)}</span>
+            </div>
+            <div class="weather-ref-name">${reference.airport.name}</div>
+            <div class="weather-ref-meta">${formatWeatherReferenceMeta(reference.snapshot)}</div>
+            <div class="weather-ref-action">Voir METAR / TAF</div>
+          </button>
+        `;
+
+        const button = li.querySelector("button");
+
+        button?.addEventListener("click", () => {
+          icaoInput.value = reference.airport.weatherCode;
+          loadMetar();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+
+        weatherRefsList.appendChild(li);
+      });
+    }
+
+async function applyMissingLocalWeatherState({
+  icao,
+  matchedAirport,
+  matchedUlm,
+  matchedFrequency,
+  metarMessage,
+  tafMessage,
+  emptyStatusMessage,
+}) {
+  const references = await findNearbyWeatherReferences(
+    icao,
+    matchedAirport,
+    matchedUlm
+  );
+  const primaryReference = references[0] || null;
+
+  resetDecoded();
+
+  nameValue.textContent =
+    formatMatchedDisplayName(matchedAirport, matchedUlm) || icao;
+  renderFrequencyPanel(matchedFrequency);
+
+  if (primaryReference) {
+    statusValue.textContent = formatNeighborStatus(primaryReference);
+
+    windValue.textContent = formatWind(
+      primaryReference.snapshot?.wdir,
+      primaryReference.snapshot?.wspd
+    );
+    visibilityValue.textContent = formatVisibility(
+      primaryReference.snapshot?.visib
+    );
+    cloudsValue.textContent = formatClouds(primaryReference.snapshot);
+    tempValue.textContent = formatTemp(
+      primaryReference.snapshot?.temp,
+      primaryReference.snapshot?.dewp
+    );
+    pressureValue.textContent = formatPressure(
+      primaryReference.snapshot?.altim
+    );
+
+    fltCatValue.textContent = formatNeighborFlightCategory(primaryReference);
+
+    metarOutput.textContent = buildNeighborMetarOutput(
+      primaryReference,
+      icao,
+      metarMessage
+    );
+    tafOutput.textContent = buildNeighborTafOutput(
+      primaryReference,
+      icao,
+      tafMessage
+    );
+    tafSummaryValue.textContent = buildNeighborTafSummary(primaryReference);
+  } else {
+    statusValue.textContent = emptyStatusMessage;
+    windValue.textContent = "Non disponible";
+    visibilityValue.textContent = "Non disponible";
+    cloudsValue.textContent = "Non disponible";
+    tempValue.textContent = "Non disponible";
+    pressureValue.textContent = "Non disponible";
+    fltCatValue.textContent = "Non disponible";
+    metarOutput.textContent = metarMessage;
+    tafOutput.textContent = tafMessage;
+    tafSummaryValue.textContent = "Prévision indisponible";
+  }
+
+  await loadWeatherReferences(
+    icao,
+    matchedAirport,
+    matchedUlm,
+    references
+  );
+}
+
+    async function resolveNearbyCenter() {
+      const enteredCode = normalizeCode(icaoInput?.value);
+
+      if (enteredCode) {
+        const matchedAirport = await findAirportByCode(enteredCode);
+        if (matchedAirport) {
+          return {
+            latitude: matchedAirport.latitude,
+            longitude: matchedAirport.longitude,
+            label: `Terrains autour de ${matchedAirport.weatherCode} — ${matchedAirport.name}`,
+          };
+        }
+
+        const matchedUlm = await findUlmByCode(enteredCode);
+        if (matchedUlm) {
+          return {
+            latitude: matchedUlm.latitude,
+            longitude: matchedUlm.longitude,
+            label: `Terrains autour de ${matchedUlm.code} — ${matchedUlm.name}`,
+          };
+        }
+      }
+
+      if (!navigator.geolocation) {
+        throw new Error("geolocation_not_supported");
+      }
+
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            resolve({
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+              label: "Terrains autour de votre position",
+            });
+          },
+          () => reject(new Error("geolocation_failed"))
+        );
+      });
+    }
+
+    function renderNearbyHeader(centerLabel) {
+      const li = document.createElement("li");
+      li.className = "nearby-section-header";
+      li.innerHTML = `
+        <strong>${centerLabel}</strong>
+        <small>
+          Vérifier systématiquement les conditions d’utilisation publiées
+          (AIP, VAC, NOTAM, consignes locales) avant toute exploitation.
+        </small>
+      `;
+      nearbyAirports.appendChild(li);
+    }
+
+    function renderNearbyGroupTitle(title) {
+      const li = document.createElement("li");
+      const isUlmGroup = title.toLowerCase().includes("ulm");
+
+      li.className = isUlmGroup
+        ? "nearby-group-title nearby-group-title--ulm"
+        : "nearby-group-title nearby-group-title--airports";
+
+      li.textContent = title;
+      nearbyAirports.appendChild(li);
+    }
+
+    function renderEmptyGroup(message) {
+      const li = document.createElement("li");
+      li.className = "nearby-empty";
+      li.textContent = message;
+      nearbyAirports.appendChild(li);
+    }
+
+    function renderWeatherNearbyItem(item) {
+      const li = document.createElement("li");
+      li.className = "nearby-item";
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "airport-nearby-card airport-nearby-card--clickable";
+
+      const accessLine = item.accessLabel
+        ? `<div class="airport-nearby-access">${item.accessLabel}</div>`
+        : "";
+
+      button.innerHTML = `
+        <div class="airport-nearby-top">
+          <strong>${item.code}</strong>
+          <span>${formatDistanceLabel(item.distanceKm)}</span>
+        </div>
+        <div class="airport-nearby-name">${item.name}</div>
+        <div class="airport-nearby-meta">
+          ${item.operationalLabel}${item.municipality ? ` · ${item.municipality}` : ""}
+        </div>
+        ${accessLine}
+        <div class="airport-nearby-action">Voir METAR / TAF</div>
+      `;
+
+      button.addEventListener("click", () => {
+        icaoInput.value = item.code;
+        loadMetar();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+
+      li.appendChild(button);
+      nearbyAirports.appendChild(li);
+    }
+
+    function renderUlmNearbyItem(item) {
+      const li = document.createElement("li");
+      li.className = "nearby-item";
+
+      const card = document.createElement("div");
+      card.className =
+        "airport-nearby-card airport-nearby-card--static airport-nearby-card--ulm";
+
+      const accessLine = item.accessLabel
+        ? `<div class="airport-nearby-access">${item.accessLabel}</div>`
+        : "";
+
+      const weatherLine = item.weatherCapable
+        ? `<div class="airport-nearby-note">Code météo possible : ${item.weatherCode}</div>`
+        : `<div class="airport-nearby-note">Pas de METAR / TAF direct dans l’outil</div>`;
+
+      card.innerHTML = `
+        <div class="airport-nearby-top">
+          <strong>${item.code || "Plateforme locale"}</strong>
+          <span>${formatDistanceLabel(item.distanceKm)}</span>
+        </div>
+        <div class="airport-nearby-name">${item.name}</div>
+        <div class="airport-nearby-meta">${item.operationalLabel}</div>
+        ${accessLine}
+        ${weatherLine}
+      `;
+
+      li.appendChild(card);
+      nearbyAirports.appendChild(li);
+    }
+
+    async function loadMetar() {
+      const icao = normalizeCode(icaoInput?.value);
+
+      resetWeatherReferences();
+
+      if (!icao) {
+        syncIcaoInUrl("");
+        metarOutput.textContent = "Entre un code OACI.";
+        tafOutput.textContent = "Entre un code OACI.";
+        resetDecoded();
+        return;
+      }
+
+      metarOutput.textContent = "Chargement...";
+      tafOutput.textContent = "Chargement...";
+      statusValue.textContent = "Chargement...";
+      nameValue.textContent = "…";
+      windValue.textContent = "…";
+      visibilityValue.textContent = "…";
+      cloudsValue.textContent = "…";
+      tempValue.textContent = "…";
+      pressureValue.textContent = "…";
+      fltCatValue.textContent = "…";
+
+      radioValue.textContent = "Chargement...";
+      if (radioTypeValue) radioTypeValue.textContent = "Radio";
+      if (radioLabelValue) {
+        radioLabelValue.textContent = "Recherche des fréquences utiles...";
+      }
+      if (radioSecondaryBlock) radioSecondaryBlock.hidden = true;
+      if (radioList) radioList.innerHTML = "";
+
+      tafSummaryValue.textContent = "Chargement...";
+
+      const matchedAirport = await findAirportByCode(icao);
+      const matchedUlm = await findUlmByCode(icao);
+      const matchedFrequency = await findFrequencyByCode(icao);
+
+      syncIcaoInUrl(icao);
+
+      try {
+        const res = await fetch(`${WORKER_URL}?icao=${encodeURIComponent(icao)}`);
+
+        if (!res.ok) {
+          await applyMissingLocalWeatherState({
+            icao,
+            matchedAirport,
+            matchedUlm,
+            matchedFrequency,
+            metarMessage:
+              `Aucune météo exploitable trouvée pour ${icao}. Ce terrain ne publie peut-être pas de METAR, ou la source n’a pas de donnée disponible actuellement.`,
+            tafMessage:
+              `Aucune prévision TAF exploitable trouvée pour ${icao}.`,
+            emptyStatusMessage: "⚠️ Pas de météo terrain publiée",
+          });
+          return;
+        }
+
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          await applyMissingLocalWeatherState({
+            icao,
+            matchedAirport,
+            matchedUlm,
+            matchedFrequency,
+            metarMessage:
+              `Aucune observation METAR trouvée pour ${icao}. Vérifie le code OACI ou teste un terrain disposant d’une météo publiée.`,
+            tafMessage: `Aucune prévision TAF trouvée pour ${icao}.`,
+            emptyStatusMessage: "Aucune donnée météo disponible",
+          });
+          return;
+        }
+
+        const item = data[0];
+
+        if (!item || typeof item !== "object") {
+          await applyMissingLocalWeatherState({
+            icao,
+            matchedAirport,
+            matchedUlm,
+            matchedFrequency,
+            metarMessage: `Réponse météo inexploitable pour ${icao}.`,
+            tafMessage: `Réponse prévision inexploitable pour ${icao}.`,
+            emptyStatusMessage: "Réponse invalide",
+          });
+          return;
+        }
+
+        if (!item.rawOb) {
+          await applyMissingLocalWeatherState({
+            icao,
+            matchedAirport,
+            matchedUlm,
+            matchedFrequency,
+            metarMessage:
+              `Aucune observation METAR exploitable trouvée pour ${icao}.`,
+            tafMessage:
+              item.taf
+                ? `TAF local disponible ci-dessous.`
+                : `Aucune prévision TAF trouvée pour ${icao}.`,
+            emptyStatusMessage: "⚠️ Pas de météo terrain publiée",
+          });
+          return;
+        }
+
+        metarOutput.textContent = item.rawOb || "METAR brut indisponible";
+        tafOutput.textContent =
+          item.taf || "TAF non disponible via cette source actuelle";
+
+        statusValue.textContent = formatStatus(item);
+        nameValue.textContent =
+          formatMatchedDisplayName(matchedAirport, matchedUlm) ||
+          item.name ||
+          item.icaoId ||
+          icao;
+        windValue.textContent = formatWind(item.wdir, item.wspd);
+        visibilityValue.textContent = formatVisibility(item.visib);
+        cloudsValue.textContent = formatClouds(item);
+        tempValue.textContent = formatTemp(item.temp, item.dewp);
+        pressureValue.textContent = formatPressure(item.altim);
+        fltCatValue.textContent = item.fltCat || "—";
+        renderFrequencyPanel(matchedFrequency);
+        tafSummaryValue.textContent = buildSimpleTaf(item.taf, item, icao);
+      } catch (error) {
+        await applyMissingLocalWeatherState({
+          icao,
+          matchedAirport,
+          matchedUlm,
+          matchedFrequency,
+          metarMessage:
+            `Impossible de joindre la météo pour ${icao} pour le moment. Réessaie dans quelques instants ou teste un terrain plus couvert comme LFQQ ou LFPN.`,
+          tafMessage:
+            `Impossible de joindre la prévision pour ${icao} pour le moment.`,
+          emptyStatusMessage: "⚠️ Service météo indisponible",
+        });
+        console.error(error);
+      }
+    }
+
+    async function getLocation() {
+      nearbyAirports.innerHTML =
+        "<li class='nearby-loading'>Recherche des terrains proches...</li>";
+
+      try {
+        const center = await resolveNearbyCenter();
+        const [airports, ulmBases] = await Promise.all([
+          loadAirports(),
+          loadUlmBases(),
+        ]);
+
+        const basulmByWeatherCode = buildBasulmIndexByWeatherCode(ulmBases);
+        const radiusKm = 120;
+
+        const weatherNearby = airports
+          .map((airport) => {
+            const overlay = basulmByWeatherCode.get(airport.weatherCode) || null;
+
+            return {
+              code: airport.weatherCode,
+              name: airport.name,
+              municipality: airport.municipality || "",
+              distanceKm: getDistanceKm(
+                center.latitude,
+                center.longitude,
+                airport.latitude,
+                airport.longitude
+              ),
+              operationalLabel: getAirportOperationalLabel(airport, overlay),
+              accessLabel: formatAccessTags(overlay?.accessTags || []),
+            };
+          })
+          .filter((item) => item.distanceKm <= radiusKm)
+          .sort((a, b) => a.distanceKm - b.distanceKm)
+          .slice(0, 10);
+
+        const weatherCodesShown = new Set(
+          weatherNearby.map((item) => item.code)
+        );
+
+        const ulmNearby = ulmBases
+          .map((item) => ({
+            code: item.code,
+            name: item.name,
+            weatherCode: item.weatherCode,
+            weatherCapable: item.weatherCapable,
+            distanceKm: getDistanceKm(
+              center.latitude,
+              center.longitude,
+              item.latitude,
+              item.longitude
+            ),
+            operationalLabel: item.operationalLabel,
+            accessLabel: formatAccessTags(item.accessTags),
+          }))
+          .filter((item) => item.distanceKm <= radiusKm)
+          .filter((item) => {
+            if (item.weatherCode && weatherCodesShown.has(item.weatherCode)) {
+              return false;
+            }
+            return true;
+          })
+          .sort((a, b) => a.distanceKm - b.distanceKm)
+          .slice(0, 10);
+
+        nearbyAirports.innerHTML = "";
+        renderNearbyHeader(center.label);
+
+        renderNearbyGroupTitle("Aérodromes avec météo publiée");
+        if (weatherNearby.length === 0) {
+          renderEmptyGroup(
+            "Aucun terrain météo exploitable trouvé dans le rayon retenu."
+          );
+        } else {
+          weatherNearby.forEach(renderWeatherNearbyItem);
+        }
+
+        renderNearbyGroupTitle("Plateformes ULM / terrains spécifiques");
+        if (ulmNearby.length === 0) {
+          renderEmptyGroup(
+            "Aucune plateforme ULM ou spécifique trouvée dans le rayon retenu."
+          );
+        } else {
+          ulmNearby.forEach(renderUlmNearbyItem);
+        }
+      } catch (error) {
+        if (error.message === "geolocation_not_supported") {
+          nearbyAirports.innerHTML =
+            "<li class='nearby-empty'>La géolocalisation n’est pas supportée sur cet appareil.</li>";
+          return;
+        }
+
+        if (error.message === "geolocation_failed") {
+          nearbyAirports.innerHTML =
+            "<li class='nearby-empty'>Impossible de récupérer la position. Saisis un terrain comme LFQQ puis relance la recherche.</li>";
+          return;
+        }
+
+        nearbyAirports.innerHTML =
+          "<li class='nearby-empty'>Impossible de charger les terrains proches pour le moment.</li>";
+        console.error(error);
+      }
+    }
+
+    loadMetarBtn?.addEventListener("click", loadMetar);
+    nearbyBtn?.addEventListener("click", getLocation);
+
+    icaoInput?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        loadMetar();
+      }
+    });
+
+    const initialIcao = getIcaoFromUrl();
+
+    if (initialIcao && icaoInput) {
+      icaoInput.value = initialIcao;
+    }
+
+    if (icaoInput?.value) {
+      loadMetar();
+    }
+  </script>
+
+  <style is:global>
+    .tool-page .tool-block {
+      margin-top: 24px;
+    }
+
+    .tool-page .tool-block--compact {
+      margin-top: 20px;
+    }
+
+    .tool-page .tool-entry-block {
+      margin-top: 8px;
+      padding: 16px 18px 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(111, 184, 214, 0.22);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(111, 184, 214, 0.09),
+          rgba(255, 255, 255, 0.025)
+        ),
+        rgba(12, 18, 26, 0.74);
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.03),
-        0 18px 42px rgba(0, 0, 0, 0.18);
+        0 0 0 1px rgba(111, 184, 214, 0.04);
     }
 
-    .home-page .home-hero-pad {
-      display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
-      gap: 28px;
-      align-items: stretch;
-      padding: 30px;
-    }
-
-    .home-page .home-hero-copy {
-      display: grid;
-      align-content: start;
-      gap: 16px;
-    }
-
-    .home-page .home-kicker,
-    .home-page .home-section-kicker,
-    .home-page .home-panel-kicker,
-    .home-page .home-feature-card__kicker,
-    .home-page .home-mini-card__kicker,
-    .home-page .home-primary-cta__eyebrow {
-      margin: 0;
-      font-size: 0.82rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(181, 205, 220, 0.84);
-    }
-
-    .home-page h1 {
-      margin: 0;
-      font-size: clamp(3.4rem, 8vw, 5.5rem);
-      line-height: 0.98;
-      letter-spacing: -0.03em;
-    }
-
-    .home-page .home-intro {
-      margin: 0;
-      max-width: 62ch;
+    .tool-page .tool-entry-label {
+      display: block;
+      margin-bottom: 8px;
       font-size: 1.08rem;
-      line-height: 1.7;
-      color: rgba(225, 233, 241, 0.86);
+      font-weight: 700;
+      line-height: 1.3;
+      color: rgba(244, 249, 252, 0.98);
+      letter-spacing: 0.01em;
     }
 
-    .home-page .home-actions {
-      display: grid;
-      gap: 14px;
-      margin-top: 6px;
+    .tool-page .tool-entry-help {
+      margin: 0 0 14px;
+      font-size: 0.94rem;
+      line-height: 1.55;
+      color: rgba(219, 230, 238, 0.82);
     }
 
-    .home-page .home-primary-cta {
-      display: inline-grid;
-      gap: 4px;
-      align-content: center;
-      width: fit-content;
-      min-width: 290px;
-      padding: 16px 22px;
-      border-radius: 18px;
-      text-decoration: none;
-      color: #f7fbff;
-      border: 1px solid rgba(111, 184, 214, 0.9);
-      background:
-        linear-gradient(
-          180deg,
-          rgba(111, 184, 214, 0.56),
-          rgba(111, 184, 214, 0.24)
-        ),
-        rgba(18, 37, 51, 0.98);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.14),
-        0 0 0 1px rgba(111, 184, 214, 0.14),
-        0 14px 34px rgba(0, 0, 0, 0.2);
-      transition:
-        transform 0.18s ease,
-        border-color 0.18s ease,
-        box-shadow 0.18s ease,
-        background 0.18s ease;
+    .tool-page .tool-entry-help strong {
+      color: rgba(244, 249, 252, 0.98);
+      font-weight: 700;
     }
 
-    .home-page .home-primary-cta:hover {
-      transform: translateY(-1px);
-      border-color: rgba(143, 206, 233, 1);
-      background:
-        linear-gradient(
-          180deg,
-          rgba(111, 184, 214, 0.68),
-          rgba(111, 184, 214, 0.3)
-        ),
-        rgba(18, 37, 51, 1);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.16),
-        0 0 0 4px rgba(111, 184, 214, 0.16),
-        0 18px 38px rgba(0, 0, 0, 0.24);
-    }
-
-    .home-page .home-primary-cta__label {
-      font-size: 1.32rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      line-height: 1.05;
-    }
-
-    .home-page .home-secondary-actions {
-      display: flex;
+    .tool-page .tool-row {
+      gap: 12px;
       flex-wrap: wrap;
-      gap: 10px;
+      align-items: center;
     }
 
-    .home-page .home-secondary-link {
+    .tool-page .tool-block input {
+      min-width: 248px;
+      min-height: 52px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      font-size: 1.03rem;
+      font-weight: 650;
+      letter-spacing: 0.02em;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      transition:
+        border-color 0.18s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease;
+    }
+
+    .tool-page .tool-block input::placeholder {
+      color: rgba(214, 225, 234, 0.6);
+      font-weight: 500;
+    }
+
+    .tool-page .tool-block input:focus {
+      outline: none;
+      border-color: rgba(111, 184, 214, 0.68);
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow:
+        0 0 0 4px rgba(111, 184, 214, 0.14),
+        0 0 0 1px rgba(111, 184, 214, 0.12);
+    }
+
+    .tool-page .tool-action-btn {
+      appearance: none;
+      -webkit-appearance: none;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 42px;
-      padding: 10px 14px;
+      gap: 8px;
+      min-height: 48px;
+      padding: 11px 18px;
       border-radius: 12px;
-      text-decoration: none;
-      color: rgba(236, 242, 247, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.04);
+      font: inherit;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition:
+        transform 0.18s ease,
+        background 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        color 0.18s ease;
+    }
+
+    .tool-page .tool-action-btn:focus-visible {
+      outline: none;
+    }
+
+    .tool-page .tool-action-btn--primary {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(111, 184, 214, 0.54),
+          rgba(111, 184, 214, 0.34)
+        ),
+        rgba(20, 40, 54, 0.98);
+      border: 1px solid rgba(111, 184, 214, 0.88);
+      color: #f7fcff;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 0 1px rgba(111, 184, 214, 0.16);
+    }
+
+    .tool-page .tool-action-btn--primary:hover {
+      transform: translateY(-1px);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(111, 184, 214, 0.66),
+          rgba(111, 184, 214, 0.42)
+        ),
+        rgba(20, 40, 54, 1);
+      border-color: rgba(111, 184, 214, 0.98);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 0 0 4px rgba(111, 184, 214, 0.16),
+        0 10px 24px rgba(0, 0, 0, 0.22);
+    }
+
+    .tool-page .tool-action-btn--primary:focus-visible {
+      border-color: rgba(111, 184, 214, 1);
+      box-shadow:
+        0 0 0 4px rgba(111, 184, 214, 0.2),
+        0 0 0 1px rgba(111, 184, 214, 0.34);
+    }
+
+    .tool-page .tool-action-btn--secondary {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(186, 221, 239, 0.26),
+          rgba(186, 221, 239, 0.14)
+        ),
+        rgba(28, 38, 49, 0.96);
+      border: 1px solid rgba(186, 221, 239, 0.48);
+      color: rgba(247, 251, 254, 0.99);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 0 0 1px rgba(186, 221, 239, 0.05);
+    }
+
+    .tool-page .tool-action-btn--secondary:hover {
+      transform: translateY(-1px);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(186, 221, 239, 0.34),
+          rgba(186, 221, 239, 0.18)
+        ),
+        rgba(30, 41, 53, 1);
+      border-color: rgba(186, 221, 239, 0.6);
+      box-shadow:
+        0 0 0 4px rgba(186, 221, 239, 0.12),
+        0 10px 22px rgba(0, 0, 0, 0.18);
+    }
+
+    .tool-page .tool-action-btn--secondary:focus-visible {
+      border-color: rgba(186, 221, 239, 0.64);
+      box-shadow:
+        0 0 0 4px rgba(186, 221, 239, 0.12),
+        0 0 0 1px rgba(186, 221, 239, 0.18);
+    }
+
+    .tool-page .decoded-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .tool-page .decoded-card {
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      background: rgba(255, 255, 255, 0.038);
+    }
+
+    .tool-page .decoded-card-wide {
+      grid-column: 1 / -1;
+    }
+
+    .tool-page .decoded-label {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .tool-page .decoded-note {
+      margin: 10px 0 0;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .tool-page .radio-panel {
+      display: grid;
+      gap: 12px;
+    }
+
+    .tool-page .radio-primary {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(111, 184, 214, 0.32);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(111, 184, 214, 0.14),
+          rgba(255, 255, 255, 0.04)
+        ),
+        rgba(255, 255, 255, 0.03);
+    }
+
+    .tool-page .radio-primary-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tool-page .radio-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(111, 184, 214, 0.46);
+      background: rgba(111, 184, 214, 0.22);
+      color: #eaf8ff;
+      font-size: 0.84rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .tool-page .radio-primary-note {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .tool-page .radio-primary-main {
+      font-size: 1.18rem;
+      font-weight: 700;
+      color: #eef7ff;
+      letter-spacing: 0.01em;
+    }
+
+    .tool-page .radio-primary-label {
+      font-size: 0.96rem;
+      line-height: 1.5;
+      color: #dbe6ef;
+    }
+
+    .tool-page .radio-secondary {
+      display: grid;
+      gap: 8px;
+    }
+
+    .tool-page .radio-secondary-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .tool-page .radio-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .tool-page .radio-list li {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    .tool-page .radio-list strong {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 650;
+      color: rgba(231, 238, 245, 0.96);
+    }
+
+    .tool-page .radio-list span {
+      color: var(--muted);
+      font-size: 0.94rem;
+      white-space: nowrap;
+    }
+
+    .tool-page .weather-refs-block {
+      padding-top: 2px;
+    }
+
+    .tool-page .weather-refs-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .tool-page .weather-refs-head h2 {
+      margin: 0;
+    }
+
+    .tool-page .weather-refs-note {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .tool-page .weather-refs-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .tool-page .weather-ref-card {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 100%;
+      display: grid;
+      gap: 8px;
+      text-align: left;
+      padding: 15px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(111, 184, 214, 0.42);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(111, 184, 214, 0.12),
+          rgba(255, 255, 255, 0.03)
+        ),
+        rgba(17, 25, 34, 0.88);
+      color: white;
+      font: inherit;
+      cursor: pointer;
       transition:
         transform 0.18s ease,
         border-color 0.18s ease,
-        background 0.18s ease;
+        background 0.18s ease,
+        box-shadow 0.18s ease;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
-    .home-page .home-secondary-link:hover {
+    .tool-page .weather-ref-card:hover {
       transform: translateY(-1px);
-      border-color: rgba(111, 184, 214, 0.36);
-      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(111, 184, 214, 0.62);
+      box-shadow:
+        0 0 0 4px rgba(111, 184, 214, 0.14),
+        0 10px 24px rgba(0, 0, 0, 0.18);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(111, 184, 214, 0.16),
+          rgba(255, 255, 255, 0.035)
+        ),
+        rgba(18, 27, 37, 0.92);
     }
 
-    .home-page .home-hero-panel {
-      display: grid;
-      gap: 14px;
+    .tool-page .weather-ref-card:focus-visible {
+      outline: none;
+      border-color: rgba(111, 184, 214, 0.68);
+      box-shadow:
+        0 0 0 4px rgba(111, 184, 214, 0.18),
+        0 0 0 1px rgba(111, 184, 214, 0.24);
     }
 
-    .home-page .home-hero-panel-card,
-    .home-page .home-mini-card,
-    .home-page .home-feature-card {
-      border-radius: 18px;
+    .tool-page .weather-ref-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tool-page .weather-ref-top strong {
+      font-size: 1rem;
+      color: #eef7ff;
+    }
+
+    .tool-page .weather-ref-top span {
+      color: var(--muted);
+      font-size: 0.92rem;
+      white-space: nowrap;
+    }
+
+    .tool-page .weather-ref-name {
+      color: rgba(231, 238, 245, 0.98);
+      font-weight: 650;
+    }
+
+    .tool-page .weather-ref-meta {
+      color: rgba(220, 231, 239, 0.84);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .tool-page .weather-ref-action {
+      color: rgba(200, 236, 252, 0.99);
+      font-size: 0.93rem;
+      font-weight: 700;
+    }
+
+    .tool-page .weather-ref-empty {
+      padding: 13px 14px;
+      border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.08);
-      text-decoration: none;
-      color: inherit;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .tool-page .tool-disclosure {
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.03),
+          rgba(255, 255, 255, 0.02)
+        ),
+        rgba(14, 20, 28, 0.58);
+      overflow: hidden;
+    }
+
+    .tool-page .tool-disclosure summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      font-weight: 650;
+      color: rgba(231, 238, 245, 0.96);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: background 0.18s ease;
+    }
+
+    .tool-page .tool-disclosure summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .tool-page .tool-disclosure summary::after {
+      content: "▾";
+      color: var(--muted);
+      font-size: 0.95rem;
+      transition: transform 0.18s ease;
+    }
+
+    .tool-page .tool-disclosure[open] summary::after {
+      transform: rotate(180deg);
+    }
+
+    .tool-page .tool-disclosure summary:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .tool-page .tool-disclosure-content {
+      padding: 0 16px 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .tool-page .tool-disclosure-content p {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.55;
+    }
+
+    .tool-page .tool-disclosure-content strong {
+      color: rgba(231, 238, 245, 0.96);
+    }
+
+    .tool-page pre {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    .tool-page .nearby-list {
+      margin-top: 16px;
+      padding-left: 0;
+      list-style: none;
+      display: grid;
+      gap: 12px;
+    }
+
+    .tool-page .nearby-loading,
+    .tool-page .nearby-empty {
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+
+    .tool-page .nearby-section-header {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding: 15px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.11);
       background:
         linear-gradient(
           180deg,
           rgba(255, 255, 255, 0.04),
-          rgba(255, 255, 255, 0.025)
+          rgba(255, 255, 255, 0.022)
         ),
-        rgba(16, 24, 33, 0.76);
+        rgba(15, 23, 32, 0.66);
+    }
+
+    .tool-page .nearby-section-header strong {
+      font-size: 1.04rem;
+      color: #eef7ff;
+    }
+
+    .tool-page .nearby-section-header small {
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .tool-page .nearby-group-title {
+      display: grid;
+      gap: 6px;
+      margin-top: 16px;
+      padding: 15px 16px 15px 20px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      position: relative;
+      overflow: hidden;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .tool-page .nearby-group-title::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      bottom: 10px;
+      width: 5px;
+      border-radius: 999px;
+    }
+
+    .tool-page .nearby-group-title--airports {
+      color: rgba(234, 247, 254, 0.99);
+      border-color: rgba(111, 184, 214, 0.44);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(111, 184, 214, 0.24),
+          rgba(111, 184, 214, 0.08)
+        ),
+        rgba(18, 28, 38, 0.86);
+    }
+
+    .tool-page .nearby-group-title--airports::before {
+      background: rgba(111, 184, 214, 0.96);
+    }
+
+    .tool-page .nearby-group-title--ulm {
+      color: rgba(247, 231, 190, 0.99);
+      border-color: rgba(214, 193, 150, 0.48);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(214, 193, 150, 0.24),
+          rgba(214, 193, 150, 0.08)
+        ),
+        rgba(31, 27, 20, 0.86);
+    }
+
+    .tool-page .nearby-group-title--ulm::before {
+      background: rgba(214, 193, 150, 0.96);
+    }
+
+    .tool-page .nearby-item {
+      margin: 0;
+    }
+
+    .tool-page .airport-nearby-card {
+      width: 100%;
+      display: grid;
+      gap: 8px;
+      text-align: left;
+      padding: 16px 16px 16px 20px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.045),
+          rgba(255, 255, 255, 0.028)
+        ),
+        rgba(15, 23, 32, 0.82);
+      color: white;
+      font: inherit;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .tool-page .airport-nearby-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      bottom: 10px;
+      width: 5px;
+      border-radius: 999px;
+      background: rgba(111, 184, 214, 0.9);
+    }
+
+    .tool-page button.airport-nearby-card {
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .tool-page .airport-nearby-card--clickable {
+      cursor: pointer;
       transition:
         transform 0.18s ease,
         border-color 0.18s ease,
@@ -304,148 +2611,218 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         box-shadow 0.18s ease;
     }
 
-    .home-page .home-hero-panel-card:hover,
-    .home-page .home-mini-card:hover,
-    .home-page .home-feature-card:hover {
+    .tool-page .airport-nearby-card--clickable:hover {
       transform: translateY(-1px);
-      border-color: rgba(111, 184, 214, 0.28);
+      border-color: rgba(111, 184, 214, 0.52);
+      box-shadow:
+        0 0 0 4px rgba(111, 184, 214, 0.14),
+        0 10px 24px rgba(0, 0, 0, 0.18);
       background:
         linear-gradient(
           180deg,
-          rgba(255, 255, 255, 0.05),
-          rgba(255, 255, 255, 0.03)
+          rgba(111, 184, 214, 0.11),
+          rgba(255, 255, 255, 0.035)
         ),
-        rgba(16, 24, 33, 0.84);
+        rgba(15, 23, 32, 0.88);
+    }
+
+    .tool-page .airport-nearby-card--static {
+      opacity: 0.99;
+    }
+
+    .tool-page .airport-nearby-card--ulm {
+      border-color: rgba(214, 193, 150, 0.4);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(214, 193, 150, 0.18),
+          rgba(214, 193, 150, 0.06)
+        ),
+        rgba(27, 24, 20, 0.88);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.04),
-        0 12px 28px rgba(0, 0, 0, 0.16);
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        0 0 0 1px rgba(214, 193, 150, 0.06);
     }
 
-    .home-page .home-hero-panel-card {
-      display: grid;
-      gap: 10px;
-      padding: 20px;
+    .tool-page .airport-nearby-card--ulm::before {
+      background: rgba(214, 193, 150, 0.98);
+      width: 5px;
     }
 
-    .home-page .home-hero-panel-card h2,
-    .home-page .home-feature-card h3 {
-      margin: 0;
-      font-size: 1.55rem;
-      line-height: 1.1;
-    }
-
-    .home-page .home-hero-panel-card p,
-    .home-page .home-feature-card p,
-    .home-page .home-mini-card p {
-      margin: 0;
-      color: rgba(220, 229, 236, 0.8);
-      line-height: 1.6;
-    }
-
-    .home-page .home-panel-link,
-    .home-page .home-feature-card__cta {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 2px;
-      color: rgba(203, 236, 252, 0.98);
-      font-weight: 700;
-    }
-
-    .home-page .home-hero-panel-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    .home-page .home-mini-card {
-      display: grid;
-      gap: 8px;
-      padding: 18px;
-    }
-
-    .home-page .home-mini-card strong {
-      font-size: 1.04rem;
-      color: rgba(241, 246, 250, 0.98);
-    }
-
-    .home-page .home-section {
-      display: grid;
-      gap: 16px;
-    }
-
-    .home-page .home-section-head {
+    .tool-page .airport-nearby-top {
       display: flex;
-      align-items: end;
       justify-content: space-between;
-      gap: 14px;
-    }
-
-    .home-page .home-section-head h2 {
-      margin: 4px 0 0;
-      font-size: clamp(1.7rem, 3vw, 2.4rem);
-      line-height: 1.08;
-    }
-
-    .home-page .home-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    .home-page .home-feature-card {
-      display: grid;
       gap: 12px;
-      padding: 22px;
+      align-items: center;
+      font-size: 0.98rem;
     }
 
-    .home-page .home-feature-card--tool {
-      border-color: rgba(111, 184, 214, 0.36);
-      background:
-        linear-gradient(
-          180deg,
-          rgba(111, 184, 214, 0.14),
-          rgba(255, 255, 255, 0.025)
-        ),
-        rgba(16, 24, 33, 0.82);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.04),
-        0 0 0 1px rgba(111, 184, 214, 0.05);
+    .tool-page .airport-nearby-top strong {
+      font-size: 1.03rem;
+      color: #eef7ff;
     }
 
-    @media (max-width: 1080px) {
-      .home-page .home-hero-pad {
-        grid-template-columns: 1fr;
-      }
+    .tool-page .airport-nearby-top span {
+      color: rgba(219, 229, 236, 0.86);
+      font-size: 0.92rem;
+      white-space: nowrap;
+    }
 
-      .home-page .home-grid {
-        grid-template-columns: 1fr;
-      }
+    .tool-page .airport-nearby-name {
+      font-weight: 650;
+      color: rgba(231, 238, 245, 0.98);
+    }
+
+    .tool-page .airport-nearby-meta,
+    .tool-page .airport-nearby-access,
+    .tool-page .airport-nearby-note {
+      color: rgba(218, 229, 237, 0.8);
+      font-size: 0.94rem;
+      line-height: 1.48;
+    }
+
+    .tool-page .airport-nearby-access {
+      color: rgba(229, 238, 244, 0.88);
+    }
+
+    .tool-page .airport-nearby-card--ulm .airport-nearby-access {
+      color: rgba(244, 232, 206, 0.98);
+    }
+
+    .tool-page .airport-nearby-note {
+      color: rgba(242, 231, 206, 0.92);
+    }
+
+    .tool-page .airport-nearby-action {
+      color: rgba(204, 239, 252, 0.99);
+      font-size: 0.93rem;
+      font-weight: 700;
+      margin-top: 4px;
     }
 
     @media (max-width: 720px) {
-      .home-page .home-hero-pad {
-        padding: 22px 20px;
-        gap: 22px;
+      .tool-page .tool-block {
+        margin-top: 20px;
       }
 
-      .home-page .home-intro {
-        font-size: 1rem;
+      .tool-page .tool-entry-block {
+        padding: 14px 14px 16px;
+        margin-top: 6px;
       }
 
-      .home-page .home-primary-cta {
+      .tool-page h1 {
+        font-size: clamp(2.4rem, 11vw, 3.4rem);
+        line-height: 1.02;
+        margin-bottom: 18px;
+      }
+
+      .tool-page h2 {
+        line-height: 1.08;
+      }
+
+      .tool-page .tool-entry-label {
+        font-size: 1.08rem;
+      }
+
+      .tool-page .tool-entry-help {
+        font-size: 0.92rem;
+        margin-bottom: 12px;
+      }
+
+      .tool-page .tool-row {
+        align-items: stretch;
+        gap: 10px;
+      }
+
+      .tool-page .tool-block input {
         width: 100%;
         min-width: 0;
+        min-height: 54px;
+        font-size: 1.06rem;
       }
 
-      .home-page .home-hero-panel-grid {
+      .tool-page .tool-action-btn {
+        width: 100%;
+        min-height: 48px;
+      }
+
+      .tool-page .decoded-card {
+        padding: 13px;
+      }
+
+      .tool-page .decoded-grid {
+        gap: 10px;
+      }
+
+      .tool-page .radio-primary {
+        padding: 13px;
+      }
+
+      .tool-page .radio-primary-head {
+        align-items: flex-start;
+      }
+
+      .tool-page .radio-list li {
         grid-template-columns: 1fr;
+        gap: 6px;
       }
 
-      .home-page .home-feature-card,
-      .home-page .home-mini-card,
-      .home-page .home-hero-panel-card {
-        padding: 18px;
+      .tool-page .radio-list span {
+        white-space: normal;
+      }
+
+      .tool-page pre {
+        font-size: 0.98rem;
+        line-height: 1.52;
+        padding: 11px 12px;
+      }
+
+      .tool-page .weather-refs-head {
+        margin-bottom: 8px;
+      }
+
+      .tool-page .weather-ref-card {
+        padding: 14px 14px 15px;
+      }
+
+      .tool-page .weather-ref-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+
+      .tool-page .weather-ref-top span {
+        white-space: normal;
+      }
+
+      .tool-page .nearby-section-header {
+        padding: 14px 14px 15px;
+      }
+
+      .tool-page .nearby-group-title {
+        padding: 14px 14px 14px 16px;
+      }
+
+      .tool-page .airport-nearby-card {
+        padding: 14px 14px 15px 16px;
+      }
+
+      .tool-page .airport-nearby-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+
+      .tool-page .airport-nearby-top span {
+        white-space: normal;
+      }
+
+      .tool-page .tool-disclosure summary {
+        padding: 13px 14px;
+      }
+
+      .tool-page .tool-disclosure-content {
+        padding: 0 14px 14px;
       }
     }
   </style>
