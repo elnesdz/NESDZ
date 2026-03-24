@@ -671,6 +671,90 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         .trim()
         .toLowerCase();
 
+      const rawLabel = normalizeRadioText(
+        `${frequency?.label || ""} ${frequency?.description || ""}`
+      ).toUpperCase();
+
+      if (rawLabel.includes("D-ATIS") || rawLabel.includes("ATIS")) {
+        return "atis";
+      }
+
+      if (
+        rawLabel.includes("PREVOL") ||
+        rawLabel.includes("PRÉVOL") ||
+        rawLabel.includes("PREFLIGHT") ||
+        rawLabel.includes("PRE-FLIGHT")
+      ) {
+        return "preflight";
+      }
+
+      if (rawLabel.includes("TRAFIC") || rawLabel.includes("TRAFFIC")) {
+        return "traffic";
+      }
+
+      if (
+        rawLabel.includes("GND") ||
+        rawLabel.includes("GROUND") ||
+        rawLabel.includes("SOL")
+      ) {
+        return "ground";
+      }
+
+      if (
+        rawLabel.includes("APP") ||
+        rawLabel.includes("APPROACH") ||
+        rawLabel.includes("APPROCHE")
+      ) {
+        return "approach";
+      }
+
+      if (
+        rawLabel.includes("INFO") ||
+        rawLabel.includes("INFORMATION") ||
+        rawLabel.includes("AFIS") ||
+        rawLabel.includes("FIS")
+      ) {
+        return "information";
+      }
+
+      if (
+        rawLabel.includes("AUTO-INFORMATION") ||
+        rawLabel.includes("AUTO INFORMATION") ||
+        rawLabel.includes("AUTO-INFO") ||
+        rawLabel.includes("AUTO INFO") ||
+        rawLabel.includes("A/A") ||
+        rawLabel.includes("UNICOM") ||
+        rawLabel.includes("CTAF")
+      ) {
+        return "air_to_air";
+      }
+
+      if (
+        rawLabel.includes("DEP") ||
+        rawLabel.includes("DEPART") ||
+        rawLabel.includes("DÉPART") ||
+        rawLabel.includes("DEPARTURE")
+      ) {
+        return "departure";
+      }
+
+      if (
+        rawLabel.includes("ARR") ||
+        rawLabel.includes("ARRIVEE") ||
+        rawLabel.includes("ARRIVÉE") ||
+        rawLabel.includes("ARRIVAL")
+      ) {
+        return "arrival";
+      }
+
+      if (
+        rawLabel.includes("TWR") ||
+        rawLabel.includes("TOUR") ||
+        rawLabel.includes("TOWER")
+      ) {
+        return "tower";
+      }
+
       if (rawType === "tower" || rawType === "twr") return "tower";
       if (rawType === "ground" || rawType === "gnd") return "ground";
       if (rawType === "approach" || rawType === "app") return "approach";
@@ -691,50 +775,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       ) {
         return "air_to_air";
       }
-
-      const rawLabel = normalizeRadioText(
-        frequency?.label || frequency?.description
-      ).toUpperCase();
-
-      if (rawLabel.includes("ATIS")) return "atis";
-      if (
-        rawLabel.includes("GND") ||
-        rawLabel.includes("GROUND") ||
-        rawLabel.includes("SOL")
-      ) {
-        return "ground";
-      }
-      if (
-        rawLabel.includes("APP") ||
-        rawLabel.includes("APPROACH") ||
-        rawLabel.includes("APPROCHE")
-      ) {
-        return "approach";
-      }
-      if (
-        rawLabel.includes("INFO") ||
-        rawLabel.includes("INFORMATION") ||
-        rawLabel.includes("AFIS") ||
-        rawLabel.includes("FIS")
-      ) {
-        return "information";
-      }
-      if (
-        rawLabel.includes("TWR") ||
-        rawLabel.includes("TOUR") ||
-        rawLabel.includes("TOWER")
-      ) {
-        return "tower";
-      }
-      if (
-        rawLabel.includes("AUTO") ||
-        rawLabel.includes("AUTO-INFO") ||
-        rawLabel.includes("AUTO INFO") ||
-        rawLabel.includes("A/A") ||
-        rawLabel.includes("UNICOM") ||
-        rawLabel.includes("CTAF")
-      ) {
-        return "air_to_air";
+      if (rawType === "departure" || rawType === "dep") return "departure";
+      if (rawType === "arrival" || rawType === "arr") return "arrival";
+      if (rawType === "radar" || rawType === "rad") return "radar";
+      if (rawType === "control" || rawType === "acc" || rawType === "acs") {
+        return "control";
       }
 
       return rawType || "other";
@@ -754,6 +799,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           return "ATIS";
         case "air_to_air":
           return "Auto-information";
+        case "preflight":
+          return "Prévol";
+        case "traffic":
+          return "Trafic";
+        case "departure":
+          return "Départ";
+        case "arrival":
+          return "Arrivée";
         default:
           return "Radio";
       }
@@ -763,12 +816,16 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       const normalized = normalizeRadioText(serviceLabel).toLowerCase();
 
       if (normalized === "atis") return 1;
-      if (normalized === "sol") return 2;
-      if (normalized === "tour") return 3;
-      if (normalized === "approche") return 4;
-      if (normalized === "info") return 5;
-      if (normalized === "auto-information") return 6;
-      return 9;
+      if (normalized === "prévol" || normalized === "prevol") return 2;
+      if (normalized === "sol") return 3;
+      if (normalized === "tour") return 4;
+      if (normalized === "trafic") return 5;
+      if (normalized === "approche") return 6;
+      if (normalized === "info") return 7;
+      if (normalized === "départ" || normalized === "depart") return 8;
+      if (normalized === "arrivée" || normalized === "arrivee") return 9;
+      if (normalized === "auto-information") return 10;
+      return 99;
     }
 
     function getRadioServicePriority(frequency) {
@@ -780,12 +837,64 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       const labelText = normalizeRadioText(
         `${entry?.label || ""} ${entry?.description || ""}`
       ).toUpperCase();
+      const mhz = Number(entry?.frequency_mhz);
 
+      if (!Number.isFinite(mhz) || mhz <= 0) return true;
       if (serviceCode === "VDF") return true;
       if (labelText.includes("GONIO")) return true;
       if (labelText.includes("HOMER")) return true;
 
       return false;
+    }
+
+    function cleanOfficialQualifierText(value) {
+      return normalizeRadioText(value)
+        .replace(/#/g, " · ")
+        .replace(/et\/and/gi, "/")
+        .replace(/à\/to/gi, "à")
+        .replace(/\s*·\s*·\s*/g, " · ")
+        .replace(/\s+/g, " ")
+        .replace(/[.;]+$/g, "")
+        .trim();
+    }
+
+    function getRadioPlaceSignature(entry) {
+      return normalizeRadioText(entry?.label || entry?.description || "")
+        .replace(
+          /\b(D-ATIS|ATIS|TWR|TOWER|TOUR|GND|GROUND|SOL|APP|APPROACH|APPROCHE|INFO|INFORMATION|AFIS|FIS|AUTO-INFORMATION|AUTO INFORMATION|AUTO-INFO|AUTO INFO|AUTO|A\/A|UNICOM|CTAF|TRAFIC|TRAFFIC|PREVOL|PRÉVOL|PREFLIGHT|PRE-FLIGHT|DEP|DEPART|DÉPART|DEPARTURE|ARR|ARRIVEE|ARRIVÉE|ARRIVAL|RADIO)\b/gi,
+          " "
+        )
+        .replace(/[·|/]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toUpperCase();
+    }
+
+    function extractOfficialQualifierFromRemark(remark) {
+      const cleaned = cleanOfficialQualifierText(remark);
+      if (!cleaned) return "";
+
+      const sectorMatch =
+        cleaned.match(/Secteur\/Sector\s+([^·]+)/i) ||
+        cleaned.match(/Secteur\s+([^·]+)/i);
+
+      if (sectorMatch?.[1]) {
+        return cleanOfficialQualifierText(sectorMatch[1]);
+      }
+
+      const infoRadarMatch = cleaned.match(/Information\/Radar\s+(SIV\s+[^·]+)/i);
+      if (infoRadarMatch?.[1]) {
+        return cleanOfficialQualifierText(infoRadarMatch[1]);
+      }
+
+      const sivMatch = cleaned.match(
+        /(SIV\s+[0-9.]+(?:\s*(?:\/|et|à)\s*(?:SIV\s*)?[0-9.]+(?:\.[0-9]+)?)*)/i
+      );
+      if (sivMatch?.[1]) {
+        return cleanOfficialQualifierText(sivMatch[1]);
+      }
+
+      return "";
     }
 
     function getOfficialFrequencyBaseLabel(entry) {
@@ -811,7 +920,15 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     }
 
     function getOfficialSectorSuffix(entry) {
-      return normalizeRadioText(entry?.sector || "");
+      const directSector = cleanOfficialQualifierText(entry?.sector || "");
+      if (directSector) return directSector;
+
+      const remarkQualifier = extractOfficialQualifierFromRemark(
+        entry?.remark || ""
+      );
+      if (remarkQualifier) return remarkQualifier;
+
+      return "";
     }
 
     function getOperationalFrequencyLabel(entry) {
@@ -835,47 +952,91 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         (entry) => !shouldHideFrequencyEntry(entry)
       );
 
-      const seen = new Set();
+      const grouped = new Map();
 
-      return visibleFrequencies
-        .filter((entry) => {
-          const key = [
-            normalizeRadioText(entry?.label || ""),
-            normalizeRadioText(entry?.description || ""),
-            normalizeRadioText(entry?.sector || ""),
-            normalizeRadioText(entry?.remark || ""),
-            formatFrequencyMhz(entry?.frequency_mhz),
-          ].join("|");
+      visibleFrequencies.forEach((entry) => {
+        const mhzLabel = formatFrequencyMhz(entry?.frequency_mhz);
+        if (!mhzLabel) return;
 
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        })
-        .sort((a, b) => {
-          const serviceDiff =
-            getRadioServicePriority(a) - getRadioServicePriority(b);
-          if (serviceDiff !== 0) return serviceDiff;
+        const serviceKey = getRadioServiceKey(entry);
+        const placeKey =
+          getRadioPlaceSignature(entry) ||
+          normalizeRadioText(getOfficialFrequencyBaseLabel(entry)).toUpperCase();
 
-          const labelDiff = getOperationalFrequencyLabel(a).localeCompare(
-            getOperationalFrequencyLabel(b),
-            "fr",
-            { sensitivity: "base" }
-          );
-          if (labelDiff !== 0) return labelDiff;
+        const groupKey = [serviceKey, placeKey, mhzLabel].join("|");
 
-          const freqA = Number(a?.frequency_mhz);
-          const freqB = Number(b?.frequency_mhz);
+        if (!grouped.has(groupKey)) {
+          grouped.set(groupKey, []);
+        }
 
-          if (
-            Number.isFinite(freqA) &&
-            Number.isFinite(freqB) &&
-            freqA !== freqB
-          ) {
-            return freqA - freqB;
+        grouped.get(groupKey).push(entry);
+      });
+
+      const reduced = [];
+
+      grouped.forEach((entries) => {
+        const qualifiedEntries = entries.filter((entry) =>
+          normalizeRadioText(getOfficialSectorSuffix(entry))
+        );
+
+        const sourceEntries =
+          qualifiedEntries.length > 0 ? qualifiedEntries : entries;
+
+        const bestByQualifier = new Map();
+
+        sourceEntries.forEach((entry) => {
+          const qualifierKey =
+            normalizeRadioText(getOfficialSectorSuffix(entry)).toLowerCase() ||
+            "__default__";
+
+          const current = bestByQualifier.get(qualifierKey);
+          const score =
+            (normalizeRadioText(getOfficialSectorSuffix(entry)) ? 100 : 0) +
+            (normalizeRadioText(entry?.remark || "") ? 10 : 0) +
+            Math.min(
+              normalizeRadioText(getOfficialFrequencyBaseLabel(entry)).length,
+              40
+            );
+
+          const currentScore =
+            current == null
+              ? -1
+              : (normalizeRadioText(getOfficialSectorSuffix(current)) ? 100 : 0) +
+                (normalizeRadioText(current?.remark || "") ? 10 : 0) +
+                Math.min(
+                  normalizeRadioText(getOfficialFrequencyBaseLabel(current)).length,
+                  40
+                );
+
+          if (current == null || score > currentScore) {
+            bestByQualifier.set(qualifierKey, entry);
           }
-
-          return 0;
         });
+
+        reduced.push(...bestByQualifier.values());
+      });
+
+      return reduced.sort((a, b) => {
+        const serviceDiff =
+          getRadioServicePriority(a) - getRadioServicePriority(b);
+        if (serviceDiff !== 0) return serviceDiff;
+
+        const labelDiff = getOperationalFrequencyLabel(a).localeCompare(
+          getOperationalFrequencyLabel(b),
+          "fr",
+          { sensitivity: "base" }
+        );
+        if (labelDiff !== 0) return labelDiff;
+
+        const freqA = Number(a?.frequency_mhz);
+        const freqB = Number(b?.frequency_mhz);
+
+        if (Number.isFinite(freqA) && Number.isFinite(freqB) && freqA !== freqB) {
+          return freqA - freqB;
+        }
+
+        return 0;
+      });
     }
 
     function renderFrequencyPanel(record) {
