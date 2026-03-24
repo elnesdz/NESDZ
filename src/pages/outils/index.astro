@@ -587,6 +587,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         label: String(entry?.label || "").trim(),
         description: String(entry?.description || "").trim(),
         service_code: String(entry?.service_code || "").trim(),
+        sector: String(entry?.sector || "").trim(),
+        remark: String(entry?.remark || "").trim(),
+        suppletive: String(entry?.suppletive || "").trim(),
         frequency_mhz: Number(entry?.frequency_mhz),
       };
     }
@@ -772,433 +775,193 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       return getRadioServicePriorityByLabel(getRadioServiceLabel(frequency));
     }
 
-    function formatRadioPlaceName(text) {
-      return String(text || "")
-        .split(" ")
-        .filter(Boolean)
-        .map((word) => {
-          if (!word) return "";
+    function shouldHideFrequencyEntry(entry) {
+      const serviceCode = normalizeCode(entry?.service_code || "");
+      const labelText = normalizeRadioText(
+        `${entry?.label || ""} ${entry?.description || ""}`
+      ).toUpperCase();
 
-          if (word.includes("-")) {
-            return word
-              .split("-")
-              .map((part) => {
-                if (!part) return "";
-                return (
-                  part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-                );
-              })
-              .join("-");
-          }
+      if (serviceCode === "VDF") return true;
+      if (labelText.includes("GONIO")) return true;
+      if (labelText.includes("HOMER")) return true;
 
-          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-        })
-        .join(" ");
+      return false;
     }
 
-    function extractRadioPlaceLabel(rawLabel) {
-      const cleaned = normalizeRadioText(rawLabel)
-        .replace(
-          /\b(TWR|TOWER|TOUR|GND|GROUND|SOL|APP|APPROACH|APPROCHE|INFO|INFORMATION|AFIS|FIS|ATIS|AUTO-INFO|AUTO INFO|AUTO|A\/A|UNICOM|CTAF|RADIO)\b/gi,
-          " "
-        )
-        .replace(/[·|/]+/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
+    function getOfficialFrequencyBaseLabel(entry) {
+      const label = normalizeRadioText(entry?.label || "");
+      const description = normalizeRadioText(entry?.description || "");
+      const serviceLabel = getRadioServiceLabel(entry);
 
-      return formatRadioPlaceName(cleaned);
-    }
+      if (label) return label;
+      if (description) return description;
 
-    function getRadioDisplayLabel(frequency) {
-      const rawLabel = normalizeRadioText(
-        frequency?.label || frequency?.description || ""
-      );
-      const serviceLabel = getRadioServiceLabel(frequency);
-
-      if (!rawLabel) {
-        return serviceLabel || "Fréquence";
+      if (
+        serviceLabel === "ATIS" ||
+        serviceLabel === "Sol" ||
+        serviceLabel === "Tour" ||
+        serviceLabel === "Approche" ||
+        serviceLabel === "Info" ||
+        serviceLabel === "Auto-information"
+      ) {
+        return serviceLabel;
       }
 
-      const placeLabel = extractRadioPlaceLabel(rawLabel);
-
-      if (serviceLabel === "Radio") {
-        return placeLabel || rawLabel || "Fréquence";
-      }
-
-      return placeLabel ? `${serviceLabel} ${placeLabel}` : serviceLabel;
+      return "Radio";
     }
-function shouldHideFrequencyEntry(entry) {
-  const serviceCode = normalizeCode(entry?.service_code || "");
-  const labelText = normalizeRadioText(
-    `${entry?.label || ""} ${entry?.description || ""}`
-  ).toUpperCase();
 
-  if (serviceCode === "VDF") return true;
-  if (labelText.includes("GONIO")) return true;
-  if (labelText.includes("HOMER")) return true;
+    function getOfficialSectorSuffix(entry) {
+      return normalizeRadioText(entry?.sector || "");
+    }
 
-  return false;
-}
+    function getOperationalFrequencyLabel(entry) {
+      const baseLabel = getOfficialFrequencyBaseLabel(entry);
+      const sectorSuffix = getOfficialSectorSuffix(entry);
 
-function getOfficialFrequencyBaseLabel(entry) {
-  const label = normalizeRadioText(entry?.label || "");
-  const description = normalizeRadioText(entry?.description || "");
-  const serviceLabel = getRadioServiceLabel(entry);
+      if (!sectorSuffix) return baseLabel;
 
-  if (label) return label;
-  if (description) return description;
+      return `${baseLabel} — ${sectorSuffix}`;
+    }
 
-  if (
-    serviceLabel === "ATIS" ||
-    serviceLabel === "Sol" ||
-    serviceLabel === "Tour" ||
-    serviceLabel === "Approche" ||
-    serviceLabel === "Info" ||
-    serviceLabel === "Auto-information"
-  ) {
-    return serviceLabel;
-  }
-
-  return "Radio";
-}
-
-function getOfficialSectorSuffix(entry) {
-  const sector = normalizeRadioText(entry?.sector || "");
-  if (!sector) return "";
-  return sector;
-}
-
-function getOperationalFrequencyLabel(entry) {
-  const baseLabel = getOfficialFrequencyBaseLabel(entry);
-  const sectorSuffix = getOfficialSectorSuffix(entry);
-
-  if (!sectorSuffix) return baseLabel;
-
-  return `${baseLabel} — ${sectorSuffix}`;
-}
-
-function getDisplayFrequencyKey(entry) {
-  return [
-    getOperationalFrequencyLabel(entry),
-    formatFrequencyMhz(entry?.frequency_mhz),
-  ].join("|");
-}
-
-function buildDisplayFrequencies(frequencies = []) {
-  const visibleFrequencies = frequencies.filter(
-    (entry) => !shouldHideFrequencyEntry(entry)
-  );
-
-  const seen = new Set();
-
-  return visibleFrequencies
-    .filter((entry) => {
-      const key = [
-        normalizeRadioText(entry?.label || ""),
-        normalizeRadioText(entry?.description || ""),
-        normalizeRadioText(entry?.sector || ""),
-        normalizeRadioText(entry?.remark || ""),
+    function getDisplayFrequencyKey(entry) {
+      return [
+        getOperationalFrequencyLabel(entry),
         formatFrequencyMhz(entry?.frequency_mhz),
       ].join("|");
+    }
 
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-    .sort((a, b) => {
-      const serviceDiff =
-        getRadioServicePriority(a) - getRadioServicePriority(b);
-      if (serviceDiff !== 0) return serviceDiff;
-
-      const labelDiff = getOperationalFrequencyLabel(a).localeCompare(
-        getOperationalFrequencyLabel(b),
-        "fr",
-        { sensitivity: "base" }
+    function buildDisplayFrequencies(frequencies = []) {
+      const visibleFrequencies = frequencies.filter(
+        (entry) => !shouldHideFrequencyEntry(entry)
       );
-      if (labelDiff !== 0) return labelDiff;
 
-      const freqA = Number(a?.frequency_mhz);
-      const freqB = Number(b?.frequency_mhz);
+      const seen = new Set();
 
-      if (Number.isFinite(freqA) && Number.isFinite(freqB) && freqA !== freqB) {
-        return freqA - freqB;
-      }
+      return visibleFrequencies
+        .filter((entry) => {
+          const key = [
+            normalizeRadioText(entry?.label || ""),
+            normalizeRadioText(entry?.description || ""),
+            normalizeRadioText(entry?.sector || ""),
+            normalizeRadioText(entry?.remark || ""),
+            formatFrequencyMhz(entry?.frequency_mhz),
+          ].join("|");
 
-      return 0;
-    });
-}
-  const visibleFrequencies = frequencies.filter(
-    (entry) => !shouldHideFrequencyEntry(entry)
-  );
-
-  const seen = new Set();
-
-  return visibleFrequencies
-    .filter((entry) => {
-      const key = [
-        getRadioServiceLabel(entry),
-        extractOfficialSectorLabel(entry),
-        formatFrequencyMhz(entry?.frequency_mhz),
-      ].join("|");
-
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-    .sort((a, b) => {
-      const serviceDiff = getRadioServicePriority(a) - getRadioServicePriority(b);
-      if (serviceDiff !== 0) return serviceDiff;
-
-      const sectorDiff = extractOfficialSectorLabel(a).localeCompare(
-        extractOfficialSectorLabel(b),
-        "fr",
-        { sensitivity: "base" }
-      );
-      if (sectorDiff !== 0) return sectorDiff;
-
-      const freqA = Number(a?.frequency_mhz);
-      const freqB = Number(b?.frequency_mhz);
-
-      if (Number.isFinite(freqA) && Number.isFinite(freqB) && freqA !== freqB) {
-        return freqA - freqB;
-      }
-
-      return getOperationalFrequencyLabel(a).localeCompare(
-        getOperationalFrequencyLabel(b),
-        "fr",
-        { sensitivity: "base" }
-      );
-    });
-}
-    function getRadioGroupKey(frequency) {
-      return `${getRadioServiceKey(frequency)}|${formatFrequencyMhz(
-        frequency?.frequency_mhz
-      )}`;
-    }
-
-    function getRadioRank(frequency) {
-      const label = getRadioDisplayLabel(frequency);
-      const hasServiceCode = frequency?.service_code ? 10 : 0;
-      const hasDescription = normalizeRadioText(frequency?.description).length
-        ? 4
-        : 0;
-
-      return label.length + hasServiceCode + hasDescription;
-    }
-
-    function pickBestRadioFrequency(frequencies = []) {
-      return frequencies.reduce((best, current) => {
-        if (!best) return current;
-        return getRadioRank(current) > getRadioRank(best) ? current : best;
-      }, null);
-    }
-
-    function dedupeRadioFrequencies(frequencies = []) {
-      const groups = new Map();
-
-      frequencies.forEach((frequency) => {
-        const key = getRadioGroupKey(frequency);
-        const current = groups.get(key);
-
-        if (!current || getRadioRank(frequency) > getRadioRank(current)) {
-          groups.set(key, frequency);
-        }
-      });
-
-      return Array.from(groups.values());
-    }
-
-    function mergeRadioFrequenciesByMhz(frequencies = []) {
-      const buckets = new Map();
-
-      frequencies.forEach((frequency) => {
-        const mhzLabel = formatFrequencyMhz(frequency?.frequency_mhz);
-        if (!mhzLabel) return;
-
-        if (!buckets.has(mhzLabel)) {
-          buckets.set(mhzLabel, {
-            key: mhzLabel,
-            frequency_mhz: Number(frequency?.frequency_mhz),
-            bestItem: frequency,
-            services: new Map(),
-            places: new Map(),
-          });
-        }
-
-        const bucket = buckets.get(mhzLabel);
-
-        if (getRadioRank(frequency) > getRadioRank(bucket.bestItem)) {
-          bucket.bestItem = frequency;
-        }
-
-        const serviceLabel = getRadioServiceLabel(frequency);
-        if (serviceLabel && serviceLabel !== "Radio") {
-          bucket.services.set(serviceLabel.toLowerCase(), serviceLabel);
-        }
-
-        const placeLabel = extractRadioPlaceLabel(
-          frequency?.label || frequency?.description || ""
-        );
-
-        if (placeLabel) {
-          bucket.places.set(
-            placeLabel,
-            (bucket.places.get(placeLabel) || 0) + 1
-          );
-        }
-      });
-
-      return Array.from(buckets.values())
-        .map((bucket) => {
-          const mergedServices = Array.from(bucket.services.values()).sort(
-            (a, b) => {
-              const priorityDiff =
-                getRadioServicePriorityByLabel(a) -
-                getRadioServicePriorityByLabel(b);
-
-              if (priorityDiff !== 0) return priorityDiff;
-
-              return a.localeCompare(b, "fr", { sensitivity: "base" });
-            }
-          );
-
-          const dominantPlace =
-            Array.from(bucket.places.entries()).sort((a, b) => {
-              if (b[1] !== a[1]) return b[1] - a[1];
-              return a[0].localeCompare(b[0], "fr", {
-                sensitivity: "base",
-              });
-            })[0]?.[0] || "";
-
-          let displayLabel = "";
-
-          if (mergedServices.length > 0 && dominantPlace) {
-            displayLabel = `${mergedServices.join(" / ")} ${dominantPlace}`;
-          } else if (mergedServices.length > 0) {
-            displayLabel = mergedServices.join(" / ");
-          } else if (dominantPlace) {
-            displayLabel = dominantPlace;
-          } else {
-            displayLabel = getRadioDisplayLabel(bucket.bestItem);
-          }
-
-          return {
-            key: bucket.key,
-            frequency_mhz: bucket.frequency_mhz,
-            displayLabel,
-            priority:
-              mergedServices.length > 0
-                ? getRadioServicePriorityByLabel(mergedServices[0])
-                : getRadioServicePriority(bucket.bestItem),
-          };
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
         })
         .sort((a, b) => {
-          if (a.priority !== b.priority) {
-            return a.priority - b.priority;
-          }
+          const serviceDiff =
+            getRadioServicePriority(a) - getRadioServicePriority(b);
+          if (serviceDiff !== 0) return serviceDiff;
 
-          const labelDiff = a.displayLabel.localeCompare(
-            b.displayLabel,
+          const labelDiff = getOperationalFrequencyLabel(a).localeCompare(
+            getOperationalFrequencyLabel(b),
             "fr",
             { sensitivity: "base" }
           );
-
           if (labelDiff !== 0) return labelDiff;
 
-          const mhzA = Number(a.frequency_mhz);
-          const mhzB = Number(b.frequency_mhz);
+          const freqA = Number(a?.frequency_mhz);
+          const freqB = Number(b?.frequency_mhz);
 
-          if (Number.isFinite(mhzA) && Number.isFinite(mhzB)) {
-            return mhzA - mhzB;
+          if (
+            Number.isFinite(freqA) &&
+            Number.isFinite(freqB) &&
+            freqA !== freqB
+          ) {
+            return freqA - freqB;
           }
 
           return 0;
         });
     }
 
-function renderFrequencyPanel(record) {
-  if (!radioValue || !radioTypeValue || !radioLabelValue) return;
+    function renderFrequencyPanel(record) {
+      if (!radioValue || !radioTypeValue || !radioLabelValue) return;
 
-  if (radioList) radioList.innerHTML = "";
-  if (radioSecondaryBlock) radioSecondaryBlock.hidden = true;
+      if (radioList) radioList.innerHTML = "";
+      if (radioSecondaryBlock) radioSecondaryBlock.hidden = true;
 
-  if (
-    !record ||
-    !Array.isArray(record.frequencies) ||
-    record.frequencies.length === 0
-  ) {
-    radioTypeValue.textContent = "Radio";
-    radioValue.textContent = "Non disponible";
-    radioLabelValue.textContent =
-      "Aucune fréquence exploitable trouvée pour ce terrain.";
-    return;
-  }
+      if (
+        !record ||
+        !Array.isArray(record.frequencies) ||
+        record.frequencies.length === 0
+      ) {
+        radioTypeValue.textContent = "Radio";
+        radioValue.textContent = "Non disponible";
+        radioLabelValue.textContent =
+          "Aucune fréquence exploitable trouvée pour ce terrain.";
+        return;
+      }
 
-  const allFrequencies = Array.isArray(record.frequencies)
-    ? record.frequencies
-    : [];
+      const allFrequencies = Array.isArray(record.frequencies)
+        ? record.frequencies
+        : [];
 
-  const displayFrequencies = buildDisplayFrequencies(allFrequencies);
+      const displayFrequencies = buildDisplayFrequencies(allFrequencies);
 
-  if (!displayFrequencies.length) {
-    radioTypeValue.textContent = "Radio";
-    radioValue.textContent = "Non disponible";
-    radioLabelValue.textContent =
-      "Aucune fréquence exploitable trouvée pour ce terrain.";
-    return;
-  }
+      if (!displayFrequencies.length) {
+        radioTypeValue.textContent = "Radio";
+        radioValue.textContent = "Non disponible";
+        radioLabelValue.textContent =
+          "Aucune fréquence exploitable trouvée pour ce terrain.";
+        return;
+      }
 
-  const primaryVisibleMatch = record.primary_frequency
-    ? displayFrequencies.find((entry) => {
-        return (
-          formatFrequencyMhz(entry.frequency_mhz) ===
-            formatFrequencyMhz(record.primary_frequency.frequency_mhz) &&
-          normalizeRadioText(getOfficialFrequencyBaseLabel(entry)) ===
-            normalizeRadioText(
-              getOfficialFrequencyBaseLabel(record.primary_frequency)
-            )
-        );
-      })
-    : null;
+      const primaryVisibleMatch = record.primary_frequency
+        ? displayFrequencies.find((entry) => {
+            return (
+              formatFrequencyMhz(entry.frequency_mhz) ===
+                formatFrequencyMhz(record.primary_frequency.frequency_mhz) &&
+              normalizeRadioText(getOfficialFrequencyBaseLabel(entry)) ===
+                normalizeRadioText(
+                  getOfficialFrequencyBaseLabel(record.primary_frequency)
+                )
+            );
+          })
+        : null;
 
-  const primaryFrequency = primaryVisibleMatch || displayFrequencies[0] || null;
+      const primaryFrequency =
+        primaryVisibleMatch || displayFrequencies[0] || null;
 
-  if (!primaryFrequency) {
-    radioTypeValue.textContent = "Radio";
-    radioValue.textContent = "Non disponible";
-    radioLabelValue.textContent =
-      "Aucune fréquence exploitable trouvée pour ce terrain.";
-    return;
-  }
+      if (!primaryFrequency) {
+        radioTypeValue.textContent = "Radio";
+        radioValue.textContent = "Non disponible";
+        radioLabelValue.textContent =
+          "Aucune fréquence exploitable trouvée pour ce terrain.";
+        return;
+      }
 
-  radioTypeValue.textContent = getRadioServiceLabel(primaryFrequency);
-  radioValue.textContent =
-    formatFrequencyMhz(primaryFrequency.frequency_mhz) || "—";
-  radioLabelValue.textContent = getOperationalFrequencyLabel(primaryFrequency);
+      radioTypeValue.textContent = getRadioServiceLabel(primaryFrequency);
+      radioValue.textContent =
+        formatFrequencyMhz(primaryFrequency.frequency_mhz) || "—";
+      radioLabelValue.textContent = getOperationalFrequencyLabel(primaryFrequency);
 
-  const primaryKey = getDisplayFrequencyKey(primaryFrequency);
+      const primaryKey = getDisplayFrequencyKey(primaryFrequency);
 
-  const secondaryFrequencies = displayFrequencies.filter(
-    (entry) => getDisplayFrequencyKey(entry) !== primaryKey
-  );
+      const secondaryFrequencies = displayFrequencies.filter(
+        (entry) => getDisplayFrequencyKey(entry) !== primaryKey
+      );
 
-  if (!radioList || secondaryFrequencies.length === 0) return;
+      if (!radioList || secondaryFrequencies.length === 0) return;
 
-  if (radioSecondaryBlock) radioSecondaryBlock.hidden = false;
+      if (radioSecondaryBlock) radioSecondaryBlock.hidden = false;
 
-  secondaryFrequencies.forEach((entry) => {
-    const item = document.createElement("li");
+      secondaryFrequencies.forEach((entry) => {
+        const item = document.createElement("li");
 
-    item.innerHTML = `
-      <div>
-        <strong>${getOperationalFrequencyLabel(entry)}</strong>
-      </div>
-      <span>${formatFrequencyMhz(entry.frequency_mhz) || "—"}</span>
-    `;
+        item.innerHTML = `
+          <div>
+            <strong>${getOperationalFrequencyLabel(entry)}</strong>
+          </div>
+          <span>${formatFrequencyMhz(entry.frequency_mhz) || "—"}</span>
+        `;
 
-    radioList.appendChild(item);
-  });
-}
+        radioList.appendChild(item);
+      });
+    }
 
     function getDistanceKm(lat1, lon1, lat2, lon2) {
       const toRad = (value) => (value * Math.PI) / 180;
