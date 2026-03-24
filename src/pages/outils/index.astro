@@ -827,7 +827,128 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
       return placeLabel ? `${serviceLabel} ${placeLabel}` : serviceLabel;
     }
+function shouldHideFrequencyEntry(entry) {
+  const serviceCode = normalizeCode(entry?.service_code || "");
+  const labelText = normalizeRadioText(
+    `${entry?.label || ""} ${entry?.description || ""}`
+  ).toUpperCase();
 
+  if (serviceCode === "VDF") return true;
+  if (labelText.includes("GONIO")) return true;
+  if (labelText.includes("HOMER")) return true;
+
+  return false;
+}
+
+function normalizeSectorSourceText(value) {
+  return normalizeRadioText(value)
+    .replace(/et\/and/gi, "/")
+    .replace(/à\/to/gi, " à ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractOfficialSectorLabel(entry) {
+  const source = normalizeSectorSourceText(
+    [entry?.sector, entry?.remark, entry?.description]
+      .filter(Boolean)
+      .join(" · ")
+  );
+
+  if (!source) return "";
+
+  const sectorMatch = source.match(/Secteur(?:\/Sector)?\s+([A-Z0-9.]+)/i);
+  const sivMatch = source.match(
+    /SIV\s+([0-9.]+(?:\s*à\s*[0-9.]+)?(?:\s*\/\s*[0-9.]+)*)/i
+  );
+
+  const parts = [];
+
+  if (sectorMatch?.[1]) {
+    parts.push(`secteur ${sectorMatch[1]}`);
+  }
+
+  if (sivMatch?.[1]) {
+    parts.push(`SIV ${sivMatch[1]}`);
+  }
+
+  return parts.join(" · ");
+}
+
+function getOperationalFrequencyLabel(entry) {
+  const serviceLabel = getRadioServiceLabel(entry);
+  const sectorLabel = extractOfficialSectorLabel(entry);
+
+  if (serviceLabel === "Approche" && sectorLabel) {
+    return `Approche — ${sectorLabel}`;
+  }
+
+  if (serviceLabel === "Info" && sectorLabel) {
+    return `Info — ${sectorLabel}`;
+  }
+
+  if (
+    serviceLabel === "ATIS" ||
+    serviceLabel === "Sol" ||
+    serviceLabel === "Tour"
+  ) {
+    return serviceLabel;
+  }
+
+  return getRadioDisplayLabel(entry);
+}
+
+function getDisplayFrequencyKey(entry) {
+  return [
+    getOperationalFrequencyLabel(entry),
+    formatFrequencyMhz(entry?.frequency_mhz),
+  ].join("|");
+}
+
+function buildDisplayFrequencies(frequencies = []) {
+  const visibleFrequencies = frequencies.filter(
+    (entry) => !shouldHideFrequencyEntry(entry)
+  );
+
+  const seen = new Set();
+
+  return visibleFrequencies
+    .filter((entry) => {
+      const key = [
+        getRadioServiceLabel(entry),
+        extractOfficialSectorLabel(entry),
+        formatFrequencyMhz(entry?.frequency_mhz),
+      ].join("|");
+
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => {
+      const serviceDiff = getRadioServicePriority(a) - getRadioServicePriority(b);
+      if (serviceDiff !== 0) return serviceDiff;
+
+      const sectorDiff = extractOfficialSectorLabel(a).localeCompare(
+        extractOfficialSectorLabel(b),
+        "fr",
+        { sensitivity: "base" }
+      );
+      if (sectorDiff !== 0) return sectorDiff;
+
+      const freqA = Number(a?.frequency_mhz);
+      const freqB = Number(b?.frequency_mhz);
+
+      if (Number.isFinite(freqA) && Number.isFinite(freqB) && freqA !== freqB) {
+        return freqA - freqB;
+      }
+
+      return getOperationalFrequencyLabel(a).localeCompare(
+        getOperationalFrequencyLabel(b),
+        "fr",
+        { sensitivity: "base" }
+      );
+    });
+}
     function getRadioGroupKey(frequency) {
       return `${getRadioServiceKey(frequency)}|${formatFrequencyMhz(
         frequency?.frequency_mhz
@@ -974,82 +1095,87 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         });
     }
 
-    function renderFrequencyPanel(record) {
-      if (!radioValue || !radioTypeValue || !radioLabelValue) return;
+function renderFrequencyPanel(record) {
+  if (!radioValue || !radioTypeValue || !radioLabelValue) return;
 
-      if (radioList) radioList.innerHTML = "";
-      if (radioSecondaryBlock) radioSecondaryBlock.hidden = true;
+  if (radioList) radioList.innerHTML = "";
+  if (radioSecondaryBlock) radioSecondaryBlock.hidden = true;
 
-      if (
-        !record ||
-        !Array.isArray(record.frequencies) ||
-        record.frequencies.length === 0
-      ) {
-        radioTypeValue.textContent = "Radio";
-        radioValue.textContent = "Non disponible";
-        radioLabelValue.textContent =
-          "Aucune fréquence exploitable trouvée pour ce terrain.";
-        return;
-      }
+  if (
+    !record ||
+    !Array.isArray(record.frequencies) ||
+    record.frequencies.length === 0
+  ) {
+    radioTypeValue.textContent = "Radio";
+    radioValue.textContent = "Non disponible";
+    radioLabelValue.textContent =
+      "Aucune fréquence exploitable trouvée pour ce terrain.";
+    return;
+  }
 
-      const allFrequencies = Array.isArray(record.frequencies)
-        ? record.frequencies
-        : [];
+  const allFrequencies = Array.isArray(record.frequencies)
+    ? record.frequencies
+    : [];
 
-      const dedupedFrequencies = dedupeRadioFrequencies(allFrequencies);
+  const displayFrequencies = buildDisplayFrequencies(allFrequencies);
 
-      const primaryCandidate = record.primary_frequency
-        ? pickBestRadioFrequency(
-            allFrequencies.filter(
-              (frequency) =>
-                getRadioGroupKey(frequency) ===
-                getRadioGroupKey(record.primary_frequency)
-            )
-          )
-        : null;
+  if (!displayFrequencies.length) {
+    radioTypeValue.textContent = "Radio";
+    radioValue.textContent = "Non disponible";
+    radioLabelValue.textContent =
+      "Aucune fréquence exploitable trouvée pour ce terrain.";
+    return;
+  }
 
-      const primaryFrequency =
-        primaryCandidate || dedupedFrequencies[0] || null;
+  const primaryVisibleMatch = record.primary_frequency
+    ? displayFrequencies.find((entry) => {
+        return (
+          getRadioServiceLabel(entry) ===
+            getRadioServiceLabel(record.primary_frequency) &&
+          formatFrequencyMhz(entry.frequency_mhz) ===
+            formatFrequencyMhz(record.primary_frequency.frequency_mhz)
+        );
+      })
+    : null;
 
-      if (!primaryFrequency) {
-        radioTypeValue.textContent = "Radio";
-        radioValue.textContent = "Non disponible";
-        radioLabelValue.textContent =
-          "Aucune fréquence exploitable trouvée pour ce terrain.";
-        return;
-      }
+  const primaryFrequency = primaryVisibleMatch || displayFrequencies[0] || null;
 
-      radioTypeValue.textContent = getRadioServiceLabel(primaryFrequency);
-      radioValue.textContent =
-        formatFrequencyMhz(primaryFrequency.frequency_mhz) || "—";
-      radioLabelValue.textContent = getRadioDisplayLabel(primaryFrequency);
+  if (!primaryFrequency) {
+    radioTypeValue.textContent = "Radio";
+    radioValue.textContent = "Non disponible";
+    radioLabelValue.textContent =
+      "Aucune fréquence exploitable trouvée pour ce terrain.";
+    return;
+  }
 
-      const primaryMhzLabel = formatFrequencyMhz(primaryFrequency.frequency_mhz);
+  radioTypeValue.textContent = getRadioServiceLabel(primaryFrequency);
+  radioValue.textContent =
+    formatFrequencyMhz(primaryFrequency.frequency_mhz) || "—";
+  radioLabelValue.textContent = getOperationalFrequencyLabel(primaryFrequency);
 
-      const secondaryBuckets = mergeRadioFrequenciesByMhz(
-        dedupedFrequencies.filter(
-          (frequency) =>
-            formatFrequencyMhz(frequency.frequency_mhz) !== primaryMhzLabel
-        )
-      );
+  const primaryKey = getDisplayFrequencyKey(primaryFrequency);
 
-      if (!radioList || secondaryBuckets.length === 0) return;
+  const secondaryFrequencies = displayFrequencies.filter(
+    (entry) => getDisplayFrequencyKey(entry) !== primaryKey
+  );
 
-      if (radioSecondaryBlock) radioSecondaryBlock.hidden = false;
+  if (!radioList || secondaryFrequencies.length === 0) return;
 
-      secondaryBuckets.forEach((entry) => {
-        const item = document.createElement("li");
+  if (radioSecondaryBlock) radioSecondaryBlock.hidden = false;
 
-        item.innerHTML = `
-          <div>
-            <strong>${entry.displayLabel}</strong>
-          </div>
-          <span>${formatFrequencyMhz(entry.frequency_mhz) || "—"}</span>
-        `;
+  secondaryFrequencies.forEach((entry) => {
+    const item = document.createElement("li");
 
-        radioList.appendChild(item);
-      });
-    }
+    item.innerHTML = `
+      <div>
+        <strong>${getOperationalFrequencyLabel(entry)}</strong>
+      </div>
+      <span>${formatFrequencyMhz(entry.frequency_mhz) || "—"}</span>
+    `;
+
+    radioList.appendChild(item);
+  });
+}
 
     function getDistanceKm(lat1, lon1, lat2, lon2) {
       const toRad = (value) => (value * Math.PI) / 180;
