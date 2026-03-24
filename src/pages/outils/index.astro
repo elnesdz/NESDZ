@@ -1106,10 +1106,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       return `Repère météo voisin — ${identity}`;
     }
 
-    function formatNeighborFlightCategory(reference) {
-      const category = reference?.snapshot?.fltCat;
-      return category ? `${category} voisin` : "Voisin";
-    }
+function formatNeighborFlightCategory(reference) {
+  const category = reference?.snapshot?.fltCat;
+  return category || "Non disponible";
+}
 
     function buildNeighborMetarOutput(reference, targetCode, fallbackMessage) {
       if (!reference?.snapshot?.rawOb) return fallbackMessage;
@@ -1207,36 +1207,44 @@ TAF voisin indisponible sur ce terrain de référence.`;
       return map;
     }
 
-    async function fetchWeatherSnapshot(icao) {
-      const normalized = normalizeCode(icao);
-      if (!normalized) return null;
+async function fetchWeatherSnapshot(icao) {
+  const normalized = normalizeCode(icao);
+  if (!normalized) return null;
 
-      try {
-        const res = await fetch(
-          `${WORKER_URL}?icao=${encodeURIComponent(normalized)}`
-        );
+  try {
+    const res = await fetch(
+      `${WORKER_URL}?icao=${encodeURIComponent(normalized)}`
+    );
 
-        if (!res.ok) return null;
+    if (!res.ok) return null;
 
-        const data = await res.json();
+    const data = await res.json();
 
-        if (!Array.isArray(data) || data.length === 0) return null;
+    if (!Array.isArray(data) || data.length === 0) return null;
 
-        const item = data[0];
+    const item = data[0];
 
-        if (!item || typeof item !== "object" || !item.rawOb) return null;
+    if (!item || typeof item !== "object" || !item.rawOb) return null;
 
-        return {
-          icao: normalized,
-          rawOb: item.rawOb || "",
-          taf: item.taf || "",
-          fltCat: item.fltCat || "",
-        };
-      } catch (error) {
-        console.error(error);
-        return null;
-      }
-    }
+    return {
+      icao: normalized,
+      rawOb: item.rawOb || "",
+      taf: item.taf || "",
+      fltCat: item.fltCat || "",
+      wdir: item.wdir ?? null,
+      wspd: item.wspd ?? null,
+      visib: item.visib ?? null,
+      cover: item.cover ?? "",
+      clouds: Array.isArray(item.clouds) ? item.clouds : [],
+      temp: item.temp ?? null,
+      dewp: item.dewp ?? null,
+      altim: item.altim ?? null,
+    };
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
 
     function formatWeatherReferenceMeta(snapshot) {
       const parts = ["METAR disponible"];
@@ -1373,62 +1381,80 @@ TAF voisin indisponible sur ce terrain de référence.`;
       });
     }
 
-    async function applyMissingLocalWeatherState({
+async function applyMissingLocalWeatherState({
+  icao,
+  matchedAirport,
+  matchedUlm,
+  matchedFrequency,
+  metarMessage,
+  tafMessage,
+  emptyStatusMessage,
+}) {
+  const references = await findNearbyWeatherReferences(
+    icao,
+    matchedAirport,
+    matchedUlm
+  );
+  const primaryReference = references[0] || null;
+
+  resetDecoded();
+
+  nameValue.textContent =
+    formatMatchedDisplayName(matchedAirport, matchedUlm) || icao;
+  renderFrequencyPanel(matchedFrequency);
+
+  if (primaryReference) {
+    statusValue.textContent = formatNeighborStatus(primaryReference);
+
+    windValue.textContent = formatWind(
+      primaryReference.snapshot?.wdir,
+      primaryReference.snapshot?.wspd
+    );
+    visibilityValue.textContent = formatVisibility(
+      primaryReference.snapshot?.visib
+    );
+    cloudsValue.textContent = formatClouds(primaryReference.snapshot);
+    tempValue.textContent = formatTemp(
+      primaryReference.snapshot?.temp,
+      primaryReference.snapshot?.dewp
+    );
+    pressureValue.textContent = formatPressure(
+      primaryReference.snapshot?.altim
+    );
+
+    fltCatValue.textContent = formatNeighborFlightCategory(primaryReference);
+
+    metarOutput.textContent = buildNeighborMetarOutput(
+      primaryReference,
       icao,
-      matchedAirport,
-      matchedUlm,
-      matchedFrequency,
-      metarMessage,
-      tafMessage,
-      emptyStatusMessage,
-    }) {
-      const references = await findNearbyWeatherReferences(
-        icao,
-        matchedAirport,
-        matchedUlm
-      );
-      const primaryReference = references[0] || null;
+      metarMessage
+    );
+    tafOutput.textContent = buildNeighborTafOutput(
+      primaryReference,
+      icao,
+      tafMessage
+    );
+    tafSummaryValue.textContent = buildNeighborTafSummary(primaryReference);
+  } else {
+    statusValue.textContent = emptyStatusMessage;
+    windValue.textContent = "Non disponible";
+    visibilityValue.textContent = "Non disponible";
+    cloudsValue.textContent = "Non disponible";
+    tempValue.textContent = "Non disponible";
+    pressureValue.textContent = "Non disponible";
+    fltCatValue.textContent = "Non disponible";
+    metarOutput.textContent = metarMessage;
+    tafOutput.textContent = tafMessage;
+    tafSummaryValue.textContent = "Prévision indisponible";
+  }
 
-      resetDecoded();
-
-      nameValue.textContent =
-        formatMatchedDisplayName(matchedAirport, matchedUlm) || icao;
-      windValue.textContent = "Non disponible";
-      visibilityValue.textContent = "Non disponible";
-      cloudsValue.textContent = "Non disponible";
-      tempValue.textContent = "Non disponible";
-      pressureValue.textContent = "Non disponible";
-      renderFrequencyPanel(matchedFrequency);
-
-      if (primaryReference) {
-        statusValue.textContent = formatNeighborStatus(primaryReference);
-        fltCatValue.textContent = formatNeighborFlightCategory(primaryReference);
-        metarOutput.textContent = buildNeighborMetarOutput(
-          primaryReference,
-          icao,
-          metarMessage
-        );
-        tafOutput.textContent = buildNeighborTafOutput(
-          primaryReference,
-          icao,
-          tafMessage
-        );
-        tafSummaryValue.textContent = buildNeighborTafSummary(primaryReference);
-      } else {
-        statusValue.textContent = emptyStatusMessage;
-        fltCatValue.textContent = "Non disponible";
-        metarOutput.textContent = metarMessage;
-        tafOutput.textContent = tafMessage;
-        tafSummaryValue.textContent = "Prévision indisponible";
-      }
-
-      await loadWeatherReferences(
-        icao,
-        matchedAirport,
-        matchedUlm,
-        references
-      );
-    }
+  await loadWeatherReferences(
+    icao,
+    matchedAirport,
+    matchedUlm,
+    references
+  );
+}
 
     async function resolveNearbyCenter() {
       const enteredCode = normalizeCode(icaoInput?.value);
