@@ -11,36 +11,36 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       <div class="pad">
         <h1>Météo & terrains</h1>
 
-        <div class="tool-block tool-entry-block">
-          <label for="icaoInput" class="tool-entry-label">
-            Aérodrome / code OACI
-          </label>
-          <p class="tool-entry-help">
-            Saisir un terrain comme <strong>LFQQ</strong>, <strong>LFPN</strong>
-            ou <strong>LFPA</strong> pour afficher la météo aviation, la radio
-            utile et les terrains proches.
-          </p>
+<div class="tool-block tool-entry-block">
+  <label for="icaoInput" class="tool-entry-label">
+    Aérodrome / code OACI
+  </label>
+  <p class="tool-entry-help">
+    Entrer un terrain comme <strong>LFQQ</strong>, <strong>LFPN</strong> ou
+    <strong>LFPA</strong> pour afficher la météo aviation, la radio utile
+    et les terrains proches.
+  </p>
 
-          <div class="row tool-row">
-            <input
-              id="icaoInput"
-              placeholder="Ex : LFQQ"
-              value="LFQQ"
-              inputmode="text"
-              autocomplete="off"
-              autocapitalize="characters"
-              spellcheck="false"
-              aria-label="Aérodrome ou code OACI"
-            />
-            <button
-              id="loadMetarBtn"
-              class="tool-action-btn tool-action-btn--primary"
-              type="button"
-            >
-              Voir METAR / TAF
-            </button>
-          </div>
-        </div>
+  <div class="row tool-row">
+    <input
+      id="icaoInput"
+      placeholder="Ex : LFQQ"
+      value="LFQQ"
+      inputmode="text"
+      autocomplete="off"
+      autocapitalize="characters"
+      spellcheck="false"
+      aria-label="Aérodrome ou code OACI"
+    />
+    <button
+      id="loadMetarBtn"
+      class="tool-action-btn tool-action-btn--primary"
+      type="button"
+    >
+      Voir METAR / TAF
+    </button>
+  </div>
+</div>
 
         <div class="tool-block">
           <h2>Lecture rapide</h2>
