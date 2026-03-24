@@ -107,9 +107,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                 </div>
 
                 <div id="radioSecondaryBlock" class="radio-secondary" hidden>
-                  <div class="radio-secondary-title">
-                    Autres fréquences à connaître
-                  </div>
+                 <div class="radio-secondary-title">
+  Fréquences complémentaires
+</div>
                   <ul id="radioList" class="radio-list"></ul>
                 </div>
               </div>
@@ -840,62 +840,41 @@ function shouldHideFrequencyEntry(entry) {
   return false;
 }
 
-function normalizeSectorSourceText(value) {
-  return normalizeRadioText(value)
-    .replace(/et\/and/gi, "/")
-    .replace(/à\/to/gi, " à ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function extractOfficialSectorLabel(entry) {
-  const source = normalizeSectorSourceText(
-    [entry?.sector, entry?.remark, entry?.description]
-      .filter(Boolean)
-      .join(" · ")
-  );
-
-  if (!source) return "";
-
-  const sectorMatch = source.match(/Secteur(?:\/Sector)?\s+([A-Z0-9.]+)/i);
-  const sivMatch = source.match(
-    /SIV\s+([0-9.]+(?:\s*à\s*[0-9.]+)?(?:\s*\/\s*[0-9.]+)*)/i
-  );
-
-  const parts = [];
-
-  if (sectorMatch?.[1]) {
-    parts.push(`secteur ${sectorMatch[1]}`);
-  }
-
-  if (sivMatch?.[1]) {
-    parts.push(`SIV ${sivMatch[1]}`);
-  }
-
-  return parts.join(" · ");
-}
-
-function getOperationalFrequencyLabel(entry) {
+function getOfficialFrequencyBaseLabel(entry) {
+  const label = normalizeRadioText(entry?.label || "");
+  const description = normalizeRadioText(entry?.description || "");
   const serviceLabel = getRadioServiceLabel(entry);
-  const sectorLabel = extractOfficialSectorLabel(entry);
 
-  if (serviceLabel === "Approche" && sectorLabel) {
-    return `Approche — ${sectorLabel}`;
-  }
-
-  if (serviceLabel === "Info" && sectorLabel) {
-    return `Info — ${sectorLabel}`;
-  }
+  if (label) return label;
+  if (description) return description;
 
   if (
     serviceLabel === "ATIS" ||
     serviceLabel === "Sol" ||
-    serviceLabel === "Tour"
+    serviceLabel === "Tour" ||
+    serviceLabel === "Approche" ||
+    serviceLabel === "Info" ||
+    serviceLabel === "Auto-information"
   ) {
     return serviceLabel;
   }
 
-  return getRadioDisplayLabel(entry);
+  return "Radio";
+}
+
+function getOfficialSectorSuffix(entry) {
+  const sector = normalizeRadioText(entry?.sector || "");
+  if (!sector) return "";
+  return sector;
+}
+
+function getOperationalFrequencyLabel(entry) {
+  const baseLabel = getOfficialFrequencyBaseLabel(entry);
+  const sectorSuffix = getOfficialSectorSuffix(entry);
+
+  if (!sectorSuffix) return baseLabel;
+
+  return `${baseLabel} — ${sectorSuffix}`;
 }
 
 function getDisplayFrequencyKey(entry) {
@@ -906,6 +885,48 @@ function getDisplayFrequencyKey(entry) {
 }
 
 function buildDisplayFrequencies(frequencies = []) {
+  const visibleFrequencies = frequencies.filter(
+    (entry) => !shouldHideFrequencyEntry(entry)
+  );
+
+  const seen = new Set();
+
+  return visibleFrequencies
+    .filter((entry) => {
+      const key = [
+        normalizeRadioText(entry?.label || ""),
+        normalizeRadioText(entry?.description || ""),
+        normalizeRadioText(entry?.sector || ""),
+        normalizeRadioText(entry?.remark || ""),
+        formatFrequencyMhz(entry?.frequency_mhz),
+      ].join("|");
+
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => {
+      const serviceDiff =
+        getRadioServicePriority(a) - getRadioServicePriority(b);
+      if (serviceDiff !== 0) return serviceDiff;
+
+      const labelDiff = getOperationalFrequencyLabel(a).localeCompare(
+        getOperationalFrequencyLabel(b),
+        "fr",
+        { sensitivity: "base" }
+      );
+      if (labelDiff !== 0) return labelDiff;
+
+      const freqA = Number(a?.frequency_mhz);
+      const freqB = Number(b?.frequency_mhz);
+
+      if (Number.isFinite(freqA) && Number.isFinite(freqB) && freqA !== freqB) {
+        return freqA - freqB;
+      }
+
+      return 0;
+    });
+}
   const visibleFrequencies = frequencies.filter(
     (entry) => !shouldHideFrequencyEntry(entry)
   );
@@ -1130,10 +1151,12 @@ function renderFrequencyPanel(record) {
   const primaryVisibleMatch = record.primary_frequency
     ? displayFrequencies.find((entry) => {
         return (
-          getRadioServiceLabel(entry) ===
-            getRadioServiceLabel(record.primary_frequency) &&
           formatFrequencyMhz(entry.frequency_mhz) ===
-            formatFrequencyMhz(record.primary_frequency.frequency_mhz)
+            formatFrequencyMhz(record.primary_frequency.frequency_mhz) &&
+          normalizeRadioText(getOfficialFrequencyBaseLabel(entry)) ===
+            normalizeRadioText(
+              getOfficialFrequencyBaseLabel(record.primary_frequency)
+            )
         );
       })
     : null;
