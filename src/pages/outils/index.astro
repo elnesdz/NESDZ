@@ -3,535 +3,459 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout
-  title="NESDZ — ULM · Ultra-léger · Passion"
-  description="NESDZ, journal ULM & aviation légère. Météo aviation, terrains, journal, modèles et ressources utiles pour les pilotes."
+  title="NESDZ — ULM, aviation légère, météo & terrains"
+  description="NESDZ, média et outil pilote autour de l’ULM et de l’aviation légère : journal, modèles, annuaire ULM et météo & terrains."
 >
-  <section class="container home-page">
-    <div class="home-shell">
-      <section class="hero card">
-        <div class="hero-grid pad">
-          <div class="hero-copy">
-            <span class="hero-kicker">ULM · Aviation légère · Outil pilote</span>
-            <h1>NESDZ</h1>
-            <p class="hero-lead">
-              Une home éditoriale premium pour découvrir NESDZ, puis un accès direct
-              à l’outil du site pour préparer un vol avec plus de clarté : météo aviation,
-              radio utile, terrains proches et repères météo voisins.
-            </p>
+  <section class="container home-page home-hero-section">
+    <div class="home-hero card">
+      <div class="home-hero-grid">
+        <div class="home-hero-copy">
+          <div class="home-kicker">ULM · Aviation légère · Outil pilote</div>
+          <h1>NESDZ, le journal et l’outil terrain pour les pilotes.</h1>
+          <p class="home-lead">
+            Un site éditorial premium pensé pour l’aviation légère, avec un accès
+            immédiat à la météo aviation, aux terrains, aux radios utiles et aux
+            repères proches.
+          </p>
 
-            <div class="hero-actions">
-              <a class="hero-tool-btn" href="/outils/">
-                <span class="hero-tool-btn__eyebrow">Outil phare du site</span>
-                <span class="hero-tool-btn__label">Météo &amp; terrains</span>
-                <span class="hero-tool-btn__subline">
-                  Ouvrir le briefing pilote NESDZ
-                </span>
-              </a>
-
-              <a class="hero-link-btn" href="/journal/">Voir le journal</a>
-            </div>
-
-            <ul class="hero-points">
-              <li>Météo aviation claire pour le briefing</li>
-              <li>Aérodromes proches et plateformes ULM clairement distingués</li>
-              <li>Base France terrains et fréquences utiles en consolidation continue</li>
-            </ul>
-          </div>
-
-          <aside class="hero-side">
-            <div class="hero-panel hero-panel--tool">
-              <span class="hero-panel__label">Accès direct</span>
-              <strong>Météo &amp; terrains</strong>
-              <p>
-                L’outil central du site pour afficher immédiatement la météo terrain,
-                les fréquences utiles et les terrains voisins.
-              </p>
-              <a class="hero-panel__cta hero-panel__cta--primary" href="/outils/?icao=LFQQ">
-                Tester avec LFQQ
-              </a>
-            </div>
-
-            <div class="hero-panel hero-panel--meta">
-              <span class="hero-panel__label">NESDZ</span>
-              <strong>Éditorial + utilité réelle</strong>
-              <p>
-                Une vitrine premium pour le contenu, et un outil dédié pour le briefing
-                pilote sans casser l’équilibre visuel de la home.
-              </p>
-            </div>
-          </aside>
-        </div>
-      </section>
-
-      <section class="section-block">
-        <div class="section-head">
-          <h2>Les grandes entrées du site</h2>
-          <p>NESDZ reste une home éditoriale claire, avec un accès très visible vers l’outil pilote.</p>
-        </div>
-
-        <div class="entry-grid">
-          <a class="entry-card" href="/journal/">
-            <span class="entry-card__kicker">Journal</span>
-            <strong>Derniers articles</strong>
-            <p>
-              Retrouve les contenus récents, les analyses, les billets et les sujets
-              autour de l’ULM et de l’aviation légère.
-            </p>
-          </a>
-
-          <a class="entry-card" href="/modeles/">
-            <span class="entry-card__kicker">Sélection</span>
-            <strong>Modèles en vedette</strong>
-            <p>
-              Parcours les modèles déjà présents dans NESDZ et les fiches mises en avant.
-            </p>
-          </a>
-
-          <a class="entry-card entry-card--accent" href="/outils/">
-            <span class="entry-card__kicker">Cockpit</span>
-            <strong>Météo &amp; terrains</strong>
-            <p>
-              L’entrée la plus utile du site pour préparer un vol : météo, radio,
-              repères voisins et terrains proches.
-            </p>
-          </a>
-        </div>
-      </section>
-
-      <section class="section-block card utility-card">
-        <div class="pad utility-strip">
-          <div>
-            <span class="utility-strip__label">Accès rapide</span>
-            <h2>Ouvrir directement l’outil pilote NESDZ</h2>
-            <p>
-              Saisis un code comme LFQQ, LFPN ou LFPA pour afficher la météo,
-              la radio utile et les terrains proches dans une page dédiée.
-            </p>
-          </div>
-
-          <div class="utility-strip__actions">
-            <a class="utility-strip__primary" href="/outils/">Ouvrir Météo &amp; terrains</a>
-            <a class="utility-strip__secondary" href="/annuaire-ulm/">Voir l’annuaire ULM</a>
-          </div>
-        </div>
-      </section>
-
-      <section class="section-block editorial-grid">
-        <div class="editorial-card card">
-          <div class="pad">
-            <span class="editorial-card__label">Journal</span>
-            <h2>Une ligne éditoriale claire</h2>
-            <p>
-              NESDZ garde une vraie dimension éditoriale : articles, regards, sélections
-              et contenus pensés pour les pilotes et passionnés d’aviation légère.
-            </p>
-            <a class="editorial-card__link" href="/journal/">Entrer dans le journal</a>
-          </div>
-        </div>
-
-        <div class="editorial-card card editorial-card--accent">
-          <div class="pad">
-            <span class="editorial-card__label">Outil du site</span>
-            <h2>Un accès très visible au briefing</h2>
-            <p>
-              Météo aviation, radios utiles, repères météo voisins et terrains proches :
-              l’outil reste l’élément fort du produit, clairement mis en avant depuis la home.
-            </p>
-            <a class="editorial-card__link editorial-card__link--strong" href="/outils/">
-              Ouvrir Météo &amp; terrains
+          <div class="home-hero-actions">
+            <a class="cta-tool" href="/outils/">
+              <span class="cta-tool__eyebrow">Outil phare</span>
+              <span class="cta-tool__label">Météo &amp; terrains</span>
+              <span class="cta-tool__meta">METAR · TAF · radios · terrains proches</span>
             </a>
+
+            <div class="home-secondary-actions">
+              <a class="secondary-link" href="/journal/">Voir le journal</a>
+              <a class="secondary-link" href="/annuaire-ulm/">Explorer l’annuaire ULM</a>
+            </div>
           </div>
         </div>
-      </section>
+
+        <aside class="home-hero-panel">
+          <div class="hero-panel-card">
+            <span class="hero-panel-badge">Accès rapide</span>
+            <h2>L’outil pilote NESDZ</h2>
+            <ul class="hero-panel-list">
+              <li>Lecture rapide METAR / TAF</li>
+              <li>Terrain demandé et terrain météo voisin si nécessaire</li>
+              <li>Fréquences radio utiles</li>
+              <li>Aérodromes proches et plateformes ULM distinctes</li>
+            </ul>
+            <a class="hero-panel-link" href="/outils/?icao=LFQQ">Essayer avec LFQQ</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="container home-page">
+    <div class="home-section-head">
+      <div>
+        <p class="section-kicker">À la une</p>
+        <h2>Les grands accès NESDZ</h2>
+      </div>
+    </div>
+
+    <div class="home-grid home-grid--four">
+      <a class="home-card home-card--tool" href="/outils/">
+        <span class="home-card-kicker">Outil pilote</span>
+        <h3>Météo &amp; terrains</h3>
+        <p>
+          L’accès le plus utile du site pour préparer un vol, vérifier un terrain
+          et lire rapidement la météo aviation.
+        </p>
+        <span class="home-card-link">Ouvrir l’outil</span>
+      </a>
+
+      <a class="home-card" href="/journal/">
+        <span class="home-card-kicker">Édito &amp; actualité</span>
+        <h3>Derniers articles</h3>
+        <p>
+          Retrouver la ligne éditoriale NESDZ, les publications récentes et les
+          sujets aviation légère mis en avant.
+        </p>
+        <span class="home-card-link">Voir le journal</span>
+      </a>
+
+      <a class="home-card" href="/modeles/">
+        <span class="home-card-kicker">Machines &amp; culture ULM</span>
+        <h3>Modèles en vedette</h3>
+        <p>
+          Une entrée claire pour parcourir les modèles, comparer les profils et
+          garder une lecture propre du catalogue NESDZ.
+        </p>
+        <span class="home-card-link">Voir les modèles</span>
+      </a>
+
+      <a class="home-card" href="/annuaire-ulm/">
+        <span class="home-card-kicker">France ULM</span>
+        <h3>Annuaire ULM</h3>
+        <p>
+          Explorer les plateformes, retrouver les bases et croiser la lecture
+          terrain avec l’écosystème ULM français.
+        </p>
+        <span class="home-card-link">Ouvrir l’annuaire</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="container home-page home-highlight-section">
+    <div class="home-highlight card">
+      <div class="home-highlight-grid">
+        <div>
+          <p class="section-kicker">Produit</p>
+          <h2>Un site éditorial qui devient un vrai outil pilote.</h2>
+          <p class="home-highlight-text">
+            NESDZ n’est pas une simple vitrine. La direction est claire : garder
+            une identité premium, sobre et crédible, tout en construisant un
+            outil vraiment utile pour les pilotes ULM et l’aviation légère.
+          </p>
+        </div>
+
+        <div class="home-highlight-points">
+          <div class="highlight-point">
+            <strong>Météo claire</strong>
+            <span>METAR, TAF, lecture rapide et repères voisins quand un terrain ne publie pas.</span>
+          </div>
+          <div class="highlight-point">
+            <strong>Terrains utiles</strong>
+            <span>Aérodromes, plateformes ULM, bases France et proximité lisible.</span>
+          </div>
+          <div class="highlight-point">
+            <strong>Radio exploitable</strong>
+            <span>Lecture briefing, fréquences utiles et montée en qualité progressive.</span>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
   <style is:global>
     .home-page {
-      padding: 22px 0 34px;
+      padding: 20px 0;
     }
 
-    .home-page .home-shell {
-      display: grid;
-      gap: 22px;
+    .home-hero-section {
+      padding-top: 28px;
     }
 
-    .home-page .hero {
+    .home-hero,
+    .home-highlight {
+      padding: 0;
       overflow: hidden;
-      border: 1px solid rgba(111, 184, 214, 0.24);
+      border-radius: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
       background:
-        radial-gradient(circle at top left, rgba(111, 184, 214, 0.14), transparent 38%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.018)),
-        rgba(10, 18, 26, 0.84);
+        radial-gradient(circle at top left, rgba(111, 184, 214, 0.12), transparent 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.016)),
+        rgba(11, 18, 27, 0.92);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.03),
-        0 0 0 1px rgba(111, 184, 214, 0.05);
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 24px 56px rgba(0, 0, 0, 0.24);
     }
 
-    .home-page .hero-grid {
+    .home-hero-grid,
+    .home-highlight-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.9fr);
-      gap: 24px;
-      align-items: stretch;
+      grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.95fr);
+      gap: 28px;
+      padding: 34px;
     }
 
-    .home-page .hero-copy {
-      display: grid;
-      align-content: start;
-      gap: 18px;
-    }
-
-    .home-page .hero-kicker {
+    .home-kicker,
+    .section-kicker,
+    .home-card-kicker {
       display: inline-flex;
-      width: fit-content;
-      padding: 6px 11px;
-      border-radius: 999px;
-      border: 1px solid rgba(111, 184, 214, 0.24);
-      background: rgba(111, 184, 214, 0.12);
-      color: rgba(221, 237, 245, 0.88);
-      font-size: 0.82rem;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.84rem;
       font-weight: 700;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
+      color: rgba(191, 214, 228, 0.8);
     }
 
-    .home-page h1 {
-      margin: 0;
-      font-size: clamp(3rem, 7vw, 5rem);
+    .home-hero-copy h1 {
+      margin: 12px 0 14px;
+      font-size: clamp(2.9rem, 6vw, 5.2rem);
       line-height: 0.95;
-      letter-spacing: -0.04em;
+      letter-spacing: -0.03em;
     }
 
-    .home-page .hero-lead {
+    .home-lead,
+    .home-highlight-text {
+      max-width: 780px;
       margin: 0;
-      max-width: 760px;
-      font-size: 1.08rem;
+      font-size: 1.05rem;
       line-height: 1.72;
-      color: rgba(223, 234, 241, 0.86);
+      color: rgba(220, 230, 238, 0.84);
     }
 
-    .home-page .hero-actions {
+    .home-hero-actions {
+      margin-top: 28px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .cta-tool {
+      position: relative;
+      display: grid;
+      gap: 6px;
+      padding: 18px 22px;
+      border-radius: 20px;
+      text-decoration: none;
+      color: #f8fcff;
+      border: 1px solid rgba(126, 203, 240, 0.64);
+      background:
+        radial-gradient(circle at 15% 20%, rgba(183, 229, 255, 0.14), transparent 30%),
+        linear-gradient(180deg, rgba(111, 184, 214, 0.42), rgba(111, 184, 214, 0.2)),
+        rgba(22, 40, 54, 0.98);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 0 0 1px rgba(111, 184, 214, 0.1),
+        0 18px 36px rgba(0, 0, 0, 0.22);
+      transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        background 0.18s ease;
+    }
+
+    .cta-tool:hover {
+      transform: translateY(-1px);
+      border-color: rgba(157, 222, 255, 0.9);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 0 0 4px rgba(111, 184, 214, 0.14),
+        0 22px 42px rgba(0, 0, 0, 0.24);
+      background:
+        radial-gradient(circle at 15% 20%, rgba(183, 229, 255, 0.18), transparent 32%),
+        linear-gradient(180deg, rgba(111, 184, 214, 0.5), rgba(111, 184, 214, 0.24)),
+        rgba(22, 40, 54, 1);
+    }
+
+    .cta-tool__eyebrow {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(224, 241, 251, 0.8);
+    }
+
+    .cta-tool__label {
+      font-size: clamp(1.35rem, 3.2vw, 1.9rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+
+    .cta-tool__meta {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: rgba(230, 242, 250, 0.86);
+    }
+
+    .home-secondary-actions {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      align-items: center;
     }
 
-    .home-page .hero-tool-btn {
-      display: inline-grid;
-      gap: 5px;
-      min-width: 320px;
-      padding: 16px 20px 17px;
-      border-radius: 18px;
-      border: 1px solid rgba(111, 184, 214, 0.96);
-      background:
-        linear-gradient(180deg, rgba(111, 184, 214, 0.64), rgba(111, 184, 214, 0.36)),
-        rgba(18, 34, 46, 0.98);
-      color: #f8fcff;
-      text-decoration: none;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.18),
-        0 0 0 1px rgba(111, 184, 214, 0.2),
-        0 18px 40px rgba(0, 0, 0, 0.24),
-        0 0 36px rgba(111, 184, 214, 0.18);
-      transition:
-        transform 0.18s ease,
-        box-shadow 0.18s ease,
-        border-color 0.18s ease,
-        background 0.18s ease;
-    }
-
-    .home-page .hero-tool-btn:hover {
-      transform: translateY(-1px);
-      border-color: rgba(111, 184, 214, 1);
-      background:
-        linear-gradient(180deg, rgba(111, 184, 214, 0.76), rgba(111, 184, 214, 0.42)),
-        rgba(18, 34, 46, 1);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        0 0 0 1px rgba(111, 184, 214, 0.24),
-        0 20px 42px rgba(0, 0, 0, 0.26),
-        0 0 44px rgba(111, 184, 214, 0.22);
-    }
-
-    .home-page .hero-tool-btn__eyebrow {
-      font-size: 0.78rem;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: rgba(234, 246, 255, 0.82);
-    }
-
-    .home-page .hero-tool-btn__label {
-      font-size: 1.28rem;
-      font-weight: 800;
-      line-height: 1.12;
-      color: #ffffff;
-    }
-
-    .home-page .hero-tool-btn__subline {
-      color: rgba(235, 246, 252, 0.82);
-      font-size: 0.93rem;
-      line-height: 1.45;
-      font-weight: 600;
-    }
-
-    .home-page .hero-link-btn {
+    .secondary-link {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 50px;
-      padding: 0 18px;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(255, 255, 255, 0.04);
-      color: rgba(245, 249, 252, 0.96);
+      min-height: 46px;
+      padding: 0 16px;
+      border-radius: 999px;
       text-decoration: none;
-      font-weight: 700;
+      color: rgba(240, 247, 251, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.045);
       transition:
         transform 0.18s ease,
         border-color 0.18s ease,
         background 0.18s ease;
     }
 
-    .home-page .hero-link-btn:hover {
+    .secondary-link:hover {
       transform: translateY(-1px);
-      border-color: rgba(255, 255, 255, 0.24);
+      border-color: rgba(111, 184, 214, 0.38);
       background: rgba(255, 255, 255, 0.065);
     }
 
-    .home-page .hero-points {
-      margin: 0;
-      padding-left: 18px;
+    .hero-panel-card {
+      height: 100%;
       display: grid;
-      gap: 8px;
-      color: rgba(215, 227, 236, 0.84);
-      line-height: 1.55;
-    }
-
-    .home-page .hero-side {
-      display: grid;
-      gap: 14px;
-      align-content: stretch;
-    }
-
-    .home-page .hero-panel {
-      display: grid;
-      gap: 10px;
-      padding: 18px;
-      border-radius: 18px;
+      gap: 16px;
+      padding: 22px;
+      border-radius: 22px;
       border: 1px solid rgba(255, 255, 255, 0.08);
       background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.025)),
-        rgba(12, 20, 28, 0.72);
+        rgba(15, 23, 32, 0.8);
     }
 
-    .home-page .hero-panel--tool {
-      border-color: rgba(111, 184, 214, 0.3);
-      background:
-        linear-gradient(180deg, rgba(111, 184, 214, 0.12), rgba(255, 255, 255, 0.03)),
-        rgba(12, 20, 28, 0.82);
-    }
-
-    .home-page .hero-panel__label,
-    .home-page .utility-strip__label,
-    .home-page .entry-card__kicker,
-    .home-page .editorial-card__label {
-      font-size: 0.78rem;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: rgba(202, 221, 233, 0.74);
-    }
-
-    .home-page .hero-panel strong,
-    .home-page .entry-card strong,
-    .home-page .editorial-card h2,
-    .home-page .utility-strip h2 {
-      color: rgba(245, 249, 252, 0.98);
-    }
-
-    .home-page .hero-panel p,
-    .home-page .entry-card p,
-    .home-page .editorial-card p,
-    .home-page .utility-strip p,
-    .home-page .section-head p {
-      margin: 0;
-      color: rgba(214, 226, 235, 0.82);
-      line-height: 1.65;
-    }
-
-    .home-page .hero-panel__cta,
-    .home-page .editorial-card__link {
-      width: fit-content;
-      color: #dff2ff;
-      text-decoration: none;
-      font-weight: 700;
-    }
-
-    .home-page .hero-panel__cta--primary,
-    .home-page .editorial-card__link--strong {
+    .hero-panel-badge {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      min-height: 44px;
-      padding: 0 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(111, 184, 214, 0.78);
-      background:
-        linear-gradient(180deg, rgba(111, 184, 214, 0.52), rgba(111, 184, 214, 0.3)),
-        rgba(20, 40, 54, 0.98);
-      color: #f8fcff;
+      width: fit-content;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(111, 184, 214, 0.36);
+      background: rgba(111, 184, 214, 0.16);
+      color: rgba(232, 246, 254, 0.95);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
 
-    .home-page .section-block {
-      display: grid;
-      gap: 14px;
+    .hero-panel-card h2,
+    .home-section-head h2,
+    .home-highlight h2 {
+      margin: 0;
+      font-size: clamp(1.7rem, 2.6vw, 2.35rem);
+      line-height: 1.06;
+      letter-spacing: -0.02em;
     }
 
-    .home-page .section-head h2 {
-      margin: 0 0 6px;
-      font-size: clamp(1.7rem, 3vw, 2.25rem);
-    }
-
-    .home-page .entry-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .home-page .entry-card {
+    .hero-panel-list {
+      margin: 0;
+      padding-left: 18px;
       display: grid;
       gap: 10px;
-      padding: 18px;
-      border-radius: 18px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.042), rgba(255, 255, 255, 0.02)),
-        rgba(11, 19, 27, 0.8);
-      color: inherit;
-      text-decoration: none;
-      transition:
-        transform 0.18s ease,
-        border-color 0.18s ease,
-        background 0.18s ease;
+      color: rgba(223, 232, 238, 0.86);
+      line-height: 1.55;
     }
 
-    .home-page .entry-card:hover {
-      transform: translateY(-1px);
-      border-color: rgba(255, 255, 255, 0.14);
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.026)),
-        rgba(11, 19, 27, 0.88);
-    }
-
-    .home-page .entry-card--accent {
-      border-color: rgba(111, 184, 214, 0.28);
-      background:
-        linear-gradient(180deg, rgba(111, 184, 214, 0.12), rgba(255, 255, 255, 0.025)),
-        rgba(11, 19, 27, 0.84);
-      box-shadow: 0 0 0 1px rgba(111, 184, 214, 0.05);
-    }
-
-    .home-page .utility-card {
-      border: 1px solid rgba(111, 184, 214, 0.18);
-      background:
-        linear-gradient(180deg, rgba(111, 184, 214, 0.08), rgba(255, 255, 255, 0.025)),
-        rgba(10, 18, 26, 0.8);
-    }
-
-    .home-page .utility-strip {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) auto;
-      gap: 18px;
-      align-items: center;
-    }
-
-    .home-page .utility-strip__actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: flex-end;
-    }
-
-    .home-page .utility-strip__primary,
-    .home-page .utility-strip__secondary {
+    .hero-panel-link {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       min-height: 48px;
-      padding: 0 18px;
-      border-radius: 12px;
+      padding: 0 16px;
+      width: fit-content;
+      border-radius: 14px;
       text-decoration: none;
+      font-weight: 700;
+      color: #eef9ff;
+      border: 1px solid rgba(111, 184, 214, 0.54);
+      background: rgba(111, 184, 214, 0.18);
+    }
+
+    .home-section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .home-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .home-grid--four {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .home-card {
+      display: grid;
+      gap: 12px;
+      padding: 22px;
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      text-decoration: none;
+      color: inherit;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+        rgba(11, 18, 27, 0.86);
+      transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+    }
+
+    .home-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(111, 184, 214, 0.34);
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.18);
+    }
+
+    .home-card--tool {
+      border-color: rgba(111, 184, 214, 0.36);
+      background:
+        radial-gradient(circle at 12% 18%, rgba(111, 184, 214, 0.1), transparent 30%),
+        linear-gradient(180deg, rgba(111, 184, 214, 0.08), rgba(255, 255, 255, 0.02)),
+        rgba(11, 18, 27, 0.9);
+    }
+
+    .home-card h3 {
+      margin: 0;
+      font-size: 1.22rem;
+      line-height: 1.15;
+    }
+
+    .home-card p,
+    .highlight-point span {
+      margin: 0;
+      color: rgba(218, 229, 237, 0.82);
+      line-height: 1.6;
+    }
+
+    .home-card-link {
+      color: rgba(201, 233, 248, 0.96);
       font-weight: 700;
     }
 
-    .home-page .utility-strip__primary {
-      border: 1px solid rgba(111, 184, 214, 0.82);
-      background:
-        linear-gradient(180deg, rgba(111, 184, 214, 0.56), rgba(111, 184, 214, 0.32)),
-        rgba(20, 40, 54, 0.98);
-      color: #f8fcff;
-    }
-
-    .home-page .utility-strip__secondary {
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(255, 255, 255, 0.04);
-      color: rgba(245, 249, 252, 0.96);
-    }
-
-    .home-page .editorial-grid {
+    .home-highlight-points {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 14px;
     }
 
-    .home-page .editorial-card {
+    .highlight-point {
+      display: grid;
+      gap: 6px;
+      padding: 16px 18px;
+      border-radius: 18px;
       border: 1px solid rgba(255, 255, 255, 0.08);
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.042), rgba(255, 255, 255, 0.02)),
-        rgba(10, 18, 26, 0.78);
+      background: rgba(255, 255, 255, 0.03);
     }
 
-    .home-page .editorial-card--accent {
-      border-color: rgba(111, 184, 214, 0.24);
-      background:
-        linear-gradient(180deg, rgba(111, 184, 214, 0.1), rgba(255, 255, 255, 0.022)),
-        rgba(10, 18, 26, 0.82);
+    .highlight-point strong {
+      font-size: 1rem;
+      color: rgba(245, 249, 252, 0.98);
     }
 
-    @media (max-width: 980px) {
-      .home-page .hero-grid,
-      .home-page .utility-strip,
-      .home-page .entry-grid,
-      .home-page .editorial-grid {
+    @media (max-width: 1100px) {
+      .home-hero-grid,
+      .home-highlight-grid,
+      .home-grid--four {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .home-hero-grid,
+      .home-highlight-grid,
+      .home-grid--four {
         grid-template-columns: 1fr;
       }
 
-      .home-page .utility-strip__actions {
-        justify-content: flex-start;
-      }
-    }
-
-    @media (max-width: 720px) {
-      .home-page {
-        padding: 18px 0 28px;
+      .home-hero-grid,
+      .home-highlight-grid {
+        padding: 24px;
       }
 
-      .home-page .hero-actions,
-      .home-page .utility-strip__actions {
-        display: grid;
+      .home-hero-copy h1 {
+        font-size: clamp(2.5rem, 12vw, 4rem);
       }
 
-      .home-page .hero-tool-btn,
-      .home-page .hero-link-btn,
-      .home-page .utility-strip__primary,
-      .home-page .utility-strip__secondary {
-        width: 100%;
-      }
-
-      .home-page .hero-tool-btn {
-        min-width: 0;
+      .cta-tool {
+        padding: 16px 18px;
       }
     }
   </style>
