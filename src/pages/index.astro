@@ -7,7 +7,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   description="NESDZ : édito, articles et annuaire des ULM (fiches techniques + vidéos)."
 >
   <section class="hero home-restore-hero">
-    <div class="container hero-grid home-restore-grid">
+    <div class="container home-hero-grid">
       <article class="card hero-card home-main-card">
         <div class="meta">
           <a class="pill" href="/journal/">Journal</a>
@@ -23,11 +23,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           pour apprendre, comparer, rêver… et garder la tête froide quand le vent se lève.
         </p>
 
-        <div class="actions home-main-actions">
-          <a class="btn home-tool-btn" href="/outils/">
-            <span class="home-tool-btn__eyebrow">Outil pilote</span>
-            <span class="home-tool-btn__label">Météo &amp; terrains</span>
-          </a>
+        <div class="actions">
           <a class="btn" href="/journal/">Lire le journal</a>
           <a class="btn" href="/modeles/">Explorer l’annuaire</a>
         </div>
@@ -50,12 +46,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           />
 
           <h2 style="margin-top:10px;">L’Esprit ULM : Manifeste pour un ciel libre et responsable</h2>
+
           <p>
             Pour le lancement de ce nouveau journal, nous explorons ce qui définit l’essence profonde
             de l’aviation ultralégère. Entre prouesses technologiques et héritage des pionniers,
             découvrez pourquoi l’ULM est bien plus qu’un loisir : c’est une école de la responsabilité
             et une quête de liberté absolue, portée par le souvenir de figures inspirantes comme Thierry Barbier.
           </p>
+
           <a class="btn" href="/journal/2026-01-edito-nesdz/">Ouvrir l’article</a>
         </div>
       </article>
@@ -68,32 +66,49 @@ import BaseLayout from "../layouts/BaseLayout.astro";
               <span class="pill">5</span>
             </div>
 
-            <div class="list" style="margin-top:12px;">
-              <a class="item" href="/journal/2026-01-edito-nesdz/">
-                <div class="t">L’Esprit ULM : Manifeste pour un ciel libre et responsable</div>
-                <div class="s">Pour le lancement de ce nouveau journal, nous explorons ce qui définit l’essence profonde de l’aviation ultralégère.</div>
-              </a>
+            <ul class="home-article-list">
+              <li class="home-article-item">
+                <a class="home-article-link" href="/journal/2026-01-edito-nesdz/">
+                  <div class="home-article-meta">
+                    <span class="home-article-highlight">Mis à jour</span>
+                    <time datetime="2026-02-27T00:00:00.000Z">27 févr. 2026</time>
+                  </div>
+                  <h3>L’Esprit ULM : Manifeste pour un ciel libre et responsable</h3>
+                  <p>
+                    Pour le lancement de ce nouveau journal, nous explorons ce qui définit l’essence
+                    profonde de l’aviation ultralégère. Entre prouesses technologiques et héritage des
+                    pionniers, découvrez pourquoi l’ULM est bien plus qu’un loisir : c’est une école de
+                    la responsabilité et une quête de liberté absolue.
+                  </p>
+                </a>
+              </li>
 
-              <a class="item" href="/journal/choisir-son-ulm/">
-                <div class="t">Choisir son ULM : une méthode simple (et anti-auto-mensonge)</div>
-                <div class="s">Mission, budget, hangar, entretien, revente : une méthode plus utile qu’un coup de cœur mal cadré.</div>
-              </a>
+              <li class="home-article-item">
+                <a class="home-article-link" href="/journal/2026-02-choisir-ulm/">
+                  <div class="home-article-meta">
+                    <time datetime="2026-02-02T00:00:00.000Z">2 févr. 2026</time>
+                  </div>
+                  <h3>Choisir son ULM : une méthode simple (et anti-auto-mensonge)</h3>
+                  <p>
+                    Avant de regarder les photos, regarde ton usage : terrain, météo, budget,
+                    maintenance, objectifs.
+                  </p>
+                </a>
+              </li>
 
-              <a class="item" href="/journal/approche-stabilisee-ulm/">
-                <div class="t">Approche stabilisée en ULM : ce qu’on croit savoir… et ce qu’on oublie</div>
-                <div class="s">Une approche propre se prépare bien avant la courte finale : trajectoire, énergie, vent et discipline.</div>
-              </a>
-
-              <a class="item" href="/journal/comparer-tube-toile-et-composite/">
-                <div class="t">Tube-toile ou composite : comparer sans religion</div>
-                <div class="s">Deux philosophies d’appareil, deux logiques d’usage. On compare sans caricature.</div>
-              </a>
-
-              <a class="item" href="/journal/lire-le-vent-sans-se-raconter-d-histoires/">
-                <div class="t">Lire le vent sans se raconter d’histoires</div>
-                <div class="s">Manche à air, arbres, relief, gradient… pour décider sans panique.</div>
-              </a>
-            </div>
+              <li class="home-article-item">
+                <a class="home-article-link" href="/journal/2025-12-metrologie-du-vent/">
+                  <div class="home-article-meta">
+                    <time datetime="2025-12-14T00:00:00.000Z">14 déc. 2025</time>
+                  </div>
+                  <h3>Lire le vent comme un pilote (pas comme une appli)</h3>
+                  <p>
+                    Comprendre les indices sur le terrain : fumées, arbres, relief, gradient…
+                    pour décider sans panique.
+                  </p>
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
 
@@ -104,26 +119,146 @@ import BaseLayout from "../layouts/BaseLayout.astro";
               <span class="pill">4</span>
             </div>
 
-            <div class="list" style="margin-top:12px;">
-              <a class="item" href="/modeles/aeroprakt-a-22-foxbat/">
-                <div class="t">Aeroprakt A-22 (Foxbat)</div>
-                <div class="s">Aeroprakt · Multiaxe · 2 places · Rotax 912 UL / 912 ULS · Croisière ~150 km/h</div>
-              </a>
+            <div class="home-model-list">
+              <article class="home-model-item">
+                <a
+                  class="home-model-link"
+                  href="/modeles/aeroprakt-a-22-foxbat/"
+                  aria-label="Ouvrir la fiche modèle : Aeroprakt A-22 (Foxbat)"
+                ></a>
 
-              <a class="item" href="/modeles/aeroprakt-a-32-vixxen/">
-                <div class="t">Aeroprakt A-32 Vixxen</div>
-                <div class="s">Aeroprakt · Multiaxe · 2 places · Voyage rapide · Cellule moderne</div>
-              </a>
+                <div class="home-model-content">
+                  <div class="home-model-head">
+                    <div class="home-model-text">
+                      <div class="t">Aeroprakt A-22 (Foxbat)</div>
+                      <div class="s">
+                        Aeroprakt · Multiaxe · 2 places · Rotax 912 UL / 912 ULS (selon versions) ·
+                        Croisière ~150 km/h
+                      </div>
+                    </div>
 
-              <a class="item" href="/modeles/airborne-xt-912/">
-                <div class="t">Airborne XT-912</div>
-                <div class="s">Pendulaire · 2 places · Rotax 912 · Voyage et balade</div>
-              </a>
+                    <div class="home-model-status">
+                      <span
+                        class="pill"
+                        aria-label="Statut éditorial : fiche enrichie"
+                        title="Statut éditorial : fiche enrichie"
+                      >
+                        Enrichie
+                      </span>
+                    </div>
+                  </div>
 
-              <a class="item" href="/modeles/bristell-b23/">
-                <div class="t">Bristell B23 / famille Bristell</div>
-                <div class="s">Voyage · Composite / métal selon versions · Finition premium</div>
-              </a>
+                  <div class="home-model-meta">
+                    <a class="pill home-model-tag" href="/tags/stol/" title="Tag : stol">stol</a>
+                    <a class="pill home-model-tag" href="/tags/ecole/" title="Tag : ecole">ecole</a>
+                    <a class="pill home-model-tag" href="/tags/aluminium/" title="Tag : aluminium">aluminium</a>
+                  </div>
+                </div>
+              </article>
+
+              <article class="home-model-item">
+                <a
+                  class="home-model-link"
+                  href="/modeles/aeroprakt-a-32-vixxen/"
+                  aria-label="Ouvrir la fiche modèle : Aeroprakt A-32 Vixxen"
+                ></a>
+
+                <div class="home-model-content">
+                  <div class="home-model-head">
+                    <div class="home-model-text">
+                      <div class="t">Aeroprakt A-32 Vixxen</div>
+                      <div class="s">
+                        Aeroprakt · Multiaxe · 2 places · Rotax 912 ULS · Croisière ~175 km/h
+                      </div>
+                    </div>
+
+                    <div class="home-model-status">
+                      <span
+                        class="pill"
+                        aria-label="Statut éditorial : fiche enrichie"
+                        title="Statut éditorial : fiche enrichie"
+                      >
+                        Enrichie
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="home-model-meta">
+                    <a class="pill home-model-tag" href="/tags/voyage/" title="Tag : voyage">voyage</a>
+                    <a class="pill home-model-tag" href="/tags/rapide/" title="Tag : rapide">rapide</a>
+                    <a class="pill home-model-tag" href="/tags/aluminium/" title="Tag : aluminium">aluminium</a>
+                  </div>
+                </div>
+              </article>
+
+              <article class="home-model-item">
+                <a
+                  class="home-model-link"
+                  href="/modeles/aerospool-wt9-dynamic/"
+                  aria-label="Ouvrir la fiche modèle : Aerospool WT9 Dynamic"
+                ></a>
+
+                <div class="home-model-content">
+                  <div class="home-model-head">
+                    <div class="home-model-text">
+                      <div class="t">Aerospool WT9 Dynamic</div>
+                      <div class="s">
+                        Aerospool · Multiaxe · 2 places · Rotax 912 ULS
+                      </div>
+                    </div>
+
+                    <div class="home-model-status">
+                      <span
+                        class="pill"
+                        aria-label="Statut éditorial : fiche enrichie"
+                        title="Statut éditorial : fiche enrichie"
+                      >
+                        Enrichie
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="home-model-meta">
+                    <a class="pill home-model-tag" href="/tags/voyage/" title="Tag : voyage">voyage</a>
+                    <a class="pill home-model-tag" href="/tags/rapide/" title="Tag : rapide">rapide</a>
+                    <a class="pill home-model-tag" href="/tags/composite/" title="Tag : composite">composite</a>
+                  </div>
+                </div>
+              </article>
+
+              <article class="home-model-item">
+                <a
+                  class="home-model-link"
+                  href="/modeles/autogyro-cavalon/"
+                  aria-label="Ouvrir la fiche modèle : AutoGyro Cavalon"
+                ></a>
+
+                <div class="home-model-content">
+                  <div class="home-model-head">
+                    <div class="home-model-text">
+                      <div class="t">AutoGyro Cavalon</div>
+                      <div class="s">
+                        AutoGyro GmbH · Autogire · 2 places · Rotax 915 iS
+                      </div>
+                    </div>
+
+                    <div class="home-model-status">
+                      <span
+                        class="pill"
+                        aria-label="Statut éditorial : fiche enrichie"
+                        title="Statut éditorial : fiche enrichie"
+                      >
+                        Enrichie
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="home-model-meta">
+                    <a class="pill home-model-tag" href="/tags/voyage/" title="Tag : voyage">voyage</a>
+                    <a class="pill home-model-tag" href="/tags/composite/" title="Tag : composite">composite</a>
+                  </div>
+                </div>
+              </article>
             </div>
           </div>
         </div>
@@ -150,9 +285,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                 <h3 style="margin:0;">Journal</h3>
                 <span class="pill">3</span>
               </div>
+
               <p style="margin:8px 0 0; color:var(--muted);">
                 Pilotage, sécurité, météo, navigation, essai, comparatif…
               </p>
+
               <div class="row" style="gap:10px;flex-wrap:wrap;margin-top:12px;">
                 <a class="pill" href="/tags/pilotage/" style="text-decoration:none;">pilotage · 1</a>
                 <a class="pill" href="/tags/meteo/" style="text-decoration:none;">météo · 1</a>
@@ -167,16 +304,18 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                 <h3 style="margin:0;">Modèles ULM</h3>
                 <span class="pill">6</span>
               </div>
+
               <p style="margin:8px 0 0; color:var(--muted);">
                 Voyage, école, STOL, polyvalence, matériaux et profils d’usage.
               </p>
+
               <div class="row" style="gap:10px;flex-wrap:wrap;margin-top:12px;">
                 <a class="pill" href="/tags/voyage/" style="text-decoration:none;">voyage · 23</a>
                 <a class="pill" href="/tags/ecole/" style="text-decoration:none;">école · 16</a>
+                <a class="pill" href="/tags/polyvalent/" style="text-decoration:none;">polyvalent · 11</a>
                 <a class="pill" href="/tags/composite/" style="text-decoration:none;">composite · 10</a>
-                <a class="pill" href="/tags/polyvalent/" style="text-decoration:none;">polyvalent · 9</a>
-                <a class="pill" href="/tags/stol/" style="text-decoration:none;">stol · 8</a>
-                <a class="pill" href="/tags/tube-toile/" style="text-decoration:none;">tube-toile · 6</a>
+                <a class="pill" href="/tags/aluminium/" style="text-decoration:none;">aluminium · 7</a>
+                <a class="pill" href="/tags/stol/" style="text-decoration:none;">stol · 7</a>
               </div>
             </div>
           </div>
@@ -189,6 +328,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <div class="card">
       <div class="pad">
         <h2>La promesse NESDZ</h2>
+
         <div class="grid grid-3" style="margin-top:12px;">
           <div class="card" style="box-shadow:none;">
             <div class="pad">
@@ -220,59 +360,26 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       padding: 34px 0 18px;
     }
 
-    .home-restore-grid {
+    .home-hero-grid {
       display: grid;
+      grid-template-columns: 1fr;
       gap: 18px;
-      grid-template-columns: 1.2fr 0.8fr;
-      align-items: stretch;
+      align-items: start;
+    }
+
+    .home-hero-grid > * {
+      min-width: 0;
+    }
+
+    .home-hero-grid .hero-card,
+    .home-hero-grid .hero-aside {
+      width: 100%;
+      max-width: none;
+      margin: 0;
     }
 
     .home-main-card {
       padding: 22px;
-    }
-
-    .home-main-actions {
-      align-items: stretch;
-    }
-
-    .home-tool-btn {
-      display: inline-grid;
-      gap: 4px;
-      min-width: 260px;
-      padding: 14px 18px;
-      border-radius: 16px;
-      border: 1px solid rgba(125, 211, 252, 0.42);
-      background:
-        linear-gradient(180deg, rgba(125, 211, 252, 0.22), rgba(125, 211, 252, 0.08)),
-        rgba(255, 255, 255, 0.04);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.08),
-        0 0 0 1px rgba(125, 211, 252, 0.08),
-        0 12px 30px rgba(0, 0, 0, 0.18);
-      text-align: left;
-    }
-
-    .home-tool-btn:hover {
-      text-decoration: none;
-      border-color: rgba(125, 211, 252, 0.6);
-      box-shadow:
-        0 0 0 6px rgba(125, 211, 252, 0.16),
-        0 16px 32px rgba(0, 0, 0, 0.22);
-    }
-
-    .home-tool-btn__eyebrow {
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(203, 236, 252, 0.86);
-    }
-
-    .home-tool-btn__label {
-      font-size: 1.26rem;
-      font-weight: 800;
-      line-height: 1.05;
-      color: #f3f9ff;
     }
 
     .home-side-stack {
@@ -289,16 +396,149 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       object-fit: cover;
     }
 
-    @media (max-width: 980px) {
-      .home-restore-grid {
-        grid-template-columns: 1fr;
+    .home-article-list {
+      list-style: none;
+      padding: 0;
+      margin: 18px 0 0;
+      display: grid;
+      gap: 18px;
+    }
+
+    .home-article-item {
+      margin: 0;
+      padding: 0;
+    }
+
+    .home-article-link {
+      display: block;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .home-article-link:hover h3 {
+      color: #8bdcff;
+    }
+
+    .home-article-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .home-article-highlight {
+      color: #67d9ff;
+      font-weight: 700;
+    }
+
+    .home-article-link h3 {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.35;
+      transition: color 0.2s ease;
+    }
+
+    .home-article-link p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.55;
+    }
+
+    .home-model-list {
+      margin-top: 12px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .home-model-item {
+      position: relative;
+      display: block;
+      color: inherit;
+      text-decoration: none;
+      padding: 14px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .home-model-item:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .home-model-link {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
+    .home-model-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .home-model-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .home-model-text {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .home-model-text .t {
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .home-model-text .s {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.5;
+    }
+
+    .home-model-status {
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-start;
+      flex: 0 0 auto;
+    }
+
+    .home-model-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .home-model-tag {
+      position: relative;
+      z-index: 3;
+      text-decoration: none;
+    }
+
+    @media (min-width: 1100px) {
+      .home-hero-grid {
+        grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.9fr);
       }
     }
 
     @media (max-width: 720px) {
-      .home-tool-btn {
+      .home-model-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .home-model-status {
+        justify-content: flex-start;
         width: 100%;
-        min-width: 0;
       }
     }
   </style>
