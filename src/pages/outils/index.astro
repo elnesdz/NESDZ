@@ -1047,12 +1047,21 @@ function normalizeUlmDetailsRecord(item) {
           <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="rgba(90, 203, 255, 0.18)" stroke-width="11" stroke-linecap="round" />
         ` : "";
 
-        const prefStartDot = isPreferredStart
-          ? `<circle cx="${start.x}" cy="${start.y}" r="4.5" fill="#f6b26b" stroke="rgba(255,255,255,0.48)" stroke-width="1" />`
-          : "";
-        const prefEndDot = isPreferredEnd
-          ? `<circle cx="${end.x}" cy="${end.y}" r="4.5" fill="#f6b26b" stroke="rgba(255,255,255,0.48)" stroke-width="1" />`
-          : "";
+const prefStartDot = isPreferredStart
+  ? `
+    <circle cx="${start.x}" cy="${start.y}" r="11" fill="rgba(246, 178, 107, 0.14)" />
+    <circle cx="${start.x}" cy="${start.y}" r="7.5" fill="none" stroke="rgba(246, 178, 107, 0.90)" stroke-width="2.2" />
+    <circle cx="${start.x}" cy="${start.y}" r="3.2" fill="#f6b26b" stroke="rgba(255,255,255,0.55)" stroke-width="0.9" />
+  `
+  : "";
+
+const prefEndDot = isPreferredEnd
+  ? `
+    <circle cx="${end.x}" cy="${end.y}" r="11" fill="rgba(246, 178, 107, 0.14)" />
+    <circle cx="${end.x}" cy="${end.y}" r="7.5" fill="none" stroke="rgba(246, 178, 107, 0.90)" stroke-width="2.2" />
+    <circle cx="${end.x}" cy="${end.y}" r="3.2" fill="#f6b26b" stroke="rgba(255,255,255,0.55)" stroke-width="0.9" />
+  `
+  : "";
 
         return `
           ${glow}
