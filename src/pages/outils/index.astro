@@ -1982,6 +1982,7 @@ renderPlatformBlock(matchedUlm, matchedUlmDetails);
             icao,
             matchedAirport,
             matchedUlm,
+            matchedUlmDetails,
             matchedFrequency,
             metarMessage:
               `Aucune météo exploitable trouvée pour ${icao}. Ce terrain ne publie peut-être pas de METAR, ou la source n’a pas de donnée disponible actuellement.`,
@@ -1999,6 +2000,7 @@ renderPlatformBlock(matchedUlm, matchedUlmDetails);
             icao,
             matchedAirport,
             matchedUlm,
+            matchedUlmDetails,
             matchedFrequency,
             metarMessage:
               `Aucune observation METAR trouvée pour ${icao}. Vérifie le code OACI ou teste un terrain disposant d’une météo publiée.`,
@@ -2015,6 +2017,7 @@ renderPlatformBlock(matchedUlm, matchedUlmDetails);
             icao,
             matchedAirport,
             matchedUlm,
+            matchedUlmDetails,
             matchedFrequency,
             metarMessage: `Réponse météo inexploitable pour ${icao}.`,
             tafMessage: `Réponse prévision inexploitable pour ${icao}.`,
@@ -2028,6 +2031,7 @@ renderPlatformBlock(matchedUlm, matchedUlmDetails);
             icao,
             matchedAirport,
             matchedUlm,
+            matchedUlmDetails,
             matchedFrequency,
             metarMessage:
               `Aucune observation METAR exploitable trouvée pour ${icao}.`,
@@ -2063,6 +2067,7 @@ renderPlatformBlock(matchedUlm, matchedUlmDetails);
           icao,
           matchedAirport,
           matchedUlm,
+          matchedUlmDetails,
           matchedFrequency,
           metarMessage:
             `Impossible de joindre la météo pour ${icao} pour le moment. Réessaie dans quelques instants ou teste un terrain plus couvert comme LFQQ ou LFPN.`,
