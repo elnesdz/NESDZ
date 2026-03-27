@@ -1648,36 +1648,47 @@ async function applyMissingLocalWeatherState({
       nearbyAirports.appendChild(li);
     }
 
-    function renderUlmNearbyItem(item) {
-      const li = document.createElement("li");
-      li.className = "nearby-item";
+function renderUlmNearbyItem(item) {
+  const li = document.createElement("li");
+  li.className = "nearby-item";
 
-      const card = document.createElement("div");
-      card.className =
-        "airport-nearby-card airport-nearby-card--static airport-nearby-card--ulm";
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className =
+    "airport-nearby-card airport-nearby-card--clickable airport-nearby-card--ulm";
 
-      const accessLine = item.accessLabel
-        ? `<div class="airport-nearby-access">${item.accessLabel}</div>`
-        : "";
+  const accessLine = item.accessLabel
+    ? `<div class="airport-nearby-access">${item.accessLabel}</div>`
+    : "";
 
-      const weatherLine = item.weatherCapable
-        ? `<div class="airport-nearby-note">Code météo possible : ${item.weatherCode}</div>`
-        : `<div class="airport-nearby-note">Pas de METAR / TAF direct dans l’outil</div>`;
+  const weatherLine = item.weatherCapable
+    ? `<div class="airport-nearby-note">Code météo possible : ${item.weatherCode}</div>`
+    : `<div class="airport-nearby-note">Repère météo voisin si disponible</div>`;
 
-      card.innerHTML = `
-        <div class="airport-nearby-top">
-          <strong>${item.code || "Plateforme locale"}</strong>
-          <span>${formatDistanceLabel(item.distanceKm)}</span>
-        </div>
-        <div class="airport-nearby-name">${item.name}</div>
-        <div class="airport-nearby-meta">${item.operationalLabel}</div>
-        ${accessLine}
-        ${weatherLine}
-      `;
+  button.innerHTML = `
+    <div class="airport-nearby-top">
+      <strong>${item.code || "Plateforme locale"}</strong>
+      <span>${formatDistanceLabel(item.distanceKm)}</span>
+    </div>
+    <div class="airport-nearby-name">${item.name}</div>
+    <div class="airport-nearby-meta">${item.operationalLabel}</div>
+    ${accessLine}
+    ${weatherLine}
+    <div class="airport-nearby-action">Ouvrir la plateforme</div>
+  `;
 
-      li.appendChild(card);
-      nearbyAirports.appendChild(li);
-    }
+  button.addEventListener("click", () => {
+    const targetCode = item.code || item.weatherCode || "";
+    if (!targetCode) return;
+
+    icaoInput.value = targetCode;
+    loadMetar();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  li.appendChild(button);
+  nearbyAirports.appendChild(li);
+}
 
     async function loadMetar() {
       const icao = normalizeCode(icaoInput?.value);
