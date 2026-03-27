@@ -259,8 +259,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
   <script>
     const WORKER_URL = "https://metar-proxy-nesdz.elnesdz.workers.dev/";
     const AIRPORTS_URL = "/data/airports-fr-full.json";
-    const ULM_URL = "/data/ulm-fr.json";
-    const FREQUENCIES_URL = "/data/frequencies-fr-merged.json";
+const ULM_URL = "/data/ulm-fr.json";
+const ULM_DETAILS_URL = "/data/ulm-fr-details.json";
+const FREQUENCIES_URL = "/data/frequencies-fr-merged.json";
     const WEATHER_REFERENCE_MAX_KM = 50 * 1.852;
 
     const icaoInput = document.getElementById("icaoInput");
@@ -287,6 +288,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     const weatherRefsBlock = document.getElementById("weatherRefsBlock");
     const weatherRefsList = document.getElementById("weatherRefsList");
+const platformBlock = document.getElementById("platformBlock");
+const platformTypeValue = document.getElementById("platformTypeValue");
+const platformAccessValue = document.getElementById("platformAccessValue");
+const platformRadioValue = document.getElementById("platformRadioValue");
+const platformContactValue = document.getElementById("platformContactValue");
+const platformSiteValue = document.getElementById("platformSiteValue");
+const platformRunwaysValue = document.getElementById("platformRunwaysValue");
+const platformNotesValue = document.getElementById("platformNotesValue");
 
     let airportsCache = null;
     let airportsPromise = null;
@@ -296,6 +305,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     let frequenciesCache = null;
     let frequenciesPromise = null;
+let ulmDetailsCache = null;
+let ulmDetailsPromise = null;
 
     function resetDecoded() {
       statusValue.textContent = "Aucune donnée";
@@ -624,7 +635,191 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         return null;
       }
     }
+function normalizeUlmDetailsRecord(item) {
+  return {
+    ...item,
+    code: normalizeCode(item?.code || ""),
+    operationalLabel: item?.operational_label || "Plateforme spécifique",
+    accessTags: Array.isArray(item?.access_tags) ? item.access_tags : [],
+    runways: Array.isArray(item?.runways) ? item.runways : [],
+    radio: item?.radio || { documented: false, value: null },
+    contact: item?.contact || {},
+    notes: item?.notes || {},
+  };
+}
 
+async function loadUlmDetails() {
+  if (ulmDetailsCache) return ulmDetailsCache;
+
+  if (!ulmDetailsPromise) {
+    ulmDetailsPromise = fetch(ULM_DETAILS_URL)
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error("Impossible de charger la base ULM détaillée.");
+        }
+
+        const data = await res.json();
+
+        if (!Array.isArray(data)) {
+          throw new Error("Format JSON inattendu pour la base ULM détaillée.");
+        }
+
+        ulmDetailsCache = data.map(normalizeUlmDetailsRecord);
+        return ulmDetailsCache;
+      })
+      .catch((error) => {
+        ulmDetailsPromise = null;
+        throw error;
+      });
+  }
+
+  return ulmDetailsPromise;
+}
+
+async function findUlmDetailsByCode(code) {
+  const normalized = normalizeCode(code);
+  if (!normalized) return null;
+
+  try {
+    const details = await loadUlmDetails();
+    return details.find((item) => item.code === normalized) || null;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+function formatRunwaySurfaceLabel(surface) {
+  const value = String(surface || "").trim().toLowerCase();
+
+  if (!value) return "surface non précisée";
+  if (value.includes("herbe") || value.includes("grass")) return "herbe";
+  if (
+    value.includes("asphalt") ||
+    value.includes("bitume") ||
+    value.includes("concrete") ||
+    value.includes("dur") ||
+    value.includes("paved")
+  ) {
+    return "dur";
+  }
+  if (value.includes("terre") || value.includes("earth")) return "terre";
+
+  return surface;
+}
+
+function formatRunwaysSummary(runways = []) {
+  if (!Array.isArray(runways) || runways.length === 0) {
+    return "Aucune piste documentée dans la base";
+  }
+
+  return runways
+    .slice(0, 2)
+    .map((runway) => {
+      const parts = [];
+
+      if (runway.ident) parts.push(runway.ident);
+      else if (runway.orientation_raw) parts.push(runway.orientation_raw);
+
+      if (runway.length_m) parts.push(`${runway.length_m} m`);
+      if (runway.width_m) parts.push(`${runway.width_m} m`);
+
+      parts.push(formatRunwaySurfaceLabel(runway.surface));
+
+      if (runway.preferred_orientation_raw) {
+        parts.push(`préférentielle ${runway.preferred_orientation_raw}`);
+      }
+
+      return parts.join(" · ");
+    })
+    .join(" / ");
+}
+
+function formatContactSummary(contact = {}) {
+  const phones = [contact.phone_1, contact.phone_2].filter(Boolean);
+  if (phones.length) return phones.join(" / ");
+  if (contact.name) return contact.name;
+  return "Non documenté";
+}
+
+function formatSiteSummary(contact = {}) {
+  const parts = [];
+  if (contact.website) parts.push(contact.website);
+  if (contact.manager) parts.push(contact.manager);
+  return parts.length ? parts.join(" · ") : "Non documenté";
+}
+
+function formatNotesSummary(details) {
+  const consignes = details?.notes?.consignes;
+  const infos = details?.notes?.infos;
+
+  if (consignes) return consignes;
+  if (infos) return infos;
+
+  return "Aucune consigne documentée";
+}
+
+function resetPlatformBlock() {
+  if (platformBlock) platformBlock.hidden = true;
+  if (platformTypeValue) platformTypeValue.textContent = "—";
+  if (platformAccessValue) platformAccessValue.textContent = "—";
+  if (platformRadioValue) platformRadioValue.textContent = "—";
+  if (platformContactValue) platformContactValue.textContent = "—";
+  if (platformSiteValue) platformSiteValue.textContent = "—";
+  if (platformRunwaysValue) platformRunwaysValue.textContent = "—";
+  if (platformNotesValue) platformNotesValue.textContent = "—";
+}
+
+function renderPlatformBlock(matchedUlm, matchedUlmDetails) {
+  if (
+    !platformBlock ||
+    !platformTypeValue ||
+    !platformAccessValue ||
+    !platformRadioValue ||
+    !platformContactValue ||
+    !platformSiteValue ||
+    !platformRunwaysValue ||
+    !platformNotesValue
+  ) {
+    return;
+  }
+
+  if (!matchedUlm) {
+    tafSummaryValue.textContent = "Aucune donnée";
+resetPlatformBlock();
+    return;
+  }
+
+  platformTypeValue.textContent =
+    matchedUlmDetails?.operationalLabel ||
+    matchedUlm.operationalLabel ||
+    "Plateforme spécifique";
+
+  platformAccessValue.textContent =
+    formatAccessTags(matchedUlmDetails?.accessTags || matchedUlm.accessTags || []) ||
+    "Non précisé";
+
+  platformRadioValue.textContent =
+    matchedUlmDetails?.radio?.documented && matchedUlmDetails?.radio?.value
+      ? matchedUlmDetails.radio.value
+      : "Non documentée";
+
+  platformContactValue.textContent = formatContactSummary(
+    matchedUlmDetails?.contact || {}
+  );
+
+  platformSiteValue.textContent = formatSiteSummary(
+    matchedUlmDetails?.contact || {}
+  );
+
+  platformRunwaysValue.textContent = formatRunwaysSummary(
+    matchedUlmDetails?.runways || []
+  );
+
+  platformNotesValue.textContent = formatNotesSummary(matchedUlmDetails);
+
+  platformBlock.hidden = false;
+}
     function normalizeFrequencyItem(entry) {
       return {
         ...entry,
@@ -1769,11 +1964,13 @@ function renderUlmNearbyItem(item) {
 
       tafSummaryValue.textContent = "Chargement...";
 
-      const matchedAirport = await findAirportByCode(icao);
-      const matchedUlm = await findUlmByCode(icao);
-      const matchedFrequency = await findFrequencyByCode(icao);
+const matchedAirport = await findAirportByCode(icao);
+const matchedUlm = await findUlmByCode(icao);
+const matchedUlmDetails = await findUlmDetailsByCode(icao);
+const matchedFrequency = await findFrequencyByCode(icao);
 
-      syncIcaoInUrl(icao);
+syncIcaoInUrl(icao);
+renderPlatformBlock(matchedUlm, matchedUlmDetails);
 
       try {
         const res = await fetch(`${WORKER_URL}?icao=${encodeURIComponent(icao)}`);
