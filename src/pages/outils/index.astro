@@ -82,7 +82,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             </div>
 
             <div class="decoded-card">
-              <span class="decoded-label">Catégorie vol</span>
+              <span class="decoded-label">Catégorie météo</span>
               <strong id="fltCatValue">—</strong>
             </div>
 
@@ -442,11 +442,26 @@ let ulmDetailsPromise = null;
 
     function formatStatus(item) {
       if (!item) return "Aucune donnée";
-      if (item.fltCat === "VFR") return "🟢 Conditions VFR (bonnes)";
-      if (item.fltCat === "MVFR") return "🟡 VFR marginal (à surveiller)";
-      if (item.fltCat === "IFR") return "🔴 IFR (dégradé)";
-      if (item.fltCat === "LIFR") return "🚨 IFR basse (très dégradé)";
+      if (item.fltCat === "VFR") return "🟢 Météo VFR";
+      if (item.fltCat === "MVFR") return "🟡 Météo marginale (MVFR)";
+      if (item.fltCat === "IFR") return "🔴 Météo IFR";
+      if (item.fltCat === "LIFR") return "🚨 Météo LIFR";
       return "Données météo reçues";
+    }
+
+    function formatWeatherCategoryLabel(category) {
+      switch (category) {
+        case "VFR":
+          return "Météo VFR";
+        case "MVFR":
+          return "Météo marginale (MVFR)";
+        case "IFR":
+          return "Météo IFR";
+        case "LIFR":
+          return "Météo LIFR";
+        default:
+          return category || "Non disponible";
+      }
     }
 
     function buildSimpleTaf(rawOb, item, icao) {
@@ -455,11 +470,11 @@ let ulmDetailsPromise = null;
       }
 
       if (item?.fltCat === "VFR") {
-        return "🟢 Prévision favorable : conditions VFR attendues si la tendance se maintient.";
+        return "🟢 Prévision favorable : météo VFR attendue si la tendance se maintient.";
       }
 
       if (item?.fltCat === "MVFR") {
-        return "🟡 Prévision à surveiller : conditions VFR marginales possibles.";
+        return "🟡 Prévision à surveiller : météo marginale (MVFR) possible.";
       }
 
       if (item?.fltCat === "IFR") {
@@ -1569,7 +1584,15 @@ function normalizeFrequencyItem(entry) {
         return;
       }
 
-      radioTypeValue.textContent = getRadioServiceLabel(primaryFrequency);
+      const inferredAfis = Boolean(
+        matchedUlmDetails?.notes?.consignes &&
+        /\bAFIS\b/i.test(matchedUlmDetails.notes.consignes) &&
+        getRadioServiceLabel(primaryFrequency) === "Info"
+      );
+
+      radioTypeValue.textContent = inferredAfis
+        ? "AFIS"
+        : getRadioServiceLabel(primaryFrequency);
       radioValue.textContent =
         formatFrequencyMhz(primaryFrequency.frequency_mhz) || "—";
       radioLabelValue.textContent = getOperationalFrequencyLabel(primaryFrequency);
@@ -1653,19 +1676,19 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
       const identity = formatReferenceIdentity(reference);
 
       if (reference?.snapshot?.fltCat === "VFR") {
-        return `🟢 VFR voisin — ${identity}`;
+        return `🟢 Météo voisine VFR — ${identity}`;
       }
 
       if (reference?.snapshot?.fltCat === "MVFR") {
-        return `🟡 MVFR voisin — ${identity}`;
+        return `🟡 Météo voisine MVFR — ${identity}`;
       }
 
       if (reference?.snapshot?.fltCat === "IFR") {
-        return `🔴 IFR voisin — ${identity}`;
+        return `🔴 Météo voisine IFR — ${identity}`;
       }
 
       if (reference?.snapshot?.fltCat === "LIFR") {
-        return `🚨 LIFR voisin — ${identity}`;
+        return `🚨 Météo voisine LIFR — ${identity}`;
       }
 
       return `Repère météo voisin — ${identity}`;
@@ -1673,7 +1696,7 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
 
 function formatNeighborFlightCategory(reference) {
   const category = reference?.snapshot?.fltCat;
-  return category || "Non disponible";
+  return formatWeatherCategoryLabel(category);
 }
 
     function buildNeighborMetarOutput(reference, targetCode, fallbackMessage) {
@@ -1717,19 +1740,19 @@ TAF voisin indisponible sur ce terrain de référence.`;
       }
 
       if (reference?.snapshot?.fltCat === "VFR") {
-        return `🟢 Tendance voisine VFR — ${identity}`;
+        return `🟢 Tendance météo voisine VFR — ${identity}`;
       }
 
       if (reference?.snapshot?.fltCat === "MVFR") {
-        return `🟡 Tendance voisine MVFR — ${identity}`;
+        return `🟡 Tendance météo voisine MVFR — ${identity}`;
       }
 
       if (reference?.snapshot?.fltCat === "IFR") {
-        return `🔴 Tendance voisine IFR — ${identity}`;
+        return `🔴 Tendance météo voisine IFR — ${identity}`;
       }
 
       if (reference?.snapshot?.fltCat === "LIFR") {
-        return `🚨 Tendance voisine LIFR — ${identity}`;
+        return `🚨 Tendance météo voisine LIFR — ${identity}`;
       }
 
       return `Prévision voisine disponible — ${identity}`;
@@ -1816,7 +1839,7 @@ async function fetchWeatherSnapshot(icao) {
       parts.push(snapshot?.taf ? "TAF disponible" : "TAF indisponible");
 
       if (snapshot?.fltCat) {
-        parts.push(snapshot.fltCat);
+        parts.push(formatWeatherCategoryLabel(snapshot.fltCat));
       }
 
       return parts.join(" · ");
@@ -2303,7 +2326,7 @@ function renderUlmNearbyItem(item) {
         cloudsValue.textContent = formatClouds(item);
         tempValue.textContent = formatTemp(item.temp, item.dewp);
         pressureValue.textContent = formatPressure(item.altim);
-        fltCatValue.textContent = item.fltCat || "—";
+        fltCatValue.textContent = formatWeatherCategoryLabel(item.fltCat);
         renderFrequencyPanel(matchedFrequency, matchedUlmDetails?.radio || null, matchedUlmDetails);
         tafSummaryValue.textContent = buildSimpleTaf(item.taf, item, icao);
       } catch (error) {
