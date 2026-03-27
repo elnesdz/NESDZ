@@ -105,10 +105,30 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                   </div>
                 </div>
 
+                <div id="radioSupportBlock" class="radio-support-grid" hidden>
+                  <div id="radioAtisCard" class="radio-support-card" hidden>
+                    <div class="radio-support-head">
+                      <span class="radio-support-badge">ATIS</span>
+                      <span id="radioAtisSourceValue" class="radio-support-note">Information arrivée / départ</span>
+                    </div>
+                    <div id="radioAtisValue" class="radio-support-main">—</div>
+                    <div id="radioAtisLabel" class="radio-support-label">—</div>
+                  </div>
+
+                  <div id="radioPhoneCard" class="radio-support-card" hidden>
+                    <div class="radio-support-head">
+                      <span class="radio-support-badge">Téléphone publié</span>
+                      <span id="radioPhoneSourceValue" class="radio-support-note">Publié pour le terrain</span>
+                    </div>
+                    <div id="radioPhoneValue" class="radio-support-main">—</div>
+                    <div id="radioPhoneLabel" class="radio-support-label">Coordonnée terrain publiée</div>
+                  </div>
+                </div>
+
                 <div id="radioSecondaryBlock" class="radio-secondary" hidden>
-                 <div class="radio-secondary-title">
-  Fréquences complémentaires
-</div>
+                  <div class="radio-secondary-title">
+                    Fréquences complémentaires
+                  </div>
                   <ul id="radioList" class="radio-list"></ul>
                 </div>
               </div>
@@ -143,8 +163,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             </div>
           </div>
 
-<details id="platformDetailsDisclosure" class="tool-disclosure terrain-disclosure" hidden>
-  <summary>Afficher les détails terrain</summary>
+          <details id="platformDetailsDisclosure" class="tool-disclosure terrain-disclosure" hidden>
+            <summary>Voir détails terrain</summary>
 
             <div class="tool-disclosure-content">
               <p id="platformRadioLine" hidden>
@@ -260,6 +280,15 @@ const FREQUENCIES_URL = "/data/frequencies-fr-merged.json";
     const radioTypeValue = document.getElementById("radioTypeValue");
     const radioLabelValue = document.getElementById("radioLabelValue");
     const radioSourceValue = document.getElementById("radioSourceValue");
+    const radioSupportBlock = document.getElementById("radioSupportBlock");
+    const radioAtisCard = document.getElementById("radioAtisCard");
+    const radioAtisValue = document.getElementById("radioAtisValue");
+    const radioAtisLabel = document.getElementById("radioAtisLabel");
+    const radioAtisSourceValue = document.getElementById("radioAtisSourceValue");
+    const radioPhoneCard = document.getElementById("radioPhoneCard");
+    const radioPhoneValue = document.getElementById("radioPhoneValue");
+    const radioPhoneLabel = document.getElementById("radioPhoneLabel");
+    const radioPhoneSourceValue = document.getElementById("radioPhoneSourceValue");
     const radioSecondaryBlock = document.getElementById("radioSecondaryBlock");
     const radioList = document.getElementById("radioList");
     const tafSummaryValue = document.getElementById("tafSummaryValue");
@@ -311,6 +340,19 @@ let ulmDetailsPromise = null;
       if (radioSourceValue) {
         radioSourceValue.textContent =
           "Radio : SIA prioritaire · BASULM selon terrain.";
+      }
+      if (radioSupportBlock) radioSupportBlock.hidden = true;
+      if (radioAtisCard) radioAtisCard.hidden = true;
+      if (radioAtisValue) radioAtisValue.textContent = "—";
+      if (radioAtisLabel) radioAtisLabel.textContent = "—";
+      if (radioAtisSourceValue) {
+        radioAtisSourceValue.textContent = "Information arrivée / départ";
+      }
+      if (radioPhoneCard) radioPhoneCard.hidden = true;
+      if (radioPhoneValue) radioPhoneValue.textContent = "—";
+      if (radioPhoneLabel) radioPhoneLabel.textContent = "Coordonnée terrain publiée";
+      if (radioPhoneSourceValue) {
+        radioPhoneSourceValue.textContent = "Publié pour le terrain";
       }
       if (radioSecondaryBlock) radioSecondaryBlock.hidden = true;
       if (radioList) radioList.innerHTML = "";
@@ -1122,7 +1164,14 @@ function normalizeFrequencyItem(entry) {
     }
 
     function getRadioServiceLabel(frequency) {
-      switch (getRadioServiceKey(frequency)) {
+      const rawLabel = normalizeRadioText(
+        `${frequency?.label || ""} ${frequency?.description || ""}`
+      ).toUpperCase();
+      const serviceKey = getRadioServiceKey(frequency);
+
+      if (rawLabel.includes("AFIS")) return "AFIS";
+
+      switch (serviceKey) {
         case "tower":
           return "Tour";
         case "ground":
@@ -1151,17 +1200,18 @@ function normalizeFrequencyItem(entry) {
     function getRadioServicePriorityByLabel(serviceLabel) {
       const normalized = normalizeRadioText(serviceLabel).toLowerCase();
 
-      if (normalized === "atis") return 1;
-      if (normalized === "prévol" || normalized === "prevol") return 2;
-      if (normalized === "sol") return 3;
-      if (normalized === "tour") return 4;
-      if (normalized === "trafic") return 5;
-      if (normalized === "approche") return 6;
-      if (normalized === "info") return 7;
+      if (normalized === "tour") return 1;
+      if (normalized === "afis") return 2;
+      if (normalized === "info") return 3;
+      if (normalized === "sol") return 4;
+      if (normalized === "approche") return 5;
+      if (normalized === "trafic") return 6;
+      if (normalized === "auto-information") return 7;
       if (normalized === "départ" || normalized === "depart") return 8;
       if (normalized === "arrivée" || normalized === "arrivee") return 9;
-      if (normalized === "auto-information") return 10;
-      return 99;
+      if (normalized === "prévol" || normalized === "prevol") return 10;
+      if (normalized === "atis") return 99;
+      return 98;
     }
 
     function getRadioServicePriority(frequency) {
@@ -1386,11 +1436,66 @@ function normalizeFrequencyItem(entry) {
       });
     }
 
-    function renderFrequencyPanel(record, fallbackRadio = null) {
+    function formatPublishedPhones(details = null) {
+      const phones = [details?.contact?.phone_1, details?.contact?.phone_2]
+        .map((value) => normalizeRadioText(value))
+        .filter(Boolean);
+
+      return phones;
+    }
+
+    function getAtisDisplayEntries(displayFrequencies = []) {
+      return displayFrequencies.filter(
+        (entry) => getRadioServiceLabel(entry) === "ATIS"
+      );
+    }
+
+    function getPrimaryRadioCandidates(displayFrequencies = []) {
+      return displayFrequencies.filter(
+        (entry) => getRadioServiceLabel(entry) !== "ATIS"
+      );
+    }
+
+    function renderFrequencyPanel(record, fallbackRadio = null, matchedUlmDetails = null) {
       if (!radioValue || !radioTypeValue || !radioLabelValue) return;
 
       if (radioList) radioList.innerHTML = "";
+      if (radioSupportBlock) radioSupportBlock.hidden = true;
+      if (radioAtisCard) radioAtisCard.hidden = true;
+      if (radioPhoneCard) radioPhoneCard.hidden = true;
       if (radioSecondaryBlock) radioSecondaryBlock.hidden = true;
+
+      const publishedPhones = formatPublishedPhones(matchedUlmDetails);
+
+      const renderPublishedPhone = () => {
+        if (!radioSupportBlock || !radioPhoneCard || !publishedPhones.length) return;
+
+        radioSupportBlock.hidden = false;
+        radioPhoneCard.hidden = false;
+        if (radioPhoneValue) radioPhoneValue.textContent = publishedPhones.join(" / ");
+        if (radioPhoneLabel) {
+          radioPhoneLabel.textContent = "Téléphone publié pour le terrain.";
+        }
+        if (radioPhoneSourceValue) {
+          radioPhoneSourceValue.textContent = matchedUlmDetails ? "Source terrain publiée" : "Publié pour le terrain";
+        }
+      };
+
+      const renderAtis = (atisEntry) => {
+        if (!radioSupportBlock || !radioAtisCard || !atisEntry) return;
+
+        radioSupportBlock.hidden = false;
+        radioAtisCard.hidden = false;
+        if (radioAtisValue) {
+          radioAtisValue.textContent = formatFrequencyMhz(atisEntry.frequency_mhz) || "—";
+        }
+        if (radioAtisLabel) {
+          radioAtisLabel.textContent = getOperationalFrequencyLabel(atisEntry);
+        }
+        if (radioAtisSourceValue) {
+          radioAtisSourceValue.textContent = "Information arrivée / départ";
+        }
+      };
 
       const setUnavailable = () => {
         radioTypeValue.textContent = "Radio";
@@ -1401,6 +1506,7 @@ function normalizeFrequencyItem(entry) {
           radioSourceValue.textContent =
             "Radio : SIA prioritaire · BASULM selon terrain.";
         }
+        renderPublishedPhone();
       };
 
       const renderBasulmFallback = () => {
@@ -1416,6 +1522,7 @@ function normalizeFrequencyItem(entry) {
         if (radioSourceValue) {
           radioSourceValue.textContent = "Radio : BASULM.";
         }
+        renderPublishedPhone();
       };
 
       if (
@@ -1438,8 +1545,11 @@ function normalizeFrequencyItem(entry) {
         return;
       }
 
+      const atisEntries = getAtisDisplayEntries(displayFrequencies);
+      const primaryCandidates = getPrimaryRadioCandidates(displayFrequencies);
+
       const primaryVisibleMatch = record.primary_frequency
-        ? displayFrequencies.find((entry) => {
+        ? primaryCandidates.find((entry) => {
             return (
               formatFrequencyMhz(entry.frequency_mhz) ===
                 formatFrequencyMhz(record.primary_frequency.frequency_mhz) &&
@@ -1452,7 +1562,7 @@ function normalizeFrequencyItem(entry) {
         : null;
 
       const primaryFrequency =
-        primaryVisibleMatch || displayFrequencies[0] || null;
+        primaryVisibleMatch || primaryCandidates[0] || atisEntries[0] || null;
 
       if (!primaryFrequency) {
         renderBasulmFallback();
@@ -1464,14 +1574,29 @@ function normalizeFrequencyItem(entry) {
         formatFrequencyMhz(primaryFrequency.frequency_mhz) || "—";
       radioLabelValue.textContent = getOperationalFrequencyLabel(primaryFrequency);
       if (radioSourceValue) {
-        radioSourceValue.textContent = "Radio : SIA prioritaire · source complémentaire selon terrain.";
+        radioSourceValue.textContent = "Radio : SIA prioritaire · BASULM selon terrain.";
       }
 
       const primaryKey = getDisplayFrequencyKey(primaryFrequency);
+      const atisKey = atisEntries[0] ? getDisplayFrequencyKey(atisEntries[0]) : null;
 
-      const secondaryFrequencies = displayFrequencies.filter(
-        (entry) => getDisplayFrequencyKey(entry) !== primaryKey
-      );
+      const secondaryFrequencies = displayFrequencies.filter((entry) => {
+        const entryKey = getDisplayFrequencyKey(entry);
+        if (entryKey === primaryKey) return false;
+        if (atisKey && entryKey === atisKey) return false;
+        return true;
+      });
+
+      if (atisEntries.length) {
+        const highlightedAtis = atisEntries.find(
+          (entry) => getDisplayFrequencyKey(entry) !== primaryKey
+        ) || atisEntries[0];
+        if (highlightedAtis && getDisplayFrequencyKey(highlightedAtis) !== primaryKey) {
+          renderAtis(highlightedAtis);
+        }
+      }
+
+      renderPublishedPhone();
 
       if (!radioList || secondaryFrequencies.length === 0) return;
 
@@ -1843,7 +1968,7 @@ async function applyMissingLocalWeatherState({
 
   nameValue.textContent =
     formatMatchedDisplayName(matchedAirport, matchedUlm) || icao;
-  renderFrequencyPanel(matchedFrequency, matchedUlmDetails?.radio || null);
+  renderFrequencyPanel(matchedFrequency, matchedUlmDetails?.radio || null, matchedUlmDetails);
 
   if (primaryReference) {
     statusValue.textContent = formatNeighborStatus(primaryReference);
@@ -2179,7 +2304,7 @@ function renderUlmNearbyItem(item) {
         tempValue.textContent = formatTemp(item.temp, item.dewp);
         pressureValue.textContent = formatPressure(item.altim);
         fltCatValue.textContent = item.fltCat || "—";
-        renderFrequencyPanel(matchedFrequency, matchedUlmDetails?.radio || null);
+        renderFrequencyPanel(matchedFrequency, matchedUlmDetails?.radio || null, matchedUlmDetails);
         tafSummaryValue.textContent = buildSimpleTaf(item.taf, item, icao);
       } catch (error) {
         await applyMissingLocalWeatherState({
@@ -2651,6 +2776,61 @@ function renderUlmNearbyItem(item) {
       color: #dbe6ef;
     }
 
+    .tool-page .radio-support-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .tool-page .radio-support-card {
+      display: grid;
+      gap: 8px;
+      padding: 12px 13px;
+      border-radius: 12px;
+      border: 1px solid rgba(111, 184, 214, 0.22);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tool-page .radio-support-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tool-page .radio-support-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(111, 184, 214, 0.30);
+      background: rgba(111, 184, 214, 0.16);
+      color: #eef8ff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .tool-page .radio-support-note {
+      font-size: 0.79rem;
+      color: var(--muted);
+    }
+
+    .tool-page .radio-support-main {
+      font-size: 1.04rem;
+      font-weight: 700;
+      color: #eef7ff;
+      letter-spacing: 0.01em;
+    }
+
+    .tool-page .radio-support-label {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #dbe6ef;
+    }
+
     .tool-page .radio-secondary {
       display: grid;
       gap: 8px;
@@ -2836,63 +3016,37 @@ function renderUlmNearbyItem(item) {
       overflow: hidden;
     }
 
-.tool-page .tool-disclosure summary {
-  list-style: none;
-  cursor: pointer;
-  margin: 14px 16px 0;
-  min-height: 42px;
-  padding: 11px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(103, 183, 224, 0.30);
-  background: linear-gradient(
-    180deg,
-    rgba(103, 183, 224, 0.14) 0%,
-    rgba(103, 183, 224, 0.07) 100%
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 0 0 1px rgba(103, 183, 224, 0.03);
-  font-weight: 700;
-  color: #eef9ff;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  transition:
-    background 0.18s ease,
-    border-color 0.18s ease,
-    box-shadow 0.18s ease,
-    transform 0.18s ease;
-}
+    .tool-page .tool-disclosure summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      font-weight: 650;
+      color: rgba(231, 238, 245, 0.96);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: background 0.18s ease;
+    }
 
-.tool-page .tool-disclosure summary::-webkit-details-marker {
-  display: none;
-}
+    .tool-page .tool-disclosure summary::-webkit-details-marker {
+      display: none;
+    }
 
-.tool-page .tool-disclosure summary::after {
-  content: "▾";
-  color: rgba(231, 238, 245, 0.9);
-  font-size: 0.95rem;
-  transition: transform 0.18s ease;
-}
+    .tool-page .tool-disclosure summary::after {
+      content: "▾";
+      color: var(--muted);
+      font-size: 0.95rem;
+      transition: transform 0.18s ease;
+    }
 
-.tool-page .tool-disclosure[open] summary::after {
-  transform: rotate(180deg);
-}
+    .tool-page .tool-disclosure[open] summary::after {
+      transform: rotate(180deg);
+    }
 
-.tool-page .tool-disclosure summary:hover,
-.tool-page .tool-disclosure summary:focus-visible {
-  transform: translateY(-1px);
-  background: linear-gradient(
-    180deg,
-    rgba(103, 183, 224, 0.20) 0%,
-    rgba(103, 183, 224, 0.10) 100%
-  );
-  border-color: rgba(103, 183, 224, 0.42);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 6px 18px rgba(33, 84, 112, 0.14);
-}
+    .tool-page .tool-disclosure summary:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
 
     .tool-page .tool-disclosure-content {
       padding: 0 16px 16px;
