@@ -121,6 +121,51 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             confirmer les informations utiles dans les publications officielles
             et consignes locales (AIP, VAC, NOTAM, SUP AIP).
           </p>
+<div id="platformBlock" class="tool-block" hidden>
+  <h2>Plateforme & terrain</h2>
+
+  <div class="decoded-grid">
+    <div class="decoded-card">
+      <span class="decoded-label">Type</span>
+      <strong id="platformTypeValue">—</strong>
+    </div>
+
+    <div class="decoded-card">
+      <span class="decoded-label">Accès</span>
+      <strong id="platformAccessValue">—</strong>
+    </div>
+
+    <div class="decoded-card">
+      <span class="decoded-label">Radio publiée</span>
+      <strong id="platformRadioValue">—</strong>
+    </div>
+
+    <div class="decoded-card">
+      <span class="decoded-label">Contact</span>
+      <strong id="platformContactValue">—</strong>
+    </div>
+
+    <div class="decoded-card decoded-card-wide">
+      <span class="decoded-label">Site / gestionnaire</span>
+      <strong id="platformSiteValue">—</strong>
+    </div>
+
+    <div class="decoded-card decoded-card-wide">
+      <span class="decoded-label">Pistes documentées</span>
+      <strong id="platformRunwaysValue">—</strong>
+    </div>
+
+    <div class="decoded-card decoded-card-wide">
+      <span class="decoded-label">Consignes</span>
+      <strong id="platformNotesValue">—</strong>
+    </div>
+  </div>
+
+  <p class="decoded-note" style="margin-top: 12px;">
+    Informations issues de la base détaillée BASULM intégrée dans NESDZ.
+    Vérifier les consignes locales et publications officielles avant exploitation.
+  </p>
+</div>
         </div>
 
         <div class="tool-block">
