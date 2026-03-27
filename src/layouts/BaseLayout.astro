@@ -88,13 +88,13 @@ const ogType = isArticlePage ? "article" : "website";
             <a href="/a-propos/">À propos</a>
           </nav>
 
-          <a
-            href="/outils/"
-            class="service-cta"
-            aria-label="Accéder au service météo et terrains"
-          >
-            Météo & terrains
-          </a>
+<a
+  href="/outils/"
+  class={`service-cta ${pathname.startsWith("/outils/") || pathname === "/outils" ? "is-active" : ""}`}
+  aria-label="Accéder au service météo et terrains"
+>
+  Météo & terrains
+</a>
         </div>
       </div>
     </header>
