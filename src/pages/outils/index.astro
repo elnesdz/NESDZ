@@ -326,7 +326,8 @@ let ulmDetailsPromise = null;
       if (radioSecondaryBlock) radioSecondaryBlock.hidden = true;
       if (radioList) radioList.innerHTML = "";
 
-      tafSummaryValue.textContent = "Aucune donnée";
+   tafSummaryValue.textContent = "Aucune donnée";
+resetPlatformBlock();
     }
 
     function resetWeatherReferences() {
@@ -784,11 +785,10 @@ function renderPlatformBlock(matchedUlm, matchedUlmDetails) {
     return;
   }
 
-  if (!matchedUlm) {
-    tafSummaryValue.textContent = "Aucune donnée";
-resetPlatformBlock();
-    return;
-  }
+if (!matchedUlm) {
+  resetPlatformBlock();
+  return;
+}
 
   platformTypeValue.textContent =
     matchedUlmDetails?.operationalLabel ||
@@ -1709,6 +1709,7 @@ async function applyMissingLocalWeatherState({
   icao,
   matchedAirport,
   matchedUlm,
+  matchedUlmDetails,
   matchedFrequency,
   metarMessage,
   tafMessage,
@@ -1722,6 +1723,7 @@ async function applyMissingLocalWeatherState({
   const primaryReference = references[0] || null;
 
   resetDecoded();
+renderPlatformBlock(matchedUlm, matchedUlmDetails);
 
   nameValue.textContent =
     formatMatchedDisplayName(matchedAirport, matchedUlm) || icao;
