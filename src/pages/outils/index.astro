@@ -45,43 +45,43 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         <div class="tool-block">
           <h2>Lecture rapide</h2>
 
-          <div class="decoded-grid">
-            <div class="decoded-card">
+          <div class="decoded-grid decoded-grid--summary">
+            <div class="decoded-card decoded-card-status decoded-card-mobile-wide">
               <span class="decoded-label">Statut</span>
               <strong id="statusValue">Aucune donnée</strong>
             </div>
 
-            <div class="decoded-card">
+            <div class="decoded-card decoded-card-terrain decoded-card-mobile-wide">
               <span class="decoded-label">Terrain</span>
               <strong id="nameValue">—</strong>
             </div>
 
-            <div class="decoded-card">
+            <div class="decoded-card decoded-card-metric">
               <span class="decoded-label">Vent</span>
               <strong id="windValue">—</strong>
             </div>
 
-            <div class="decoded-card">
+            <div class="decoded-card decoded-card-metric">
               <span class="decoded-label">Visibilité</span>
               <strong id="visibilityValue">—</strong>
             </div>
 
-            <div class="decoded-card">
+            <div class="decoded-card decoded-card-metric">
               <span class="decoded-label">Nuages</span>
               <strong id="cloudsValue">—</strong>
             </div>
 
-            <div class="decoded-card">
+            <div class="decoded-card decoded-card-metric">
               <span class="decoded-label">Température</span>
               <strong id="tempValue">—</strong>
             </div>
 
-            <div class="decoded-card">
+            <div class="decoded-card decoded-card-metric">
               <span class="decoded-label">Pression</span>
               <strong id="pressureValue">—</strong>
             </div>
 
-            <div class="decoded-card">
+            <div class="decoded-card decoded-card-metric">
               <span class="decoded-label">Catégorie météo</span>
               <strong id="fltCatValue">—</strong>
             </div>
@@ -2980,6 +2980,21 @@ function renderUlmNearbyItem(item) {
       grid-column: 1 / -1;
     }
 
+    .tool-page .decoded-grid--summary .decoded-card-status strong,
+    .tool-page .decoded-grid--summary .decoded-card-terrain strong {
+      display: block;
+      font-size: 1.08rem;
+      line-height: 1.32;
+      color: #eef7ff;
+    }
+
+    .tool-page .decoded-grid--summary .decoded-card-metric strong {
+      display: block;
+      font-size: 1rem;
+      line-height: 1.34;
+      color: rgba(239, 246, 252, 0.98);
+    }
+
     .tool-page .decoded-label {
       display: block;
       font-size: 0.9rem;
@@ -3727,56 +3742,93 @@ function renderUlmNearbyItem(item) {
 
     @media (max-width: 720px) {
       .tool-page .tool-block {
-        margin-top: 20px;
+        margin-top: 16px;
       }
 
       .tool-page .tool-entry-block {
-        padding: 14px 14px 16px;
-        margin-top: 6px;
+        padding: 12px 12px 14px;
+        margin-top: 4px;
       }
 
       .tool-page h1 {
-        font-size: clamp(2.4rem, 11vw, 3.4rem);
-        line-height: 1.02;
-        margin-bottom: 18px;
+        font-size: clamp(2.05rem, 9.2vw, 2.9rem);
+        line-height: 0.98;
+        margin-bottom: 14px;
       }
 
       .tool-page h2 {
-        line-height: 1.08;
+        line-height: 1.04;
       }
 
       .tool-page .tool-entry-label {
-        font-size: 1.08rem;
+        margin-bottom: 6px;
+        font-size: 1rem;
       }
 
       .tool-page .tool-entry-help {
-        font-size: 0.92rem;
-        margin-bottom: 12px;
+        font-size: 0.84rem;
+        line-height: 1.42;
+        margin-bottom: 10px;
       }
 
       .tool-page .tool-row {
         align-items: stretch;
-        gap: 10px;
+        gap: 8px;
       }
 
       .tool-page .tool-block input {
         width: 100%;
         min-width: 0;
-        min-height: 54px;
-        font-size: 1.06rem;
+        min-height: 50px;
+        padding: 11px 12px;
+        font-size: 1rem;
       }
 
       .tool-page .tool-action-btn {
         width: 100%;
-        min-height: 48px;
+        min-height: 44px;
       }
 
       .tool-page .decoded-card {
-        padding: 13px;
+        padding: 12px;
       }
 
       .tool-page .decoded-grid {
-        gap: 10px;
+        gap: 8px;
+      }
+
+      .tool-page .decoded-grid--summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card {
+        min-width: 0;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card-mobile-wide,
+      .tool-page .decoded-grid--summary .decoded-card-wide {
+        grid-column: 1 / -1;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-label {
+        font-size: 0.82rem;
+        margin-bottom: 4px;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card-status strong,
+      .tool-page .decoded-grid--summary .decoded-card-terrain strong {
+        font-size: 0.96rem;
+        line-height: 1.25;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card-metric {
+        min-height: 96px;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card-metric strong {
+        font-size: 0.95rem;
+        line-height: 1.26;
       }
 
       .tool-page .terrain-visual-card {
@@ -3872,5 +3924,24 @@ function renderUlmNearbyItem(item) {
         padding-bottom: 8px;
       }
     }
+    @media (max-width: 420px) {
+      .tool-page .decoded-grid--summary .decoded-card {
+        padding: 11px;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card-metric {
+        min-height: 88px;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card-status strong,
+      .tool-page .decoded-grid--summary .decoded-card-terrain strong {
+        font-size: 0.92rem;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card-metric strong {
+        font-size: 0.9rem;
+      }
+    }
+
   </style>
 </BaseLayout>
