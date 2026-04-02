@@ -136,7 +136,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           </div>
 
           <p class="decoded-note decoded-note--micro">
-            Météo : Aviation Weather Center · repère météo voisin affiché si aucun METAR / TAF local n’est publié.
+            Météo : Aviation Weather Center · repère voisin si aucun METAR / TAF local.
           </p>
         </div>
 
@@ -199,7 +199,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           </details>
 
           <p id="platformSourceNote" class="decoded-note decoded-note--micro">
-            Terrains : base France pistes & aérodromes · BASULM selon la plateforme.
+            Terrains : base France · BASULM selon plateforme.
           </p>
         </div>
 
@@ -231,7 +231,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           <div class="weather-refs-head">
             <div>
               <h2>Repères météo voisins</h2>
-              <p class="weather-refs-note">Repère météo voisin clairement identifié lorsqu’aucun METAR / TAF local n’est publié.</p>
+              <p class="weather-refs-note">Repère voisin si aucun METAR / TAF local.</p>
             </div>
           </div>
 
@@ -252,10 +252,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         <div class="tool-block tool-block--compact tool-sources-strip">
           <p class="tool-source-line">
-            Sources : météo Aviation Weather Center · radio SIA prioritaire, BASULM selon terrain · terrains base France pistes &amp; aérodromes, BASULM selon plateforme.
+            Sources : météo Aviation Weather Center · radio SIA / BASULM · terrains base France / BASULM.
           </p>
           <p class="tool-source-line">
-            Repère météo voisin affiché lorsqu’aucun METAR / TAF local n’est publié.
+            Repère voisin si aucun METAR / TAF local.
           </p>
         </div>
       </div>
@@ -1155,18 +1155,18 @@ const prefEndDot = isPreferredEnd
       if (matchedAirport && matchedUlmDetails) {
         return {
           badge: "Base France · BASULM",
-          note: "Terrains : base France pistes & aérodromes · BASULM selon la plateforme.",
+          note: "Terrains : base France · BASULM selon plateforme.",
         };
       }
       if (matchedUlmDetails) {
         return {
           badge: "BASULM",
-          note: "Terrains : BASULM pour la plateforme affichée.",
+          note: "Terrains : BASULM.",
         };
       }
       return {
         badge: "Base France",
-        note: "Terrains : base France pistes & aérodromes.",
+        note: "Terrains : base France.",
       };
     }
 
@@ -1181,7 +1181,7 @@ const prefEndDot = isPreferredEnd
       if (platformNotesValue) platformNotesValue.textContent = "—";
       if (platformUpdatedValue) platformUpdatedValue.textContent = "—";
       if (platformSourceNote) {
-        platformSourceNote.textContent = "Terrains : base France pistes & aérodromes · BASULM selon la plateforme.";
+        platformSourceNote.textContent = "Terrains : base France · BASULM selon plateforme.";
       }
       if (platformDetailsDisclosure) {
         platformDetailsDisclosure.hidden = true;
@@ -2988,15 +2988,16 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .decoded-note {
-      margin: 10px 0 0;
-      font-size: 0.92rem;
-      line-height: 1.55;
-      color: var(--muted);
+      margin: 8px 0 0;
+      font-size: 0.78rem;
+      line-height: 1.35;
+      color: rgba(206, 219, 229, 0.68);
     }
 
     .tool-page .decoded-note--micro {
-      font-size: 0.83rem;
-      line-height: 1.45;
+      font-size: 0.72rem;
+      line-height: 1.32;
+      letter-spacing: 0.01em;
     }
 
     .tool-page .terrain-info-head {
@@ -3089,14 +3090,20 @@ function renderUlmNearbyItem(item) {
 
     .tool-page .tool-sources-strip {
       display: grid;
-      gap: 6px;
+      gap: 4px;
+      padding-top: 10px;
+      padding-bottom: 10px;
     }
 
     .tool-page .tool-source-line {
       margin: 0;
-      font-size: 0.82rem;
-      line-height: 1.48;
-      color: var(--muted);
+      color: rgba(206, 219, 229, 0.64);
+      font-size: 0.72rem;
+      line-height: 1.32;
+    }
+
+    .tool-page .tool-source-line + .tool-source-line {
+      margin-top: 0;
     }
 
     .tool-page .radio-panel {
@@ -3276,10 +3283,10 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .weather-refs-note {
-      margin: 6px 0 0;
-      color: var(--muted);
-      font-size: 0.92rem;
-      line-height: 1.45;
+      margin: 4px 0 0;
+      color: rgba(206, 219, 229, 0.68);
+      font-size: 0.72rem;
+      line-height: 1.32;
     }
 
     .tool-page .weather-refs-list {
@@ -3849,6 +3856,20 @@ function renderUlmNearbyItem(item) {
 
       .tool-page .tool-disclosure-content {
         padding: 0 14px 14px;
+      }
+
+      .tool-page .decoded-note,
+      .tool-page .decoded-note--micro,
+      .tool-page .weather-refs-note,
+      .tool-page .tool-source-line {
+        font-size: 0.68rem;
+        line-height: 1.28;
+      }
+
+      .tool-page .tool-sources-strip {
+        gap: 3px;
+        padding-top: 8px;
+        padding-bottom: 8px;
       }
     }
   </style>
