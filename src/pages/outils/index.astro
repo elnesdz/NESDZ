@@ -13,25 +13,37 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         <div class="tool-block tool-entry-block">
           <label for="icaoInput" class="tool-entry-label">
-            Aérodrome / code OACI
+            Terrain, code OACI ou ville
           </label>
           <p class="tool-entry-help">
-            Entrer un terrain comme <strong>LFQQ</strong>, <strong>LFPN</strong>
-            ou <strong>LFPA</strong> pour afficher la météo aviation, la radio
+            Entrer un code, un terrain ou une ville comme <strong>LFQQ</strong>,
+            <strong>Lille</strong>, <strong>Merville</strong> ou
+            <strong>Arras</strong> pour afficher la météo aviation, la radio
             utile et les terrains proches.
           </p>
 
           <div class="row tool-row">
-            <input
-              id="icaoInput"
-              placeholder="Ex : LFQQ"
-              value="LFQQ"
-              inputmode="text"
-              autocomplete="off"
-              autocapitalize="characters"
-              spellcheck="false"
-              aria-label="Aérodrome ou code OACI"
-            />
+            <div class="tool-search-col">
+              <input
+                id="icaoInput"
+                placeholder="Ex : LFQQ, Lille, Arras"
+                value="LFQQ"
+                inputmode="text"
+                autocomplete="off"
+                autocapitalize="none"
+                spellcheck="false"
+                enterkeyhint="search"
+                aria-label="Terrain, code OACI ou ville"
+              />
+              <div
+                id="searchSuggestions"
+                class="tool-search-suggestions"
+                role="listbox"
+                aria-label="Suggestions de recherche"
+                hidden
+              ></div>
+              <p id="searchFeedback" class="tool-search-feedback" hidden></p>
+            </div>
             <button
               id="loadMetarBtn"
               class="tool-action-btn tool-action-btn--primary"
@@ -276,6 +288,8 @@ const FREQUENCIES_URL = "/data/frequencies-fr-merged.json";
     const nearbyAirports = document.getElementById("nearbyAirports");
     const loadMetarBtn = document.getElementById("loadMetarBtn");
     const nearbyBtn = document.getElementById("nearbyBtn");
+    const searchSuggestions = document.getElementById("searchSuggestions");
+    const searchFeedback = document.getElementById("searchFeedback");
 
     const statusValue = document.getElementById("statusValue");
     const nameValue = document.getElementById("nameValue");
@@ -337,6 +351,11 @@ let ulmDetailsPromise = null;
     let currentWindDirection = null;
     let currentWindSpeed = null;
     let currentWindVariable = false;
+
+    let searchIndexCache = null;
+    let searchIndexPromise = null;
+    let currentSearchResults = [];
+    let searchHideTimer = null;
 
     function resetDecoded() {
       statusValue.textContent = "Aucune donnée";
@@ -701,6 +720,353 @@ let ulmDetailsPromise = null;
         return null;
       }
     }
+
+    function normalizeSearchText(value) {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .replace(/[’'`]/g, " ")
+        .replace(/[^a-zA-Z0-9]+/g, " ")
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, " ");
+    }
+
+    function buildAirportSearchEntry(airport, basulmOverlay = null) {
+      const targetCode = airport?.weatherCode || "";
+      if (!targetCode) return null;
+
+      const name = String(airport?.name || "").trim();
+      const municipality = String(airport?.municipality || "").trim();
+      const metaParts = [targetCode];
+
+      if (municipality) metaParts.push(municipality);
+
+      return {
+        kind: "airport",
+        targetCode,
+        displayCode: targetCode,
+        weatherCode: targetCode,
+        code: targetCode,
+        name,
+        municipality,
+        typeLabel: getAirportOperationalLabel(airport, basulmOverlay),
+        metaLabel: metaParts.join(" · "),
+        searchName: normalizeSearchText(name),
+        searchMunicipality: normalizeSearchText(municipality),
+        searchCodes: [normalizeSearchText(targetCode)].filter(Boolean),
+      };
+    }
+
+    function buildUlmSearchEntry(item) {
+      const targetCode = normalizeCode(item?.code || item?.weatherCode || "");
+      if (!targetCode) return null;
+
+      const code = normalizeCode(item?.code || "");
+      const weatherCode = normalizeCode(item?.weatherCode || "");
+      const name = String(item?.name || "").trim();
+      const metaParts = [code || weatherCode || targetCode];
+
+      if (weatherCode && weatherCode !== code) {
+        metaParts.push(`météo ${weatherCode}`);
+      }
+
+      return {
+        kind: "ulm",
+        targetCode,
+        displayCode: code || weatherCode || targetCode,
+        weatherCode,
+        code,
+        name,
+        municipality: "",
+        typeLabel: item?.operationalLabel || "Plateforme ULM",
+        metaLabel: metaParts.join(" · "),
+        searchName: normalizeSearchText(name),
+        searchMunicipality: "",
+        searchCodes: [code, weatherCode, targetCode]
+          .map((value) => normalizeSearchText(value))
+          .filter(Boolean),
+      };
+    }
+
+    async function loadSearchIndex() {
+      if (searchIndexCache) return searchIndexCache;
+
+      if (!searchIndexPromise) {
+        searchIndexPromise = Promise.all([loadAirports(), loadUlmBases()])
+          .then(([airports, ulmBases]) => {
+            const basulmByWeatherCode = buildBasulmIndexByWeatherCode(ulmBases);
+
+            const airportEntries = airports
+              .map((airport) => {
+                const overlay = basulmByWeatherCode.get(airport.weatherCode) || null;
+                return buildAirportSearchEntry(airport, overlay);
+              })
+              .filter(Boolean);
+
+            const ulmEntries = ulmBases.map(buildUlmSearchEntry).filter(Boolean);
+
+            searchIndexCache = [...airportEntries, ...ulmEntries];
+            return searchIndexCache;
+          })
+          .catch((error) => {
+            searchIndexPromise = null;
+            throw error;
+          });
+      }
+
+      return searchIndexPromise;
+    }
+
+    function computeSearchScore(query, entry) {
+      const normalizedQuery = normalizeSearchText(query);
+      if (!normalizedQuery) return null;
+
+      let score = 0;
+      let matchKind = "";
+
+      if (entry.searchCodes.includes(normalizedQuery)) {
+        score = 1200;
+        matchKind = "code_exact";
+      } else if (entry.searchCodes.some((code) => code.startsWith(normalizedQuery))) {
+        score = 1080;
+        matchKind = "code_prefix";
+      } else if (entry.searchName === normalizedQuery) {
+        score = 980;
+        matchKind = "name_exact";
+      } else if (
+        entry.searchMunicipality &&
+        entry.searchMunicipality === normalizedQuery
+      ) {
+        score = 940;
+        matchKind = "municipality_exact";
+      } else if (entry.searchName.startsWith(normalizedQuery)) {
+        score = 900;
+        matchKind = "name_prefix";
+      } else if (
+        entry.searchMunicipality &&
+        entry.searchMunicipality.startsWith(normalizedQuery)
+      ) {
+        score = 860;
+        matchKind = "municipality_prefix";
+      } else {
+        const nameWords = entry.searchName.split(" ").filter(Boolean);
+        const cityWords = entry.searchMunicipality.split(" ").filter(Boolean);
+        const anyWordPrefix = [...nameWords, ...cityWords].some((word) =>
+          word.startsWith(normalizedQuery)
+        );
+
+        if (anyWordPrefix) {
+          score = 810;
+          matchKind = "word_prefix";
+        } else {
+          const allFields = [
+            entry.searchName,
+            entry.searchMunicipality,
+            ...entry.searchCodes,
+          ]
+            .filter(Boolean)
+            .join(" ");
+
+          if (allFields.includes(normalizedQuery)) {
+            score = 760;
+            matchKind = "partial";
+          }
+        }
+      }
+
+      if (!score) return null;
+
+      if (entry.kind === "airport") score += 8;
+
+      return { score, matchKind };
+    }
+
+    async function searchTerrainEntries(query, limit = 6) {
+      const normalizedQuery = normalizeSearchText(query);
+      if (normalizedQuery.length < 2) return [];
+
+      const index = await loadSearchIndex();
+
+      return index
+        .map((entry) => {
+          const scoring = computeSearchScore(query, entry);
+          if (!scoring) return null;
+          return { ...entry, ...scoring };
+        })
+        .filter(Boolean)
+        .sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          if (a.kind !== b.kind) return a.kind === "airport" ? -1 : 1;
+
+          const nameDiff = a.name.localeCompare(b.name, "fr", {
+            sensitivity: "base",
+          });
+          if (nameDiff !== 0) return nameDiff;
+
+          return a.displayCode.localeCompare(b.displayCode, "fr", {
+            sensitivity: "base",
+          });
+        })
+        .slice(0, limit);
+    }
+
+    function clearSearchFeedback() {
+      if (!searchFeedback) return;
+      searchFeedback.hidden = true;
+      searchFeedback.textContent = "";
+    }
+
+    function setSearchFeedback(message) {
+      if (!searchFeedback) return;
+      if (!message) {
+        clearSearchFeedback();
+        return;
+      }
+
+      searchFeedback.hidden = false;
+      searchFeedback.textContent = message;
+    }
+
+    function clearSearchSuggestions() {
+      currentSearchResults = [];
+      if (!searchSuggestions) return;
+      searchSuggestions.hidden = true;
+      searchSuggestions.innerHTML = "";
+    }
+
+    function applySearchSelection(selection) {
+      if (!selection?.targetCode || !icaoInput) return;
+
+      clearSearchFeedback();
+      clearSearchSuggestions();
+      icaoInput.value = selection.targetCode;
+      loadMetar();
+    }
+
+    function renderSearchSuggestions(results) {
+      currentSearchResults = Array.isArray(results) ? results : [];
+      if (!searchSuggestions) return;
+
+      if (!currentSearchResults.length) {
+        clearSearchSuggestions();
+        return;
+      }
+
+      searchSuggestions.hidden = false;
+      searchSuggestions.innerHTML = "";
+
+      currentSearchResults.forEach((item) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "tool-search-suggestion";
+        button.setAttribute("role", "option");
+
+        const kindLabel = item.kind === "airport" ? "Aérodrome" : "ULM";
+        const metaLine = item.typeLabel
+          ? `${item.metaLabel} · ${item.typeLabel}`
+          : item.metaLabel;
+
+        button.innerHTML = `
+          <div class="tool-search-suggestion-top">
+            <strong>${escapeHtml(item.name || item.displayCode)}</strong>
+            <span class="tool-search-suggestion-badge">${escapeHtml(kindLabel)}</span>
+          </div>
+          <div class="tool-search-suggestion-meta">${escapeHtml(metaLine)}</div>
+        `;
+
+        button.addEventListener("mousedown", (event) => {
+          event.preventDefault();
+        });
+
+        button.addEventListener("click", () => {
+          applySearchSelection(item);
+        });
+
+        searchSuggestions.appendChild(button);
+      });
+    }
+
+    async function refreshSearchSuggestions() {
+      const rawQuery = String(icaoInput?.value || "").trim();
+      clearSearchFeedback();
+
+      if (!rawQuery) {
+        clearSearchSuggestions();
+        return;
+      }
+
+      if (isValidWeatherCode(rawQuery)) {
+        clearSearchSuggestions();
+        return;
+      }
+
+      if (normalizeSearchText(rawQuery).length < 2) {
+        clearSearchSuggestions();
+        return;
+      }
+
+      const requestValue = rawQuery;
+      const results = await searchTerrainEntries(rawQuery, 6);
+
+      if (String(icaoInput?.value || "").trim() !== requestValue) {
+        return;
+      }
+
+      renderSearchSuggestions(results);
+    }
+
+    async function submitSearch() {
+      const rawQuery = String(icaoInput?.value || "").trim();
+      clearSearchFeedback();
+
+      if (!rawQuery) {
+        clearSearchSuggestions();
+        syncIcaoInUrl("");
+        metarOutput.textContent = "Entre un terrain, une ville ou un code OACI.";
+        tafOutput.textContent = "Entre un terrain, une ville ou un code OACI.";
+        resetDecoded();
+        return;
+      }
+
+      const normalizedQuery = normalizeCode(rawQuery);
+      if (isValidWeatherCode(normalizedQuery)) {
+        clearSearchSuggestions();
+        if (icaoInput) icaoInput.value = normalizedQuery;
+        loadMetar();
+        return;
+      }
+
+      const results = await searchTerrainEntries(rawQuery, 6);
+      renderSearchSuggestions(results);
+
+      if (!results.length) {
+        setSearchFeedback(
+          "Aucun terrain trouvé. Essaie un code OACI, un nom ou une ville."
+        );
+        metarOutput.textContent = `Aucun terrain trouvé pour « ${rawQuery} ». Essaie un code OACI, un nom ou une ville.`;
+        tafOutput.textContent = "Aucune recherche météo lancée.";
+        resetDecoded();
+        return;
+      }
+
+      const top = results[0];
+      const topCount = results.filter((item) => item.score === top.score).length;
+      const singleClear =
+        results.length === 1 ||
+        ((top.matchKind === "code_exact" ||
+          top.matchKind === "name_exact" ||
+          top.matchKind === "municipality_exact") &&
+          topCount === 1);
+
+      if (singleClear) {
+        applySearchSelection(top);
+        return;
+      }
+
+      setSearchFeedback("Sélectionne un terrain dans la liste.");
+    }
+
 function normalizeUlmDetailsRecord(item) {
       return {
         ...item,
@@ -2499,8 +2865,8 @@ function renderUlmNearbyItem(item) {
 
       if (!icao) {
         syncIcaoInUrl("");
-        metarOutput.textContent = "Entre un code OACI.";
-        tafOutput.textContent = "Entre un code OACI.";
+        metarOutput.textContent = "Entre un terrain, une ville ou un code OACI.";
+        tafOutput.textContent = "Entre un terrain, une ville ou un code OACI.";
         resetDecoded();
         return;
       }
@@ -2755,13 +3121,50 @@ function renderUlmNearbyItem(item) {
       }
     }
 
-    loadMetarBtn?.addEventListener("click", loadMetar);
+    loadMetarBtn?.addEventListener("click", submitSearch);
     nearbyBtn?.addEventListener("click", getLocation);
+
+    icaoInput?.addEventListener("input", () => {
+      if (searchHideTimer) {
+        window.clearTimeout(searchHideTimer);
+        searchHideTimer = null;
+      }
+      refreshSearchSuggestions();
+    });
+
+    icaoInput?.addEventListener("focus", () => {
+      if (searchHideTimer) {
+        window.clearTimeout(searchHideTimer);
+        searchHideTimer = null;
+      }
+      if (String(icaoInput.value || "").trim()) {
+        refreshSearchSuggestions();
+      }
+    });
+
+    icaoInput?.addEventListener("blur", () => {
+      searchHideTimer = window.setTimeout(() => {
+        clearSearchSuggestions();
+      }, 140);
+    });
 
     icaoInput?.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
-        loadMetar();
+        event.preventDefault();
+        submitSearch();
       }
+
+      if (event.key === "Escape") {
+        clearSearchSuggestions();
+        clearSearchFeedback();
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest(".tool-search-col")) return;
+      clearSearchSuggestions();
     });
 
     const initialIcao = getIcaoFromUrl();
@@ -2826,7 +3229,113 @@ function renderUlmNearbyItem(item) {
     .tool-page .tool-row {
       gap: 12px;
       flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .tool-page .tool-search-col {
+      flex: 1 1 320px;
+      min-width: min(100%, 320px);
+      display: grid;
+      gap: 8px;
+    }
+
+    .tool-page .tool-search-suggestions {
+      display: grid;
+      gap: 6px;
+      padding: 8px;
+      border-radius: 14px;
+      border: 1px solid rgba(111, 184, 214, 0.26);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(111, 184, 214, 0.12),
+          rgba(255, 255, 255, 0.03)
+        ),
+        rgba(12, 18, 26, 0.9);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        0 12px 28px rgba(0, 0, 0, 0.2);
+    }
+
+    .tool-page .tool-search-suggestions[hidden] {
+      display: none !important;
+    }
+
+    .tool-page .tool-search-suggestion {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 100%;
+      display: grid;
+      gap: 4px;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      color: #eef7ff;
+      font: inherit;
+      cursor: pointer;
+      transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease;
+    }
+
+    .tool-page .tool-search-suggestion:hover {
+      transform: translateY(-1px);
+      border-color: rgba(111, 184, 214, 0.42);
+      background: rgba(111, 184, 214, 0.09);
+      box-shadow: 0 0 0 4px rgba(111, 184, 214, 0.1);
+    }
+
+    .tool-page .tool-search-suggestion:focus-visible {
+      outline: none;
+      border-color: rgba(111, 184, 214, 0.6);
+      box-shadow:
+        0 0 0 4px rgba(111, 184, 214, 0.14),
+        0 0 0 1px rgba(111, 184, 214, 0.22);
+    }
+
+    .tool-page .tool-search-suggestion-top {
+      display: flex;
       align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .tool-page .tool-search-suggestion-top strong {
+      color: #eef7ff;
+      font-size: 0.96rem;
+      line-height: 1.35;
+    }
+
+    .tool-page .tool-search-suggestion-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(111, 184, 214, 0.28);
+      background: rgba(111, 184, 214, 0.15);
+      color: rgba(236, 247, 253, 0.96);
+      font-size: 0.72rem;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .tool-page .tool-search-suggestion-meta {
+      color: rgba(214, 226, 235, 0.8);
+      font-size: 0.84rem;
+      line-height: 1.4;
+    }
+
+    .tool-page .tool-search-feedback {
+      margin: 0 2px;
+      color: rgba(206, 219, 229, 0.78);
+      font-size: 0.76rem;
+      line-height: 1.35;
     }
 
     .tool-page .tool-block input {
@@ -3776,6 +4285,33 @@ function renderUlmNearbyItem(item) {
         gap: 8px;
       }
 
+      .tool-page .tool-search-col {
+        min-width: 100%;
+        gap: 6px;
+      }
+
+      .tool-page .tool-search-suggestions {
+        gap: 5px;
+        padding: 6px;
+      }
+
+      .tool-page .tool-search-suggestion {
+        padding: 9px 10px;
+      }
+
+      .tool-page .tool-search-suggestion-top {
+        align-items: flex-start;
+      }
+
+      .tool-page .tool-search-suggestion-meta {
+        font-size: 0.8rem;
+      }
+
+      .tool-page .tool-search-feedback {
+        font-size: 0.7rem;
+        line-height: 1.3;
+      }
+
       .tool-page .tool-block input {
         width: 100%;
         min-width: 0;
@@ -3940,6 +4476,14 @@ function renderUlmNearbyItem(item) {
 
       .tool-page .decoded-grid--summary .decoded-card-metric strong {
         font-size: 0.9rem;
+      }
+
+      .tool-page .tool-search-suggestion-badge {
+        font-size: 0.68rem;
+      }
+
+      .tool-page .tool-search-suggestion-meta {
+        font-size: 0.76rem;
       }
     }
 
