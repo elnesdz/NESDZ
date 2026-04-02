@@ -2,11 +2,8 @@ name: Build airports world lite
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - data-source/airports.csv
-      - scripts/build-airports-world-lite.mjs
-      - .github/workflows/build-airports-world-lite.yml
+  schedule:
+    - cron: "18 4 * * 1"
 
 permissions:
   contents: write
@@ -18,29 +15,25 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Generate airports world lite JSON
+      - name: Run world airports build
         run: node scripts/build-airports-world-lite.mjs
 
-      - name: Show generated file size
-        run: ls -lh public/data/airports-world-lite.json
-
-      - name: Commit generated JSON if changed
+      - name: Commit generated file
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/data/airports-world-lite.json
-          if git diff --cached --quiet; then
-            echo "Aucun changement à committer."
+          if git diff --quiet public/data/airports-world-lite.json; then
+            echo "Aucun changement à commit."
             exit 0
           fi
-          git commit -m "chore(data): build airports world lite"
-          git push
 
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add public/data/airports-world-lite.json
+          git commit -m "build: update airports-world-lite.json"
+          git push
