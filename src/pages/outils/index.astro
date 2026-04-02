@@ -18,8 +18,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           <p class="tool-entry-help">
             Entrer un code, un terrain ou une ville comme <strong>LFQQ</strong>,
             <strong>Lille</strong>, <strong>Merville</strong> ou
-            <strong>Arras</strong> pour afficher la météo aviation, la radio
-            utile et les terrains proches.
+            <strong>Arras</strong>, ou utilise <strong>Me localiser</strong>
+            pour proposer les terrains couverts les plus proches.
           </p>
 
           <div class="row tool-row">
@@ -44,13 +44,22 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               ></div>
               <p id="searchFeedback" class="tool-search-feedback" hidden></p>
             </div>
-            <button
-              id="loadMetarBtn"
-              class="tool-action-btn tool-action-btn--primary"
-              type="button"
-            >
-              Voir METAR / TAF
-            </button>
+            <div class="tool-entry-actions">
+              <button
+                id="loadMetarBtn"
+                class="tool-action-btn tool-action-btn--primary"
+                type="button"
+              >
+                Voir METAR / TAF
+              </button>
+              <button
+                id="locateBtn"
+                class="tool-action-btn tool-action-btn--secondary"
+                type="button"
+              >
+                Me localiser
+              </button>
+            </div>
           </div>
         </div>
 
@@ -211,7 +220,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           </details>
 
           <p id="platformSourceNote" class="decoded-note decoded-note--micro">
-            Terrains : base France · BASULM selon plateforme.
+            Terrains : base monde aérodromes · base France / BASULM pour la couche enrichie.
           </p>
         </div>
 
@@ -264,7 +273,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         <div class="tool-block tool-block--compact tool-sources-strip">
           <p class="tool-source-line">
-            Sources : météo Aviation Weather Center · radio SIA / BASULM · terrains base France / BASULM.
+            Sources : météo Aviation Weather Center · radio SIA / BASULM · terrains base monde aérodromes, couche enrichie France / BASULM.
           </p>
           <p class="tool-source-line">
             Repère voisin si aucun METAR / TAF local.
@@ -276,17 +285,20 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
   <script>
     const WORKER_URL = "https://metar-proxy-nesdz.elnesdz.workers.dev/";
-    const AIRPORTS_URL = "/data/airports-fr-full.json";
-const ULM_URL = "/data/ulm-fr.json";
-const ULM_DETAILS_URL = "/data/ulm-fr-details.json";
-const FREQUENCIES_URL = "/data/frequencies-fr-merged.json";
+    const AIRPORTS_FR_URL = "/data/airports-fr-full.json";
+    const AIRPORTS_WORLD_URL = "/data/airports-world-lite.json";
+    const ULM_URL = "/data/ulm-fr.json";
+    const ULM_DETAILS_URL = "/data/ulm-fr-details.json";
+    const FREQUENCIES_URL = "/data/frequencies-fr-merged.json";
     const WEATHER_REFERENCE_MAX_KM = 50 * 1.852;
+    const LOCATION_ENTRY_RADIUS_KM = 120;
 
     const icaoInput = document.getElementById("icaoInput");
     const metarOutput = document.getElementById("metarOutput");
     const tafOutput = document.getElementById("tafOutput");
     const nearbyAirports = document.getElementById("nearbyAirports");
     const loadMetarBtn = document.getElementById("loadMetarBtn");
+    const locateBtn = document.getElementById("locateBtn");
     const nearbyBtn = document.getElementById("nearbyBtn");
     const searchSuggestions = document.getElementById("searchSuggestions");
     const searchFeedback = document.getElementById("searchFeedback");
@@ -337,8 +349,10 @@ const FREQUENCIES_URL = "/data/frequencies-fr-merged.json";
     const platformNotesLine = document.getElementById("platformNotesLine");
     const platformUpdatedLine = document.getElementById("platformUpdatedLine");
 
-    let airportsCache = null;
-    let airportsPromise = null;
+    let airportsFrCache = null;
+    let airportsFrPromise = null;
+    let airportsWorldCache = null;
+    let airportsWorldPromise = null;
 
     let ulmCache = null;
     let ulmPromise = null;
@@ -546,6 +560,28 @@ let ulmDetailsPromise = null;
         weatherCode,
         latitude,
         longitude,
+        municipality: String(airport?.municipality || "").trim(),
+        country: normalizeCode(airport?.iso_country || airport?.country || "FR"),
+        sourceScope: "fr",
+      };
+    }
+
+    function normalizeWorldAirportRecord(airport) {
+      const weatherCode = normalizeCode(airport?.icao || airport?.weatherCode || airport?.gps_code || "");
+      const latitude = Number(airport?.latitude);
+      const longitude = Number(airport?.longitude);
+
+      return {
+        ...airport,
+        weatherCode,
+        icao: weatherCode,
+        latitude,
+        longitude,
+        name: String(airport?.name || "").trim(),
+        municipality: String(airport?.municipality || "").trim(),
+        country: normalizeCode(airport?.country || airport?.iso_country || ""),
+        type: String(airport?.type || "airport").trim(),
+        sourceScope: "world",
       };
     }
 
@@ -571,34 +607,66 @@ let ulmDetailsPromise = null;
     }
 
     async function loadAirports() {
-      if (airportsCache) return airportsCache;
+      if (airportsFrCache) return airportsFrCache;
 
-      if (!airportsPromise) {
-        airportsPromise = fetch(AIRPORTS_URL)
+      if (!airportsFrPromise) {
+        airportsFrPromise = fetch(AIRPORTS_FR_URL)
           .then(async (res) => {
             if (!res.ok) {
-              throw new Error("Impossible de charger la base d’aérodromes.");
+              throw new Error("Impossible de charger la base France d’aérodromes.");
             }
 
             const data = await res.json();
 
             if (!Array.isArray(data)) {
-              throw new Error("Format JSON inattendu pour la base d’aérodromes.");
+              throw new Error("Format JSON inattendu pour la base France d’aérodromes.");
             }
 
-            airportsCache = dedupeAirports(
+            airportsFrCache = dedupeAirports(
               data.map(normalizeAirportRecord).filter(isUsableAirport)
             );
 
-            return airportsCache;
+            return airportsFrCache;
           })
           .catch((error) => {
-            airportsPromise = null;
+            airportsFrPromise = null;
             throw error;
           });
       }
 
-      return airportsPromise;
+      return airportsFrPromise;
+    }
+
+    async function loadWorldAirports() {
+      if (airportsWorldCache) return airportsWorldCache;
+
+      if (!airportsWorldPromise) {
+        airportsWorldPromise = fetch(AIRPORTS_WORLD_URL)
+          .then(async (res) => {
+            if (!res.ok) {
+              throw new Error("Impossible de charger la base mondiale d’aérodromes.");
+            }
+
+            const data = await res.json();
+
+            if (!Array.isArray(data)) {
+              throw new Error("Format JSON inattendu pour la base mondiale d’aérodromes.");
+            }
+
+            airportsWorldCache = dedupeAirports(
+              data.map(normalizeWorldAirportRecord).filter(isUsableAirport)
+            );
+
+            return airportsWorldCache;
+          })
+          .catch(async (error) => {
+            console.error(error);
+            airportsWorldPromise = null;
+            return loadAirports();
+          });
+      }
+
+      return airportsWorldPromise;
     }
 
     async function findAirportByCode(code) {
@@ -607,7 +675,7 @@ let ulmDetailsPromise = null;
       if (!normalized) return null;
 
       try {
-        const airports = await loadAirports();
+        const airports = await loadWorldAirports();
         return (
           airports.find((airport) => airport.weatherCode === normalized) || null
         );
@@ -617,6 +685,28 @@ let ulmDetailsPromise = null;
       }
     }
 
+    async function findWorldAirportByCode(code) {
+      const normalized = normalizeCode(code);
+
+      if (!normalized) return null;
+
+      try {
+        const airports = await loadWorldAirports();
+        return (
+          airports.find((airport) => airport.weatherCode === normalized) || null
+        );
+      } catch (error) {
+        console.error(error);
+        return null;
+      }
+    }
+
+    async function findAnyAirportByCode(code) {
+      const localAirport = await findAirportByCode(code);
+      if (localAirport) return localAirport;
+      return findWorldAirportByCode(code);
+    }
+
     function formatAirportDisplayName(airport, fallbackCode) {
       if (!airport) return fallbackCode || "—";
 
@@ -624,8 +714,12 @@ let ulmDetailsPromise = null;
       const municipality = airport.municipality
         ? ` — ${airport.municipality}`
         : "";
+      const country =
+        airport.sourceScope === "world" && airport.country
+          ? ` (${airport.country})`
+          : "";
 
-      return `${airport.name} (${labelCode})${municipality}`;
+      return `${airport.name} (${labelCode})${municipality}${country}`;
     }
 
     function formatMatchedDisplayName(matchedAirport, matchedUlm) {
@@ -738,9 +832,11 @@ let ulmDetailsPromise = null;
 
       const name = String(airport?.name || "").trim();
       const municipality = String(airport?.municipality || "").trim();
+      const country = normalizeCode(airport?.country || airport?.iso_country || "");
       const metaParts = [targetCode];
 
       if (municipality) metaParts.push(municipality);
+      if (country) metaParts.push(country);
 
       return {
         kind: "airport",
@@ -750,10 +846,12 @@ let ulmDetailsPromise = null;
         code: targetCode,
         name,
         municipality,
+        country,
         typeLabel: getAirportOperationalLabel(airport, basulmOverlay),
         metaLabel: metaParts.join(" · "),
         searchName: normalizeSearchText(name),
         searchMunicipality: normalizeSearchText(municipality),
+        searchCountry: normalizeSearchText(country),
         searchCodes: [normalizeSearchText(targetCode)].filter(Boolean),
       };
     }
@@ -779,10 +877,12 @@ let ulmDetailsPromise = null;
         code,
         name,
         municipality: "",
+        country: "FR",
         typeLabel: item?.operationalLabel || "Plateforme ULM",
         metaLabel: metaParts.join(" · "),
         searchName: normalizeSearchText(name),
         searchMunicipality: "",
+        searchCountry: "FR",
         searchCodes: [code, weatherCode, targetCode]
           .map((value) => normalizeSearchText(value))
           .filter(Boolean),
@@ -793,7 +893,7 @@ let ulmDetailsPromise = null;
       if (searchIndexCache) return searchIndexCache;
 
       if (!searchIndexPromise) {
-        searchIndexPromise = Promise.all([loadAirports(), loadUlmBases()])
+        searchIndexPromise = Promise.all([loadWorldAirports(), loadUlmBases()])
           .then(([airports, ulmBases]) => {
             const basulmByWeatherCode = buildBasulmIndexByWeatherCode(ulmBases);
 
@@ -849,6 +949,9 @@ let ulmDetailsPromise = null;
       ) {
         score = 860;
         matchKind = "municipality_prefix";
+      } else if (entry.searchCountry && entry.searchCountry === normalizedQuery) {
+        score = 620;
+        matchKind = "country_exact";
       } else {
         const nameWords = entry.searchName.split(" ").filter(Boolean);
         const cityWords = entry.searchMunicipality.split(" ").filter(Boolean);
@@ -863,6 +966,7 @@ let ulmDetailsPromise = null;
           const allFields = [
             entry.searchName,
             entry.searchMunicipality,
+            entry.searchCountry,
             ...entry.searchCodes,
           ]
             .filter(Boolean)
@@ -1065,6 +1169,205 @@ let ulmDetailsPromise = null;
       }
 
       setSearchFeedback("Sélectionne un terrain dans la liste.");
+    }
+
+    function setLocateButtonState(isLoading) {
+      if (!locateBtn) return;
+      locateBtn.disabled = Boolean(isLoading);
+      locateBtn.textContent = isLoading ? "Localisation..." : "Me localiser";
+    }
+
+    async function requestBrowserPosition() {
+      if (!navigator.geolocation) {
+        throw new Error("geolocation_not_supported");
+      }
+
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            resolve({
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+            });
+          },
+          (error) => {
+            if (error?.code === 1) {
+              reject(new Error("geolocation_denied"));
+              return;
+            }
+
+            if (error?.code === 2) {
+              reject(new Error("geolocation_unavailable"));
+              return;
+            }
+
+            if (error?.code === 3) {
+              reject(new Error("geolocation_timeout"));
+              return;
+            }
+
+            reject(new Error("geolocation_failed"));
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 10000,
+            maximumAge: 120000,
+          }
+        );
+      });
+    }
+
+    function buildLocationAirportEntry(airport, basulmOverlay, distanceKm) {
+      const entry = buildAirportSearchEntry(airport, basulmOverlay);
+      if (!entry) return null;
+
+      return {
+        ...entry,
+        distanceKm,
+        metaLabel: `${entry.metaLabel} · ${formatDistanceLabel(distanceKm)}`,
+      };
+    }
+
+    function buildLocationUlmEntry(item, distanceKm) {
+      const entry = buildUlmSearchEntry(item);
+      if (!entry) return null;
+
+      return {
+        ...entry,
+        distanceKm,
+        metaLabel: `${entry.metaLabel} · ${formatDistanceLabel(distanceKm)}`,
+      };
+    }
+
+    function buildEntryLocationResults(airports, ulmBases, center, limit = 3) {
+      const basulmByWeatherCode = buildBasulmIndexByWeatherCode(ulmBases);
+
+      const airportCandidates = airports
+        .map((airport) => {
+          const distanceKm = getDistanceKm(
+            center.latitude,
+            center.longitude,
+            airport.latitude,
+            airport.longitude
+          );
+
+          if (distanceKm > LOCATION_ENTRY_RADIUS_KM) return null;
+
+          const overlay = basulmByWeatherCode.get(airport.weatherCode) || null;
+          return buildLocationAirportEntry(airport, overlay, distanceKm);
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.distanceKm - b.distanceKm);
+
+      const airportWeatherCodes = new Set(
+        airportCandidates.map((item) => item.weatherCode).filter(Boolean)
+      );
+
+      const ulmCandidates = ulmBases
+        .map((item) => {
+          const distanceKm = getDistanceKm(
+            center.latitude,
+            center.longitude,
+            item.latitude,
+            item.longitude
+          );
+
+          if (distanceKm > LOCATION_ENTRY_RADIUS_KM) return null;
+          if (item.weatherCode && airportWeatherCodes.has(item.weatherCode)) {
+            return null;
+          }
+
+          return buildLocationUlmEntry(item, distanceKm);
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.distanceKm - b.distanceKm);
+
+      const selected = [];
+      const selectedKeys = new Set();
+
+      const pushEntry = (entry) => {
+        if (!entry) return;
+        const key = `${entry.kind}:${entry.targetCode}`;
+        if (selectedKeys.has(key)) return;
+        selected.push(entry);
+        selectedKeys.add(key);
+      };
+
+      pushEntry(airportCandidates[0] || null);
+      pushEntry(airportCandidates[1] || null);
+      pushEntry(ulmCandidates[0] || null);
+
+      const overflow = [...airportCandidates.slice(2), ...ulmCandidates.slice(1)]
+        .sort((a, b) => {
+          if (a.distanceKm !== b.distanceKm) return a.distanceKm - b.distanceKm;
+          if (a.kind !== b.kind) return a.kind === "airport" ? -1 : 1;
+          return a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
+        });
+
+      overflow.forEach((entry) => {
+        if (selected.length >= limit) return;
+        pushEntry(entry);
+      });
+
+      return selected.slice(0, limit);
+    }
+
+    async function locateFromEntry() {
+      clearSearchSuggestions();
+      setSearchFeedback("Localisation en cours...");
+      setLocateButtonState(true);
+
+      try {
+        const center = await requestBrowserPosition();
+        const [airports, ulmBases] = await Promise.all([
+          loadWorldAirports(),
+          loadUlmBases(),
+        ]);
+
+        const results = buildEntryLocationResults(
+          airports,
+          ulmBases,
+          center,
+          3
+        );
+
+        if (!results.length) {
+          clearSearchSuggestions();
+          setSearchFeedback(
+            "Aucun terrain couvert trouvé près de votre position avec la base actuelle." 
+          );
+          return;
+        }
+
+        renderSearchSuggestions(results);
+        setSearchFeedback("Terrains couverts près de votre position. Sélectionne un terrain.");
+      } catch (error) {
+        clearSearchSuggestions();
+
+        if (error.message === "geolocation_not_supported") {
+          setSearchFeedback("La géolocalisation n’est pas supportée sur cet appareil.");
+          return;
+        }
+
+        if (error.message === "geolocation_denied") {
+          setSearchFeedback("Géolocalisation refusée. Autorise la position ou saisis un terrain.");
+          return;
+        }
+
+        if (
+          error.message === "geolocation_unavailable" ||
+          error.message === "geolocation_timeout" ||
+          error.message === "geolocation_failed"
+        ) {
+          setSearchFeedback("Impossible de récupérer la position pour le moment.");
+          return;
+        }
+
+        setSearchFeedback("Impossible de lancer la géolocalisation pour le moment.");
+        console.error(error);
+      } finally {
+        setLocateButtonState(false);
+      }
     }
 
 function normalizeUlmDetailsRecord(item) {
@@ -1530,6 +1833,12 @@ const prefEndDot = isPreferredEnd
           note: "Terrains : BASULM.",
         };
       }
+      if (matchedAirport?.sourceScope === "world") {
+        return {
+          badge: "Base monde",
+          note: "Terrains : base monde aérodromes.",
+        };
+      }
       return {
         badge: "Base France",
         note: "Terrains : base France.",
@@ -1547,7 +1856,7 @@ const prefEndDot = isPreferredEnd
       if (platformNotesValue) platformNotesValue.textContent = "—";
       if (platformUpdatedValue) platformUpdatedValue.textContent = "—";
       if (platformSourceNote) {
-        platformSourceNote.textContent = "Terrains : base France · BASULM selon plateforme.";
+        platformSourceNote.textContent = "Terrains : base monde aérodromes · base France / BASULM pour la couche enrichie.";
       }
       if (platformDetailsDisclosure) {
         platformDetailsDisclosure.hidden = true;
@@ -2712,7 +3021,7 @@ async function applyMissingLocalWeatherState({
       const enteredCode = normalizeCode(icaoInput?.value);
 
       if (enteredCode) {
-        const matchedAirport = await findAirportByCode(enteredCode);
+        const matchedAirport = await findAnyAirportByCode(enteredCode);
         if (matchedAirport) {
           return {
             latitude: matchedAirport.latitude,
@@ -2731,22 +3040,13 @@ async function applyMissingLocalWeatherState({
         }
       }
 
-      if (!navigator.geolocation) {
-        throw new Error("geolocation_not_supported");
-      }
+      const position = await requestBrowserPosition();
 
-      return new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            resolve({
-              latitude: pos.coords.latitude,
-              longitude: pos.coords.longitude,
-              label: "Terrains autour de votre position",
-            });
-          },
-          () => reject(new Error("geolocation_failed"))
-        );
-      });
+      return {
+        latitude: position.latitude,
+        longitude: position.longitude,
+        label: "Terrains autour de votre position",
+      };
     }
 
     function renderNearbyHeader(centerLabel) {
@@ -2754,10 +3054,7 @@ async function applyMissingLocalWeatherState({
       li.className = "nearby-section-header";
       li.innerHTML = `
         <strong>${centerLabel}</strong>
-        <small>
-          Vérifier systématiquement les conditions d’utilisation publiées
-          (AIP, VAC, NOTAM, consignes locales) avant toute exploitation.
-        </small>
+        <small>Couche aérodromes monde · couche ULM France.</small>
       `;
       nearbyAirports.appendChild(li);
     }
@@ -2800,7 +3097,7 @@ async function applyMissingLocalWeatherState({
         </div>
         <div class="airport-nearby-name">${item.name}</div>
         <div class="airport-nearby-meta">
-          ${item.operationalLabel}${item.municipality ? ` · ${item.municipality}` : ""}
+          ${item.operationalLabel}${item.municipality ? ` · ${item.municipality}` : ""}${item.country ? ` · ${item.country}` : ""}
         </div>
         ${accessLine}
         <div class="airport-nearby-action">Voir METAR / TAF</div>
@@ -2895,7 +3192,7 @@ function renderUlmNearbyItem(item) {
 
       tafSummaryValue.textContent = "Chargement...";
 
-      const matchedAirport = await findAirportByCode(icao);
+      const matchedAirport = await findAnyAirportByCode(icao);
       const matchedUlm = await findUlmByCode(icao);
       const matchedUlmDetails = await findUlmDetailsByCode(icao);
       const matchedFrequency = await findFrequencyByCode(icao);
@@ -3024,7 +3321,7 @@ function renderUlmNearbyItem(item) {
       try {
         const center = await resolveNearbyCenter();
         const [airports, ulmBases] = await Promise.all([
-          loadAirports(),
+          loadWorldAirports(),
           loadUlmBases(),
         ]);
 
@@ -3039,6 +3336,7 @@ function renderUlmNearbyItem(item) {
               code: airport.weatherCode,
               name: airport.name,
               municipality: airport.municipality || "",
+              country: airport.country || "",
               distanceKm: getDistanceKm(
                 center.latitude,
                 center.longitude,
@@ -3085,10 +3383,10 @@ function renderUlmNearbyItem(item) {
         nearbyAirports.innerHTML = "";
         renderNearbyHeader(center.label);
 
-        renderNearbyGroupTitle("Aérodromes avec météo publiée");
+        renderNearbyGroupTitle("Aérodromes couverts");
         if (weatherNearby.length === 0) {
           renderEmptyGroup(
-            "Aucun terrain météo exploitable trouvé dans le rayon retenu."
+            "Aucun aérodrome couvert trouvé dans le rayon retenu."
           );
         } else {
           weatherNearby.forEach(renderWeatherNearbyItem);
@@ -3102,6 +3400,14 @@ function renderUlmNearbyItem(item) {
         } else {
           ulmNearby.forEach(renderUlmNearbyItem);
         }
+
+        if (weatherNearby.length === 0 && ulmNearby.length === 0) {
+          const note = document.createElement("li");
+          note.className = "nearby-empty";
+          note.textContent =
+            "Aucun terrain couvert trouvé près de votre position avec la base actuelle.";
+          nearbyAirports.appendChild(note);
+        }
       } catch (error) {
         if (error.message === "geolocation_not_supported") {
           nearbyAirports.innerHTML =
@@ -3109,9 +3415,14 @@ function renderUlmNearbyItem(item) {
           return;
         }
 
-        if (error.message === "geolocation_failed") {
+        if (
+          error.message === "geolocation_denied" ||
+          error.message === "geolocation_unavailable" ||
+          error.message === "geolocation_timeout" ||
+          error.message === "geolocation_failed"
+        ) {
           nearbyAirports.innerHTML =
-            "<li class='nearby-empty'>Impossible de récupérer la position. Saisis un terrain comme LFQQ puis relance la recherche.</li>";
+            "<li class='nearby-empty'>Impossible de récupérer la position. Saisis un terrain ou utilise la recherche par ville.</li>";
           return;
         }
 
@@ -3122,6 +3433,7 @@ function renderUlmNearbyItem(item) {
     }
 
     loadMetarBtn?.addEventListener("click", submitSearch);
+    locateBtn?.addEventListener("click", locateFromEntry);
     nearbyBtn?.addEventListener("click", getLocation);
 
     icaoInput?.addEventListener("input", () => {
@@ -3163,7 +3475,7 @@ function renderUlmNearbyItem(item) {
     document.addEventListener("click", (event) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
-      if (target.closest(".tool-search-col")) return;
+      if (target.closest(".tool-entry-block")) return;
       clearSearchSuggestions();
     });
 
@@ -3237,6 +3549,23 @@ function renderUlmNearbyItem(item) {
       min-width: min(100%, 320px);
       display: grid;
       gap: 8px;
+    }
+
+    .tool-page .tool-entry-actions {
+      flex: 0 0 220px;
+      min-width: min(100%, 220px);
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .tool-page .tool-entry-actions .tool-action-btn {
+      width: 100%;
+    }
+
+    .tool-page .tool-entry-actions .tool-action-btn[disabled] {
+      opacity: 0.72;
+      cursor: wait;
     }
 
     .tool-page .tool-search-suggestions {
@@ -4288,6 +4617,11 @@ function renderUlmNearbyItem(item) {
       .tool-page .tool-search-col {
         min-width: 100%;
         gap: 6px;
+      }
+
+      .tool-page .tool-entry-actions {
+        min-width: 100%;
+        gap: 8px;
       }
 
       .tool-page .tool-search-suggestions {
