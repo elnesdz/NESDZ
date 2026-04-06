@@ -13,20 +13,17 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         <div class="tool-block tool-entry-block">
           <label for="icaoInput" class="tool-entry-label">
-            Terrain, code OACI ou ville
+            Code OACI ou ville
           </label>
           <p class="tool-entry-help">
-            Entrer un code, un terrain ou une ville comme <strong>LFQQ</strong>,
-            <strong>Lille</strong>, <strong>Merville</strong> ou
-            <strong>Arras</strong>, ou utilise <strong>Me localiser</strong>
-            pour proposer les terrains couverts les plus proches.
+            Entre un code OACI, une ville ou utilise <strong>Me localiser</strong>.
           </p>
 
           <div class="row tool-row">
             <div class="tool-search-col">
               <input
                 id="icaoInput"
-                placeholder="Ex : LFQQ, Lille, Arras"
+                placeholder="Ex : LFQQ ou Lille"
                 value="LFQQ"
                 inputmode="text"
                 autocomplete="off"
@@ -146,18 +143,19 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                   </div>
                 </div>
 
-                <div id="radioSecondaryBlock" class="radio-secondary" hidden>
-                  <div class="radio-secondary-title">
-                    Fréquences complémentaires
-                  </div>
+                <details id="radioSecondaryBlock" class="radio-secondary radio-secondary-disclosure" hidden>
+                  <summary class="radio-secondary-summary">
+                    <span class="radio-secondary-title">Fréquences complémentaires</span>
+                    <span id="radioSecondaryCount" class="radio-secondary-count">0</span>
+                  </summary>
                   <ul id="radioList" class="radio-list"></ul>
-                </div>
+                </details>
               </div>
             </div>
           </div>
 
           <p class="decoded-note decoded-note--micro">
-            Météo : Aviation Weather Center · repère voisin si aucun METAR / TAF local.
+            Météo : Aviation Weather Center · repère voisin si besoin.
           </p>
         </div>
 
@@ -220,7 +218,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           </details>
 
           <p id="platformSourceNote" class="decoded-note decoded-note--micro">
-            Terrains : base monde aérodromes · base France / BASULM pour la couche enrichie.
+            Terrains : base monde · couche enrichie France / BASULM.
           </p>
         </div>
 
@@ -252,7 +250,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           <div class="weather-refs-head">
             <div>
               <h2>Repères météo voisins</h2>
-              <p class="weather-refs-note">Repère voisin si aucun METAR / TAF local.</p>
+              <p class="weather-refs-note">Repère voisin si besoin.</p>
             </div>
           </div>
 
@@ -273,10 +271,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         <div class="tool-block tool-block--compact tool-sources-strip">
           <p class="tool-source-line">
-            Sources : météo Aviation Weather Center · radio SIA / BASULM · terrains base monde aérodromes, couche enrichie France / BASULM.
+            Sources : météo AWC · radio SIA / BASULM · terrains base monde, couche enrichie France / BASULM.
           </p>
           <p class="tool-source-line">
-            Repère voisin si aucun METAR / TAF local.
+            Repère voisin si besoin.
           </p>
         </div>
       </div>
@@ -325,6 +323,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const radioPhoneLabel = document.getElementById("radioPhoneLabel");
     const radioPhoneSourceValue = document.getElementById("radioPhoneSourceValue");
     const radioSecondaryBlock = document.getElementById("radioSecondaryBlock");
+    const radioSecondaryCount = document.getElementById("radioSecondaryCount");
     const radioList = document.getElementById("radioList");
     const tafSummaryValue = document.getElementById("tafSummaryValue");
 
@@ -403,7 +402,11 @@ let ulmDetailsPromise = null;
       if (radioPhoneSourceValue) {
         radioPhoneSourceValue.textContent = "Publié pour le terrain";
       }
-      if (radioSecondaryBlock) radioSecondaryBlock.hidden = true;
+      if (radioSecondaryBlock) {
+        radioSecondaryBlock.hidden = true;
+        radioSecondaryBlock.open = false;
+      }
+      if (radioSecondaryCount) radioSecondaryCount.textContent = "0";
       if (radioList) radioList.innerHTML = "";
 
       tafSummaryValue.textContent = "Aucune donnée";
@@ -1824,7 +1827,7 @@ const prefEndDot = isPreferredEnd
       if (matchedAirport && matchedUlmDetails) {
         return {
           badge: "Base France · BASULM",
-          note: "Terrains : base France · BASULM selon plateforme.",
+          note: "Terrains : base France · BASULM.",
         };
       }
       if (matchedUlmDetails) {
@@ -1836,7 +1839,7 @@ const prefEndDot = isPreferredEnd
       if (matchedAirport?.sourceScope === "world") {
         return {
           badge: "Base monde",
-          note: "Terrains : base monde aérodromes.",
+          note: "Terrains : base monde.",
         };
       }
       return {
@@ -1856,7 +1859,7 @@ const prefEndDot = isPreferredEnd
       if (platformNotesValue) platformNotesValue.textContent = "—";
       if (platformUpdatedValue) platformUpdatedValue.textContent = "—";
       if (platformSourceNote) {
-        platformSourceNote.textContent = "Terrains : base monde aérodromes · base France / BASULM pour la couche enrichie.";
+        platformSourceNote.textContent = "Terrains : base monde · couche enrichie France / BASULM.";
       }
       if (platformDetailsDisclosure) {
         platformDetailsDisclosure.hidden = true;
@@ -2435,7 +2438,11 @@ function normalizeFrequencyItem(entry) {
       if (radioSupportBlock) radioSupportBlock.hidden = true;
       if (radioAtisCard) radioAtisCard.hidden = true;
       if (radioPhoneCard) radioPhoneCard.hidden = true;
-      if (radioSecondaryBlock) radioSecondaryBlock.hidden = true;
+      if (radioSecondaryBlock) {
+        radioSecondaryBlock.hidden = true;
+        radioSecondaryBlock.open = false;
+      }
+      if (radioSecondaryCount) radioSecondaryCount.textContent = "0";
 
       const publishedPhones = formatPublishedPhones(matchedUlmDetails);
 
@@ -2580,7 +2587,13 @@ function normalizeFrequencyItem(entry) {
 
       if (!radioList || secondaryFrequencies.length === 0) return;
 
-      if (radioSecondaryBlock) radioSecondaryBlock.hidden = false;
+      if (radioSecondaryBlock) {
+        radioSecondaryBlock.hidden = false;
+        radioSecondaryBlock.open = false;
+      }
+      if (radioSecondaryCount) {
+        radioSecondaryCount.textContent = String(secondaryFrequencies.length);
+      }
 
       secondaryFrequencies.forEach((entry) => {
         const item = document.createElement("li");
@@ -3187,7 +3200,11 @@ function renderUlmNearbyItem(item) {
       if (radioSourceValue) {
         radioSourceValue.textContent = "Radio : SIA prioritaire · BASULM selon terrain.";
       }
-      if (radioSecondaryBlock) radioSecondaryBlock.hidden = true;
+      if (radioSecondaryBlock) {
+        radioSecondaryBlock.hidden = true;
+        radioSecondaryBlock.open = false;
+      }
+      if (radioSecondaryCount) radioSecondaryCount.textContent = "0";
       if (radioList) radioList.innerHTML = "";
 
       tafSummaryValue.textContent = "Chargement...";
@@ -3516,21 +3533,28 @@ function renderUlmNearbyItem(item) {
         0 0 0 1px rgba(111, 184, 214, 0.04);
     }
 
+    .tool-page h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2.35rem, 4vw, 3.15rem);
+      line-height: 0.98;
+      letter-spacing: -0.02em;
+    }
+
     .tool-page .tool-entry-label {
       display: block;
-      margin-bottom: 8px;
-      font-size: 1.08rem;
+      margin-bottom: 6px;
+      font-size: 0.98rem;
       font-weight: 700;
-      line-height: 1.3;
-      color: rgba(244, 249, 252, 0.98);
+      line-height: 1.28;
+      color: rgba(244, 249, 252, 0.96);
       letter-spacing: 0.01em;
     }
 
     .tool-page .tool-entry-help {
-      margin: 0 0 14px;
-      font-size: 0.94rem;
-      line-height: 1.55;
-      color: rgba(219, 230, 238, 0.82);
+      margin: 0 0 10px;
+      font-size: 0.82rem;
+      line-height: 1.38;
+      color: rgba(219, 230, 238, 0.76);
     }
 
     .tool-page .tool-entry-help strong {
@@ -3719,6 +3743,9 @@ function renderUlmNearbyItem(item) {
         border-color 0.18s ease,
         box-shadow 0.18s ease,
         color 0.18s ease;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.08);
     }
 
     .tool-page .tool-action-btn:focus-visible {
@@ -3729,15 +3756,16 @@ function renderUlmNearbyItem(item) {
       background:
         linear-gradient(
           180deg,
-          rgba(111, 184, 214, 0.54),
-          rgba(111, 184, 214, 0.34)
+          rgba(120, 198, 232, 0.72),
+          rgba(83, 152, 185, 0.42)
         ),
-        rgba(20, 40, 54, 0.98);
-      border: 1px solid rgba(111, 184, 214, 0.88);
+        rgba(20, 40, 54, 0.99);
+      border: 1px solid rgba(150, 217, 245, 0.96);
       color: #f7fcff;
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-        0 0 0 1px rgba(111, 184, 214, 0.16);
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 0 0 1px rgba(120, 198, 232, 0.22),
+        0 12px 26px rgba(7, 22, 34, 0.22);
     }
 
     .tool-page .tool-action-btn--primary:hover {
@@ -3745,15 +3773,15 @@ function renderUlmNearbyItem(item) {
       background:
         linear-gradient(
           180deg,
-          rgba(111, 184, 214, 0.66),
-          rgba(111, 184, 214, 0.42)
+          rgba(132, 208, 241, 0.82),
+          rgba(92, 163, 197, 0.5)
         ),
         rgba(20, 40, 54, 1);
-      border-color: rgba(111, 184, 214, 0.98);
+      border-color: rgba(177, 231, 255, 1);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.12),
-        0 0 0 4px rgba(111, 184, 214, 0.16),
-        0 10px 24px rgba(0, 0, 0, 0.22);
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        0 0 0 4px rgba(120, 198, 232, 0.18),
+        0 12px 26px rgba(0, 0, 0, 0.24);
     }
 
     .tool-page .tool-action-btn--primary:focus-visible {
@@ -3767,15 +3795,16 @@ function renderUlmNearbyItem(item) {
       background:
         linear-gradient(
           180deg,
-          rgba(186, 221, 239, 0.26),
-          rgba(186, 221, 239, 0.14)
+          rgba(203, 230, 244, 0.34),
+          rgba(203, 230, 244, 0.18)
         ),
-        rgba(28, 38, 49, 0.96);
-      border: 1px solid rgba(186, 221, 239, 0.48);
-      color: rgba(247, 251, 254, 0.99);
+        rgba(28, 38, 49, 0.97);
+      border: 1px solid rgba(210, 236, 248, 0.68);
+      color: rgba(249, 252, 255, 0.99);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.08),
-        0 0 0 1px rgba(186, 221, 239, 0.05);
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 0 1px rgba(203, 230, 244, 0.09),
+        0 10px 22px rgba(7, 18, 28, 0.16);
     }
 
     .tool-page .tool-action-btn--secondary:hover {
@@ -3783,13 +3812,13 @@ function renderUlmNearbyItem(item) {
       background:
         linear-gradient(
           180deg,
-          rgba(186, 221, 239, 0.34),
-          rgba(186, 221, 239, 0.18)
+          rgba(214, 238, 250, 0.42),
+          rgba(214, 238, 250, 0.22)
         ),
         rgba(30, 41, 53, 1);
-      border-color: rgba(186, 221, 239, 0.6);
+      border-color: rgba(223, 243, 252, 0.82);
       box-shadow:
-        0 0 0 4px rgba(186, 221, 239, 0.12),
+        0 0 0 4px rgba(186, 221, 239, 0.14),
         0 10px 22px rgba(0, 0, 0, 0.18);
     }
 
@@ -3841,15 +3870,15 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .decoded-note {
-      margin: 8px 0 0;
-      font-size: 0.78rem;
-      line-height: 1.35;
-      color: rgba(206, 219, 229, 0.68);
+      margin: 6px 0 0;
+      font-size: 0.67rem;
+      line-height: 1.24;
+      color: rgba(206, 219, 229, 0.52);
     }
 
     .tool-page .decoded-note--micro {
-      font-size: 0.72rem;
-      line-height: 1.32;
+      font-size: 0.61rem;
+      line-height: 1.22;
       letter-spacing: 0.01em;
     }
 
@@ -3943,16 +3972,16 @@ function renderUlmNearbyItem(item) {
 
     .tool-page .tool-sources-strip {
       display: grid;
-      gap: 4px;
-      padding-top: 10px;
-      padding-bottom: 10px;
+      gap: 3px;
+      padding-top: 8px;
+      padding-bottom: 8px;
     }
 
     .tool-page .tool-source-line {
       margin: 0;
-      color: rgba(206, 219, 229, 0.64);
-      font-size: 0.72rem;
-      line-height: 1.32;
+      color: rgba(206, 219, 229, 0.5);
+      font-size: 0.61rem;
+      line-height: 1.22;
     }
 
     .tool-page .tool-source-line + .tool-source-line {
@@ -4079,18 +4108,101 @@ function renderUlmNearbyItem(item) {
       gap: 8px;
     }
 
+    .tool-page .radio-secondary-disclosure {
+      border-radius: 14px;
+      border: 1px solid rgba(148, 211, 236, 0.34);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(111, 184, 214, 0.11),
+          rgba(255, 255, 255, 0.03)
+        ),
+        rgba(15, 22, 31, 0.68);
+      overflow: hidden;
+    }
+
+    .tool-page .radio-secondary-summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 46px;
+      padding: 12px 14px;
+      border: 0;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(125, 196, 225, 0.22),
+          rgba(125, 196, 225, 0.1)
+        ),
+        rgba(22, 34, 46, 0.94);
+      transition:
+        transform 0.18s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease;
+    }
+
+    .tool-page .radio-secondary-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .tool-page .radio-secondary-summary::after {
+      content: "▾";
+      color: rgba(240, 247, 252, 0.96);
+      font-size: 0.98rem;
+      transition: transform 0.18s ease;
+    }
+
+    .tool-page .radio-secondary-disclosure[open] .radio-secondary-summary::after {
+      transform: rotate(180deg);
+    }
+
+    .tool-page .radio-secondary-summary:hover,
+    .tool-page .radio-secondary-summary:focus-visible {
+      transform: translateY(-1px);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(140, 209, 236, 0.28),
+          rgba(140, 209, 236, 0.14)
+        ),
+        rgba(24, 37, 50, 0.98);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 0 0 4px rgba(111, 184, 214, 0.14);
+    }
+
     .tool-page .radio-secondary-title {
-      font-size: 0.82rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: rgba(240, 247, 252, 0.96);
+    }
+
+    .tool-page .radio-secondary-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 26px;
+      height: 26px;
+      padding: 0 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(210, 236, 248, 0.42);
+      background: rgba(210, 236, 248, 0.12);
+      color: rgba(246, 251, 255, 0.98);
+      font-size: 0.78rem;
+      font-weight: 800;
+      line-height: 1;
     }
 
     .tool-page .radio-list {
       list-style: none;
       margin: 0;
-      padding: 0;
+      padding: 10px 10px 10px;
       display: grid;
       gap: 8px;
     }
@@ -4136,10 +4248,10 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .weather-refs-note {
-      margin: 4px 0 0;
-      color: rgba(206, 219, 229, 0.68);
-      font-size: 0.72rem;
-      line-height: 1.32;
+      margin: 3px 0 0;
+      color: rgba(206, 219, 229, 0.52);
+      font-size: 0.61rem;
+      line-height: 1.22;
     }
 
     .tool-page .weather-refs-list {
@@ -4266,11 +4378,11 @@ function renderUlmNearbyItem(item) {
   min-height: 42px;
   padding: 11px 14px;
   border-radius: 12px;
-  border: 1px solid rgba(103, 183, 224, 0.34);
+  border: 1px solid rgba(148, 211, 236, 0.54);
   background: linear-gradient(
     180deg,
-    rgba(103, 183, 224, 0.16) 0%,
-    rgba(103, 183, 224, 0.08) 100%
+    rgba(120, 198, 232, 0.24) 0%,
+    rgba(120, 198, 232, 0.12) 100%
   );
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
@@ -4308,10 +4420,10 @@ function renderUlmNearbyItem(item) {
   transform: translateY(-1px);
   background: linear-gradient(
     180deg,
-    rgba(103, 183, 224, 0.22) 0%,
-    rgba(103, 183, 224, 0.11) 100%
+    rgba(132, 208, 241, 0.28) 0%,
+    rgba(132, 208, 241, 0.14) 100%
   );
-  border-color: rgba(103, 183, 224, 0.46);
+  border-color: rgba(164, 223, 248, 0.68);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
     0 6px 18px rgba(33, 84, 112, 0.14);
@@ -4589,9 +4701,9 @@ function renderUlmNearbyItem(item) {
       }
 
       .tool-page h1 {
-        font-size: clamp(2.05rem, 9.2vw, 2.9rem);
-        line-height: 0.98;
-        margin-bottom: 14px;
+        font-size: clamp(1.82rem, 7.8vw, 2.35rem);
+        line-height: 1;
+        margin-bottom: 12px;
       }
 
       .tool-page h2 {
@@ -4599,14 +4711,14 @@ function renderUlmNearbyItem(item) {
       }
 
       .tool-page .tool-entry-label {
-        margin-bottom: 6px;
-        font-size: 1rem;
+        margin-bottom: 5px;
+        font-size: 0.92rem;
       }
 
       .tool-page .tool-entry-help {
-        font-size: 0.84rem;
-        line-height: 1.42;
-        margin-bottom: 10px;
+        font-size: 0.74rem;
+        line-height: 1.32;
+        margin-bottom: 8px;
       }
 
       .tool-page .tool-row {
@@ -4784,8 +4896,8 @@ function renderUlmNearbyItem(item) {
       .tool-page .decoded-note--micro,
       .tool-page .weather-refs-note,
       .tool-page .tool-source-line {
-        font-size: 0.68rem;
-        line-height: 1.28;
+        font-size: 0.56rem;
+        line-height: 1.18;
       }
 
       .tool-page .tool-sources-strip {
