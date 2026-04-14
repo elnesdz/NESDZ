@@ -112,7 +112,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                   <div class="radio-primary-head">
                     <span id="radioTypeValue" class="radio-badge">Radio</span>
                     <span id="radioSourceValue" class="radio-primary-note">
-                      Radio : SIA prioritaire · BASULM selon terrain.
+                      Radio : SIA / BASULM.
                     </span>
                   </div>
 
@@ -155,7 +155,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           </div>
 
           <p class="decoded-note decoded-note--micro">
-            Météo : Aviation Weather Center · repère voisin si besoin.
+            Météo : AWC · repère voisin si besoin.
           </p>
         </div>
 
@@ -218,7 +218,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           </details>
 
           <p id="platformSourceNote" class="decoded-note decoded-note--micro">
-            Terrains : base monde · couche enrichie France / BASULM.
+            Terrains : base monde · France / BASULM.
           </p>
         </div>
 
@@ -271,7 +271,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         <div class="tool-block tool-block--compact tool-sources-strip">
           <p class="tool-source-line">
-            Sources : météo AWC · radio SIA / BASULM · terrains base monde, couche enrichie France / BASULM.
+            Sources : AWC · SIA / BASULM · base monde, couche France / BASULM.
           </p>
           <p class="tool-source-line">
             Repère voisin si besoin.
@@ -387,7 +387,7 @@ let ulmDetailsPromise = null;
       }
       if (radioSourceValue) {
         radioSourceValue.textContent =
-          "Radio : SIA prioritaire · BASULM selon terrain.";
+          "Radio : SIA / BASULM.";
       }
       if (radioSupportBlock) radioSupportBlock.hidden = true;
       if (radioAtisCard) radioAtisCard.hidden = true;
@@ -1827,7 +1827,7 @@ const prefEndDot = isPreferredEnd
       if (matchedAirport && matchedUlmDetails) {
         return {
           badge: "Base France · BASULM",
-          note: "Terrains : base France · BASULM.",
+          note: "Terrains : base France / BASULM.",
         };
       }
       if (matchedUlmDetails) {
@@ -1859,7 +1859,7 @@ const prefEndDot = isPreferredEnd
       if (platformNotesValue) platformNotesValue.textContent = "—";
       if (platformUpdatedValue) platformUpdatedValue.textContent = "—";
       if (platformSourceNote) {
-        platformSourceNote.textContent = "Terrains : base monde · couche enrichie France / BASULM.";
+        platformSourceNote.textContent = "Terrains : base monde · France / BASULM.";
       }
       if (platformDetailsDisclosure) {
         platformDetailsDisclosure.hidden = true;
@@ -2388,7 +2388,21 @@ function normalizeFrequencyItem(entry) {
         reduced.push(...bestByQualifier.values());
       });
 
-      return reduced.sort((a, b) => {
+      const dedupedByService = new Map();
+
+      reduced.forEach((entry) => {
+        const key = getServiceDedupFrequencyKey(entry);
+        const current = dedupedByService.get(key);
+
+        if (
+          current == null ||
+          getFrequencyDetailScore(entry) > getFrequencyDetailScore(current)
+        ) {
+          dedupedByService.set(key, entry);
+        }
+      });
+
+      return [...dedupedByService.values()].sort((a, b) => {
         const serviceDiff =
           getRadioServicePriority(a) - getRadioServicePriority(b);
         if (serviceDiff !== 0) return serviceDiff;
@@ -2429,6 +2443,74 @@ function normalizeFrequencyItem(entry) {
       return displayFrequencies.filter(
         (entry) => getRadioServiceLabel(entry) !== "ATIS"
       );
+    }
+
+    function getPrimaryOperationalPriority(entry) {
+      const normalized = normalizeRadioText(getRadioServiceLabel(entry)).toLowerCase();
+
+      if (normalized === "tour") return 1;
+      if (normalized === "afis") return 2;
+      if (normalized === "info") return 3;
+      if (normalized === "auto-information") return 4;
+      if (normalized === "trafic") return 5;
+      if (normalized === "approche") return 6;
+      if (normalized === "sol") return 7;
+      if (normalized === "départ" || normalized === "depart") return 8;
+      if (normalized === "arrivée" || normalized === "arrivee") return 9;
+      if (normalized === "prévol" || normalized === "prevol") return 10;
+      return 11;
+    }
+
+    function isSamePrimaryFrequency(entry, primaryFrequency) {
+      if (!entry || !primaryFrequency) return false;
+
+      return (
+        formatFrequencyMhz(entry.frequency_mhz) ===
+          formatFrequencyMhz(primaryFrequency.frequency_mhz) &&
+        normalizeRadioText(getOfficialFrequencyBaseLabel(entry)) ===
+          normalizeRadioText(getOfficialFrequencyBaseLabel(primaryFrequency))
+      );
+    }
+
+    function selectPrimaryOperationalFrequency(primaryCandidates = [], primaryFrequency = null) {
+      if (!Array.isArray(primaryCandidates) || !primaryCandidates.length) return null;
+
+      return [...primaryCandidates].sort((a, b) => {
+        const priorityDiff =
+          getPrimaryOperationalPriority(a) - getPrimaryOperationalPriority(b);
+        if (priorityDiff !== 0) return priorityDiff;
+
+        const primaryMatchDiff =
+          Number(isSamePrimaryFrequency(b, primaryFrequency)) -
+          Number(isSamePrimaryFrequency(a, primaryFrequency));
+        if (primaryMatchDiff !== 0) return primaryMatchDiff;
+
+        const detailDiff = getFrequencyDetailScore(b) - getFrequencyDetailScore(a);
+        if (detailDiff !== 0) return detailDiff;
+
+        const labelDiff = getOperationalFrequencyLabel(a).localeCompare(
+          getOperationalFrequencyLabel(b),
+          "fr",
+          { sensitivity: "base" }
+        );
+        if (labelDiff !== 0) return labelDiff;
+
+        const freqA = Number(a?.frequency_mhz);
+        const freqB = Number(b?.frequency_mhz);
+        if (Number.isFinite(freqA) && Number.isFinite(freqB) && freqA !== freqB) {
+          return freqA - freqB;
+        }
+
+        return 0;
+      })[0] || null;
+    }
+
+    function getServiceDedupFrequencyKey(entry) {
+      return [
+        normalizeRadioText(getRadioServiceLabel(entry)).toLowerCase(),
+        formatFrequencyMhz(entry?.frequency_mhz),
+        normalizeRadioText(getOfficialSectorSuffix(entry)).toLowerCase(),
+      ].join("|");
     }
 
     function renderFrequencyPanel(record, fallbackRadio = null, matchedUlmDetails = null) {
@@ -2483,7 +2565,7 @@ function normalizeFrequencyItem(entry) {
           "Aucune fréquence publiée trouvée pour ce terrain.";
         if (radioSourceValue) {
           radioSourceValue.textContent =
-            "Radio : SIA prioritaire · BASULM selon terrain.";
+            "Radio : SIA / BASULM.";
         }
         renderPublishedPhone();
       };
@@ -2528,20 +2610,13 @@ function normalizeFrequencyItem(entry) {
       const primaryCandidates = getPrimaryRadioCandidates(displayFrequencies);
 
       const primaryVisibleMatch = record.primary_frequency
-        ? primaryCandidates.find((entry) => {
-            return (
-              formatFrequencyMhz(entry.frequency_mhz) ===
-                formatFrequencyMhz(record.primary_frequency.frequency_mhz) &&
-              normalizeRadioText(getOfficialFrequencyBaseLabel(entry)) ===
-                normalizeRadioText(
-                  getOfficialFrequencyBaseLabel(record.primary_frequency)
-                )
-            );
-          })
+        ? primaryCandidates.find((entry) => isSamePrimaryFrequency(entry, record.primary_frequency)) || null
         : null;
 
       const primaryFrequency =
-        primaryVisibleMatch || primaryCandidates[0] || atisEntries[0] || null;
+        selectPrimaryOperationalFrequency(primaryCandidates, primaryVisibleMatch || record.primary_frequency) ||
+        atisEntries[0] ||
+        null;
 
       if (!primaryFrequency) {
         renderBasulmFallback();
@@ -2561,7 +2636,7 @@ function normalizeFrequencyItem(entry) {
         formatFrequencyMhz(primaryFrequency.frequency_mhz) || "—";
       radioLabelValue.textContent = getOperationalFrequencyLabel(primaryFrequency);
       if (radioSourceValue) {
-        radioSourceValue.textContent = "Radio : SIA prioritaire · BASULM selon terrain.";
+        radioSourceValue.textContent = "Radio : SIA / BASULM.";
       }
 
       const primaryKey = getDisplayFrequencyKey(primaryFrequency);
@@ -3198,7 +3273,7 @@ function renderUlmNearbyItem(item) {
         radioLabelValue.textContent = "Recherche des fréquences utiles...";
       }
       if (radioSourceValue) {
-        radioSourceValue.textContent = "Radio : SIA prioritaire · BASULM selon terrain.";
+        radioSourceValue.textContent = "Radio : SIA / BASULM.";
       }
       if (radioSecondaryBlock) {
         radioSecondaryBlock.hidden = true;
@@ -3509,16 +3584,16 @@ function renderUlmNearbyItem(item) {
 
   <style is:global>
     .tool-page .tool-block {
-      margin-top: 24px;
-    }
-
-    .tool-page .tool-block--compact {
       margin-top: 20px;
     }
 
+    .tool-page .tool-block--compact {
+      margin-top: 16px;
+    }
+
     .tool-page .tool-entry-block {
-      margin-top: 8px;
-      padding: 16px 18px 18px;
+      margin-top: 6px;
+      padding: 14px 16px 16px;
       border-radius: 16px;
       border: 1px solid rgba(111, 184, 214, 0.22);
       background:
@@ -3534,23 +3609,23 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page h1 {
-      margin: 0 0 10px;
-      font-size: clamp(2.05rem, 3.3vw, 2.72rem);
+      margin: 0 0 8px;
+      font-size: clamp(1.86rem, 2.85vw, 2.34rem);
       line-height: 0.98;
       letter-spacing: -0.02em;
     }
 
     .tool-page h2 {
-      margin: 0 0 10px;
-      font-size: clamp(1.42rem, 2vw, 1.82rem);
-      line-height: 1.03;
-      letter-spacing: -0.015em;
+      margin: 0 0 8px;
+      font-size: clamp(1.22rem, 1.75vw, 1.54rem);
+      line-height: 1.04;
+      letter-spacing: -0.014em;
     }
 
     .tool-page .tool-entry-label {
       display: block;
-      margin-bottom: 5px;
-      font-size: 0.9rem;
+      margin-bottom: 4px;
+      font-size: 0.82rem;
       font-weight: 700;
       line-height: 1.24;
       color: rgba(244, 249, 252, 0.94);
@@ -3558,10 +3633,10 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .tool-entry-help {
-      margin: 0 0 8px;
-      font-size: 0.74rem;
-      line-height: 1.32;
-      color: rgba(219, 230, 238, 0.68);
+      margin: 0 0 7px;
+      font-size: 0.68rem;
+      line-height: 1.26;
+      color: rgba(219, 230, 238, 0.58);
     }
 
     .tool-page .tool-entry-help strong {
@@ -3570,7 +3645,7 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .tool-row {
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
       align-items: flex-start;
     }
@@ -3579,14 +3654,14 @@ function renderUlmNearbyItem(item) {
       flex: 1 1 320px;
       min-width: min(100%, 320px);
       display: grid;
-      gap: 8px;
+      gap: 6px;
     }
 
     .tool-page .tool-entry-actions {
       flex: 0 0 220px;
       min-width: min(100%, 220px);
       display: grid;
-      gap: 8px;
+      gap: 6px;
       align-content: start;
     }
 
@@ -3679,7 +3754,7 @@ function renderUlmNearbyItem(item) {
       border: 1px solid rgba(111, 184, 214, 0.28);
       background: rgba(111, 184, 214, 0.15);
       color: rgba(236, 247, 253, 0.96);
-      font-size: 0.72rem;
+      font-size: 0.66rem;
       font-weight: 700;
       line-height: 1;
       white-space: nowrap;
@@ -3687,7 +3762,7 @@ function renderUlmNearbyItem(item) {
 
     .tool-page .tool-search-suggestion-meta {
       color: rgba(214, 226, 235, 0.8);
-      font-size: 0.84rem;
+      font-size: 0.74rem;
       line-height: 1.4;
     }
 
@@ -3700,13 +3775,13 @@ function renderUlmNearbyItem(item) {
 
     .tool-page .tool-block input {
       min-width: 248px;
-      min-height: 52px;
-      padding: 12px 14px;
+      min-height: 48px;
+      padding: 11px 14px;
       border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.2);
       background: rgba(255, 255, 255, 0.08);
       color: white;
-      font-size: 1.03rem;
+      font-size: 1rem;
       font-weight: 650;
       letter-spacing: 0.02em;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
@@ -3736,9 +3811,9 @@ function renderUlmNearbyItem(item) {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      min-height: 48px;
-      padding: 11px 18px;
+      gap: 6px;
+      min-height: 44px;
+      padding: 10px 16px;
       border-radius: 12px;
       font: inherit;
       font-weight: 700;
@@ -3877,15 +3952,15 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .decoded-note {
-      margin: 5px 0 0;
-      font-size: 0.61rem;
-      line-height: 1.18;
-      color: rgba(206, 219, 229, 0.42);
+      margin: 4px 0 0;
+      font-size: 0.52rem;
+      line-height: 1.12;
+      color: rgba(206, 219, 229, 0.34);
     }
 
     .tool-page .decoded-note--micro {
-      font-size: 0.55rem;
-      line-height: 1.16;
+      font-size: 0.5rem;
+      line-height: 1.12;
       letter-spacing: 0.01em;
     }
 
@@ -3906,15 +3981,15 @@ function renderUlmNearbyItem(item) {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 4px 9px;
+      padding: 3px 8px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(255, 255, 255, 0.03);
-      color: rgba(221, 232, 240, 0.78);
-      font-size: 0.68rem;
-      font-weight: 650;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.022);
+      color: rgba(221, 232, 240, 0.62);
+      font-size: 0.6rem;
+      font-weight: 620;
       line-height: 1;
-      letter-spacing: 0.025em;
+      letter-spacing: 0.022em;
       text-transform: uppercase;
     }
 
@@ -3979,16 +4054,16 @@ function renderUlmNearbyItem(item) {
 
     .tool-page .tool-sources-strip {
       display: grid;
-      gap: 2px;
-      padding-top: 6px;
-      padding-bottom: 6px;
+      gap: 1px;
+      padding-top: 4px;
+      padding-bottom: 4px;
     }
 
     .tool-page .tool-source-line {
       margin: 0;
-      color: rgba(206, 219, 229, 0.42);
-      font-size: 0.55rem;
-      line-height: 1.16;
+      color: rgba(206, 219, 229, 0.34);
+      font-size: 0.5rem;
+      line-height: 1.12;
     }
 
     .tool-page .tool-source-line + .tool-source-line {
@@ -4032,15 +4107,15 @@ function renderUlmNearbyItem(item) {
       border: 1px solid rgba(111, 184, 214, 0.46);
       background: rgba(111, 184, 214, 0.22);
       color: #eaf8ff;
-      font-size: 0.84rem;
+      font-size: 0.78rem;
       font-weight: 700;
       line-height: 1;
     }
 
     .tool-page .radio-primary-note {
-      font-size: 0.74rem;
-      line-height: 1.2;
-      color: rgba(206, 219, 229, 0.58);
+      font-size: 0.62rem;
+      line-height: 1.14;
+      color: rgba(206, 219, 229, 0.42);
     }
 
     .tool-page .radio-primary-main {
@@ -4064,7 +4139,7 @@ function renderUlmNearbyItem(item) {
 
     .tool-page .radio-support-card {
       display: grid;
-      gap: 8px;
+      gap: 6px;
       padding: 12px 13px;
       border-radius: 12px;
       border: 1px solid rgba(111, 184, 214, 0.22);
@@ -4094,8 +4169,8 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .radio-support-note {
-      font-size: 0.79rem;
-      color: var(--muted);
+      font-size: 0.71rem;
+      color: rgba(206, 219, 229, 0.58);
     }
 
     .tool-page .radio-support-main {
@@ -4113,7 +4188,7 @@ function renderUlmNearbyItem(item) {
 
     .tool-page .radio-secondary {
       display: grid;
-      gap: 8px;
+      gap: 6px;
     }
 
     .tool-page .radio-secondary-disclosure {
@@ -4184,7 +4259,7 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .radio-secondary-title {
-      font-size: 0.78rem;
+      font-size: 0.73rem;
       font-weight: 800;
       letter-spacing: 0.045em;
       text-transform: uppercase;
@@ -4195,14 +4270,14 @@ function renderUlmNearbyItem(item) {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 24px;
-      height: 24px;
-      padding: 0 7px;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
       border-radius: 999px;
       border: 1px solid rgba(210, 236, 248, 0.36);
       background: rgba(210, 236, 248, 0.10);
       color: rgba(246, 251, 255, 0.96);
-      font-size: 0.72rem;
+      font-size: 0.66rem;
       font-weight: 800;
       line-height: 1;
     }
@@ -4212,7 +4287,7 @@ function renderUlmNearbyItem(item) {
       margin: 0;
       padding: 10px 10px 10px;
       display: grid;
-      gap: 8px;
+      gap: 6px;
     }
 
     .tool-page .radio-list li {
@@ -4256,10 +4331,10 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .weather-refs-note {
-      margin: 2px 0 0;
-      color: rgba(206, 219, 229, 0.42);
-      font-size: 0.55rem;
-      line-height: 1.16;
+      margin: 1px 0 0;
+      color: rgba(206, 219, 229, 0.34);
+      font-size: 0.5rem;
+      line-height: 1.12;
     }
 
     .tool-page .weather-refs-list {
@@ -4275,7 +4350,7 @@ function renderUlmNearbyItem(item) {
       -webkit-appearance: none;
       width: 100%;
       display: grid;
-      gap: 8px;
+      gap: 6px;
       text-align: left;
       padding: 15px 16px;
       border-radius: 14px;
@@ -4382,22 +4457,22 @@ function renderUlmNearbyItem(item) {
 .tool-page .tool-disclosure summary {
   list-style: none;
   cursor: pointer;
-  margin: 14px 16px 0;
-  min-height: 40px;
-  padding: 10px 13px;
+  margin: 12px 14px 0;
+  min-height: 36px;
+  padding: 8px 12px;
   border-radius: 12px;
-  border: 1px solid rgba(148, 211, 236, 0.50);
+  border: 1px solid rgba(148, 211, 236, 0.38);
   background: linear-gradient(
     180deg,
-    rgba(120, 198, 232, 0.22) 0%,
-    rgba(120, 198, 232, 0.10) 100%
+    rgba(120, 198, 232, 0.18) 0%,
+    rgba(120, 198, 232, 0.08) 100%
   );
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
     0 0 0 1px rgba(103, 183, 224, 0.03);
-  font-size: 0.84rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: #eef9ff;
+  color: rgba(238, 249, 255, 0.94);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -4429,8 +4504,8 @@ function renderUlmNearbyItem(item) {
   transform: translateY(-1px);
   background: linear-gradient(
     180deg,
-    rgba(132, 208, 241, 0.28) 0%,
-    rgba(132, 208, 241, 0.14) 100%
+    rgba(132, 208, 241, 0.22) 0%,
+    rgba(132, 208, 241, 0.11) 100%
   );
   border-color: rgba(164, 223, 248, 0.68);
   box-shadow:
@@ -4444,10 +4519,10 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .tool-disclosure-content p {
-      margin: 14px 0 0;
+      margin: 12px 0 0;
       color: var(--muted);
-      font-size: 0.94rem;
-      line-height: 1.55;
+      font-size: 0.88rem;
+      line-height: 1.5;
     }
 
     .tool-page .tool-disclosure-content strong {
@@ -4478,7 +4553,7 @@ function renderUlmNearbyItem(item) {
 
     .tool-page .nearby-section-header {
       display: grid;
-      gap: 8px;
+      gap: 6px;
       margin-bottom: 8px;
       padding: 15px 16px;
       border-radius: 14px;
@@ -4566,7 +4641,7 @@ function renderUlmNearbyItem(item) {
     .tool-page .airport-nearby-card {
       width: 100%;
       display: grid;
-      gap: 8px;
+      gap: 6px;
       text-align: left;
       padding: 16px 16px 16px 20px;
       border-radius: 14px;
@@ -4657,7 +4732,7 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .airport-nearby-top strong {
-      font-size: 1.03rem;
+      font-size: 1rem;
       color: #eef7ff;
     }
 
@@ -4723,7 +4798,7 @@ function renderUlmNearbyItem(item) {
 
       .tool-page .tool-entry-label {
         margin-bottom: 4px;
-        font-size: 0.84rem;
+        font-size: 0.78rem;
       }
 
       .tool-page .tool-entry-help {
@@ -4734,7 +4809,7 @@ function renderUlmNearbyItem(item) {
 
       .tool-page .tool-row {
         align-items: stretch;
-        gap: 8px;
+        gap: 6px;
       }
 
       .tool-page .tool-search-col {
@@ -4744,7 +4819,7 @@ function renderUlmNearbyItem(item) {
 
       .tool-page .tool-entry-actions {
         min-width: 100%;
-        gap: 8px;
+        gap: 6px;
       }
 
       .tool-page .tool-search-suggestions {
@@ -4787,7 +4862,7 @@ function renderUlmNearbyItem(item) {
       }
 
       .tool-page .decoded-grid {
-        gap: 8px;
+        gap: 6px;
       }
 
       .tool-page .decoded-grid--summary {
@@ -4907,8 +4982,8 @@ function renderUlmNearbyItem(item) {
       .tool-page .decoded-note--micro,
       .tool-page .weather-refs-note,
       .tool-page .tool-source-line {
-        font-size: 0.56rem;
-        line-height: 1.18;
+        font-size: 0.44rem;
+        line-height: 1.08;
       }
 
       .tool-page .tool-sources-strip {
