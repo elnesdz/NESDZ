@@ -1796,14 +1796,26 @@ const prefEndDot = isPreferredEnd
       return accessLabel ? `${typeLabel} · ${accessLabel}` : typeLabel || "Terrain";
     }
 
-    function formatContactSummary(contact = {}, airport = null) {
+    function formatContactSummary(contact = {}, airport = null, options = {}) {
+      const publishedPhoneKeys = new Set(
+        (options.publishedPhones || [])
+          .map((value) => normalizePhoneComparisonKey(value))
+          .filter(Boolean)
+      );
+
+      const extraPhones = getUniquePhoneValues([contact?.phone_1, contact?.phone_2]).filter(
+        (value) => !publishedPhoneKeys.has(normalizePhoneComparisonKey(value))
+      );
+
       const parts = [];
-      if (contact?.phone_1) parts.push(contact.phone_1);
-      if (contact?.phone_2) parts.push(contact.phone_2);
-      if (!parts.length && contact?.website) parts.push(contact.website);
-      if (!parts.length && airport?.home_link) parts.push(airport.home_link);
-      if (!parts.length && contact?.manager) parts.push(contact.manager);
-      return parts.length ? parts.join(" · ") : "Non documenté";
+      if (contact?.website) parts.push(contact.website);
+      if (airport?.home_link && !parts.includes(airport.home_link)) parts.push(airport.home_link);
+      if (contact?.manager) parts.push(contact.manager);
+
+      if (parts.length) return parts.join(" · ");
+      if (extraPhones.length) return extraPhones.join(" · ");
+      if (publishedPhoneKeys.size) return "Téléphone publié dans le bloc radio";
+      return "Non documenté";
     }
 
     function formatSiteDetails(contact = {}, airport = null) {
@@ -1894,6 +1906,7 @@ const prefEndDot = isPreferredEnd
       const runwayEntries = airportRunwayEntries.length ? airportRunwayEntries : ulmRunwayEntries;
       const siteDetails = formatSiteDetails(matchedUlmDetails?.contact || {}, matchedAirport);
       const notesSummary = formatNotesSummary(matchedUlmDetails);
+      const publishedPhones = formatPublishedPhones(matchedUlmDetails);
       const radioSummary = matchedUlmDetails?.radio?.documented && matchedUlmDetails?.radio?.value
         ? matchedUlmDetails.radio.value
         : "";
@@ -1908,7 +1921,8 @@ const prefEndDot = isPreferredEnd
       platformRunwaysValue.textContent = summarizeRunwayEntries(runwayEntries);
       platformContactValue.textContent = formatContactSummary(
         matchedUlmDetails?.contact || {},
-        matchedAirport
+        matchedAirport,
+        { publishedPhones }
       );
       renderTerrainWindCard(matchedAirport, matchedUlmDetails);
       platformSourceNote.textContent = sourceMeta.note;
@@ -2017,6 +2031,26 @@ function normalizeFrequencyItem(entry) {
 
     function normalizeRadioText(value) {
       return String(value || "").trim().replace(/\s+/g, " ");
+    }
+
+    function normalizePhoneComparisonKey(value) {
+      return normalizeRadioText(value)
+        .replace(/[^0-9+]/g, "")
+        .replace(/^00/, "+");
+    }
+
+    function getUniquePhoneValues(values = []) {
+      const seen = new Set();
+
+      return values
+        .map((value) => normalizeRadioText(value))
+        .filter(Boolean)
+        .filter((value) => {
+          const key = normalizePhoneComparisonKey(value);
+          if (!key || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
     }
 
     function getRadioServiceKey(frequency) {
@@ -2426,11 +2460,10 @@ function normalizeFrequencyItem(entry) {
     }
 
     function formatPublishedPhones(details = null) {
-      const phones = [details?.contact?.phone_1, details?.contact?.phone_2]
-        .map((value) => normalizeRadioText(value))
-        .filter(Boolean);
-
-      return phones;
+      return getUniquePhoneValues([
+        details?.contact?.phone_1,
+        details?.contact?.phone_2,
+      ]);
     }
 
     function getAtisDisplayEntries(displayFrequencies = []) {
