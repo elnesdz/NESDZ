@@ -3625,25 +3625,25 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .tool-entry-block {
-      margin-top: 6px;
-      padding: 14px 16px 16px;
-      border-radius: 16px;
-      border: 1px solid rgba(111, 184, 214, 0.22);
+      margin-top: 4px;
+      padding: 12px 14px 14px;
+      border-radius: 15px;
+      border: 1px solid rgba(111, 184, 214, 0.2);
       background:
         linear-gradient(
           180deg,
-          rgba(111, 184, 214, 0.09),
-          rgba(255, 255, 255, 0.025)
+          rgba(111, 184, 214, 0.08),
+          rgba(255, 255, 255, 0.022)
         ),
-        rgba(12, 18, 26, 0.74);
+        rgba(12, 18, 26, 0.72);
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.03),
-        0 0 0 1px rgba(111, 184, 214, 0.04);
+        0 0 0 1px rgba(111, 184, 214, 0.035);
     }
 
     .tool-page h1 {
-      margin: 0 0 8px;
-      font-size: clamp(1.86rem, 2.85vw, 2.34rem);
+      margin: 0 0 6px;
+      font-size: clamp(1.72rem, 2.45vw, 2.08rem);
       line-height: 0.98;
       letter-spacing: -0.02em;
     }
@@ -3657,19 +3657,19 @@ function renderUlmNearbyItem(item) {
 
     .tool-page .tool-entry-label {
       display: block;
-      margin-bottom: 4px;
-      font-size: 0.82rem;
+      margin-bottom: 3px;
+      font-size: 0.78rem;
       font-weight: 700;
-      line-height: 1.24;
+      line-height: 1.2;
       color: rgba(244, 249, 252, 0.94);
       letter-spacing: 0.01em;
     }
 
     .tool-page .tool-entry-help {
-      margin: 0 0 7px;
-      font-size: 0.68rem;
-      line-height: 1.26;
-      color: rgba(219, 230, 238, 0.58);
+      margin: 0 0 6px;
+      font-size: 0.64rem;
+      line-height: 1.22;
+      color: rgba(219, 230, 238, 0.56);
     }
 
     .tool-page .tool-entry-help strong {
@@ -3678,28 +3678,31 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .tool-row {
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
-      align-items: flex-start;
+      align-items: center;
     }
 
     .tool-page .tool-search-col {
-      flex: 1 1 320px;
-      min-width: min(100%, 320px);
+      flex: 1 1 360px;
+      min-width: min(100%, 360px);
       display: grid;
-      gap: 6px;
+      gap: 5px;
     }
 
     .tool-page .tool-entry-actions {
-      flex: 0 0 220px;
-      min-width: min(100%, 220px);
+      flex: 0 0 198px;
+      min-width: min(100%, 198px);
       display: grid;
-      gap: 6px;
+      gap: 5px;
       align-content: start;
     }
 
     .tool-page .tool-entry-actions .tool-action-btn {
       width: 100%;
+      min-height: 40px;
+      padding: 8px 14px;
+      font-size: 0.92rem;
     }
 
     .tool-page .tool-entry-actions .tool-action-btn[disabled] {
