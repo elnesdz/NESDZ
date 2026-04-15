@@ -278,7 +278,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             <div class="nearby-block-heading">
               <h2>Aérodromes à proximité</h2>
               <p class="nearby-block-note">
-                Repli météo et terrains proches autour du terrain affiché ou de votre position.
+                Terrains proches autour du terrain affiché ou de votre position.
               </p>
             </div>
             <button
@@ -4721,11 +4721,13 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .nearby-block-note {
-      margin: 0;
-      color: rgba(204, 217, 228, 0.48);
-      font-size: 0.64rem;
-      line-height: 1.24;
-      max-width: 540px;
+      margin: 1px 0 0;
+      display: inline-block;
+      max-width: 440px;
+      color: rgba(188, 202, 214, 0.34);
+      font-size: 0.56rem;
+      line-height: 1.14;
+      letter-spacing: 0.002em;
     }
 
     .tool-page .nearby-btn {
@@ -5196,8 +5198,8 @@ function renderUlmNearbyItem(item) {
       }
 
       .tool-page .nearby-block-note {
-        font-size: 0.6rem;
-        line-height: 1.18;
+        font-size: 0.54rem;
+        line-height: 1.12;
       }
 
       .tool-page .nearby-btn {
