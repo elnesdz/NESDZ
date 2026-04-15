@@ -232,15 +232,31 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           </div>
         </div>
 
-        <div class="tool-block">
-          <h2>METAR brut</h2>
-          <pre id="metarOutput">Aucune donnée</pre>
-        </div>
+        <details class="tool-block tool-disclosure raw-weather-disclosure">
+          <summary>
+            <span class="raw-weather-summary-text">
+              <span class="raw-weather-summary-title">METAR brut</span>
+              <span class="raw-weather-summary-note">Message brut consultable si besoin.</span>
+            </span>
+          </summary>
 
-        <div class="tool-block">
-          <h2>TAF brut</h2>
-          <pre id="tafOutput">Aucune donnée</pre>
-        </div>
+          <div class="tool-disclosure-content raw-weather-content">
+            <pre id="metarOutput">Aucune donnée</pre>
+          </div>
+        </details>
+
+        <details class="tool-block tool-disclosure raw-weather-disclosure">
+          <summary>
+            <span class="raw-weather-summary-text">
+              <span class="raw-weather-summary-title">TAF brut</span>
+              <span class="raw-weather-summary-note">Prévision brute consultable si besoin.</span>
+            </span>
+          </summary>
+
+          <div class="tool-disclosure-content raw-weather-content">
+            <pre id="tafOutput">Aucune donnée</pre>
+          </div>
+        </details>
 
         <div
           id="weatherRefsBlock"
@@ -4600,6 +4616,44 @@ function renderUlmNearbyItem(item) {
       color: rgba(231, 238, 245, 0.96);
     }
 
+    .tool-page .raw-weather-disclosure {
+      margin-top: 18px;
+    }
+
+    .tool-page .raw-weather-disclosure summary {
+      margin: 0;
+      min-height: 44px;
+      padding: 11px 14px;
+      align-items: flex-start;
+    }
+
+    .tool-page .raw-weather-summary-text {
+      display: grid;
+      gap: 2px;
+    }
+
+    .tool-page .raw-weather-summary-title {
+      font-size: 1.02rem;
+      font-weight: 800;
+      color: rgba(241, 247, 252, 0.97);
+      line-height: 1.2;
+    }
+
+    .tool-page .raw-weather-summary-note {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .tool-page .raw-weather-content {
+      padding: 12px 14px 14px;
+    }
+
+    .tool-page .raw-weather-content pre {
+      margin: 0;
+    }
+
     .tool-page pre {
       background: rgba(0, 0, 0, 0.4);
       padding: 12px;
@@ -5047,6 +5101,19 @@ function renderUlmNearbyItem(item) {
 
       .tool-page .tool-disclosure-content {
         padding: 0 14px 14px;
+      }
+
+      .tool-page .raw-weather-disclosure summary {
+        min-height: 42px;
+        padding: 10px 13px;
+      }
+
+      .tool-page .raw-weather-summary-title {
+        font-size: 0.96rem;
+      }
+
+      .tool-page .raw-weather-summary-note {
+        font-size: 0.74rem;
       }
 
       .tool-page .decoded-note,
