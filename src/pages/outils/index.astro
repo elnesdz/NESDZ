@@ -103,7 +103,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               <span class="decoded-label">Catégorie météo</span>
               <strong id="fltCatValue">—</strong>
             </div>
+          </div>
 
+          <p class="decoded-note decoded-note--micro">
+            Météo : AWC · repère voisin si besoin.
+          </p>
+          <p id="weatherFreshnessNote" class="decoded-note decoded-note--micro decoded-note--timing" hidden></p>
+
+          <div class="decoded-grid decoded-grid--summary-extra">
             <div class="decoded-card decoded-card-wide">
               <span class="decoded-label">Radio</span>
 
@@ -153,11 +160,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               </div>
             </div>
           </div>
-
-          <p class="decoded-note decoded-note--micro">
-            Météo : AWC · repère voisin si besoin.
-          </p>
-          <p id="weatherFreshnessNote" class="decoded-note decoded-note--micro decoded-note--timing" hidden></p>
         </div>
 
         <div id="platformBlock" class="tool-block tool-block--compact" hidden>
