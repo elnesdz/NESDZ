@@ -167,6 +167,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           <p class="decoded-note decoded-note--micro">
             Météo : AWC · repère voisin si besoin.
           </p>
+          <p id="weatherFreshnessNote" class="decoded-note decoded-note--micro decoded-note--timing" hidden></p>
         </div>
 
         <div id="platformBlock" class="tool-block tool-block--compact" hidden>
@@ -240,6 +241,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               <strong id="tafSummaryValue">Aucune donnée</strong>
             </div>
           </div>
+          <p id="forecastFreshnessNote" class="decoded-note decoded-note--micro decoded-note--timing" hidden></p>
         </div>
 
         <details class="tool-block tool-disclosure raw-weather-disclosure">
@@ -359,6 +361,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const radioSecondaryCount = document.getElementById("radioSecondaryCount");
     const radioList = document.getElementById("radioList");
     const tafSummaryValue = document.getElementById("tafSummaryValue");
+    const weatherFreshnessNote = document.getElementById("weatherFreshnessNote");
+    const forecastFreshnessNote = document.getElementById("forecastFreshnessNote");
     const weatherContextCard = document.getElementById("weatherContextCard");
     const weatherContextTitle = document.getElementById("weatherContextTitle");
     const weatherContextMeta = document.getElementById("weatherContextMeta");
@@ -446,6 +450,7 @@ let ulmDetailsPromise = null;
       if (radioList) radioList.innerHTML = "";
 
       tafSummaryValue.textContent = "Aucune donnée";
+      hideWeatherFreshnessNotes();
       hideWeatherContextCard();
       currentWindDirection = null;
       currentWindSpeed = null;
@@ -472,6 +477,139 @@ let ulmDetailsPromise = null;
       weatherContextTitle.textContent = title || "—";
       weatherContextMeta.textContent = meta || "—";
       weatherContextCard.dataset.state = state;
+    }
+
+    function hideWeatherFreshnessNotes() {
+      if (weatherFreshnessNote) {
+        weatherFreshnessNote.hidden = true;
+        weatherFreshnessNote.textContent = "";
+      }
+      if (forecastFreshnessNote) {
+        forecastFreshnessNote.hidden = true;
+        forecastFreshnessNote.textContent = "";
+      }
+    }
+
+    function setWeatherFreshnessNote(element, text) {
+      if (!element) return;
+      if (!text) {
+        element.hidden = true;
+        element.textContent = "";
+        return;
+      }
+      element.hidden = false;
+      element.textContent = text;
+    }
+
+    function formatUtcClock(date) {
+      return `${String(date.getUTCHours()).padStart(2, "0")}:${String(
+        date.getUTCMinutes()
+      ).padStart(2, "0")}Z`;
+    }
+
+    function formatLocalClock(date) {
+      return `${String(date.getHours()).padStart(2, "0")}:${String(
+        date.getMinutes()
+      ).padStart(2, "0")}`;
+    }
+
+    function buildClosestUtcIssueDate(day, hour, minute, now = new Date()) {
+      const year = now.getUTCFullYear();
+      const month = now.getUTCMonth();
+      const candidates = [-1, 0, 1].map((offset) =>
+        new Date(Date.UTC(year, month + offset, day, hour, minute))
+      );
+
+      return candidates.reduce((best, candidate) => {
+        if (!best) return candidate;
+        return Math.abs(candidate.getTime() - now.getTime()) <
+          Math.abs(best.getTime() - now.getTime())
+          ? candidate
+          : best;
+      }, null);
+    }
+
+    function extractZuluIssueDate(rawText, now = new Date()) {
+      const text = String(rawText || "").trim();
+      if (!text) return null;
+
+      const match = text.match(/\b(\d{2})(\d{2})(\d{2})Z\b/);
+      if (!match) return null;
+
+      const day = Number(match[1]);
+      const hour = Number(match[2]);
+      const minute = Number(match[3]);
+
+      if (
+        !Number.isFinite(day) ||
+        !Number.isFinite(hour) ||
+        !Number.isFinite(minute) ||
+        day < 1 ||
+        day > 31 ||
+        hour > 23 ||
+        minute > 59
+      ) {
+        return null;
+      }
+
+      return buildClosestUtcIssueDate(day, hour, minute, now);
+    }
+
+    function formatWeatherAge(issueDate, now = new Date()) {
+      if (!(issueDate instanceof Date) || Number.isNaN(issueDate.getTime())) {
+        return "";
+      }
+
+      const diffMinutes = Math.max(
+        0,
+        Math.round((now.getTime() - issueDate.getTime()) / 60000)
+      );
+
+      if (diffMinutes < 1) return "à l’instant";
+      if (diffMinutes < 60) return `il y a ${diffMinutes} min`;
+
+      const hours = Math.floor(diffMinutes / 60);
+      const minutes = diffMinutes % 60;
+
+      if (hours < 24) {
+        return minutes
+          ? `il y a ${hours} h ${String(minutes).padStart(2, "0")}`
+          : `il y a ${hours} h`;
+      }
+
+      const days = Math.floor(hours / 24);
+      const remHours = hours % 24;
+      return remHours ? `il y a ${days} j ${remHours} h` : `il y a ${days} j`;
+    }
+
+    function buildMetarFreshnessText(rawMetar) {
+      const now = new Date();
+      const issueDate = extractZuluIssueDate(rawMetar, now);
+      const clockLabel = `Heure ${formatLocalClock(now)} locale · ${formatUtcClock(now)}`;
+
+      if (!issueDate) return clockLabel;
+
+      return `METAR ${formatUtcClock(issueDate)} · ${formatWeatherAge(
+        issueDate,
+        now
+      )} · ${clockLabel}`;
+    }
+
+    function buildTafFreshnessText(rawTaf) {
+      const issueDate = extractZuluIssueDate(rawTaf, new Date());
+      if (!issueDate) return "";
+      return `TAF ${formatUtcClock(issueDate)} · ${formatWeatherAge(issueDate)}`;
+    }
+
+    function updateWeatherFreshnessNotes({ rawMetar = "", rawTaf = "" } = {}) {
+      setWeatherFreshnessNote(
+        weatherFreshnessNote,
+        rawMetar ? buildMetarFreshnessText(rawMetar) : ""
+      );
+      setWeatherFreshnessNote(
+        forecastFreshnessNote,
+        rawTaf ? buildTafFreshnessText(rawTaf) : ""
+      );
     }
 
     function showWeatherReferencesMessage(message) {
@@ -3225,6 +3363,10 @@ async function applyMissingLocalWeatherState({
       tafMessage
     );
     tafSummaryValue.textContent = buildNeighborTafSummary(primaryReference);
+    updateWeatherFreshnessNotes({
+      rawMetar: primaryReference.snapshot?.rawOb || "",
+      rawTaf: primaryReference.snapshot?.taf || "",
+    });
   } else {
     statusValue.textContent = emptyStatusMessage;
     showWeatherContextCard({
@@ -3241,6 +3383,7 @@ async function applyMissingLocalWeatherState({
     metarOutput.textContent = metarMessage;
     tafOutput.textContent = tafMessage;
     tafSummaryValue.textContent = "Prévision indisponible";
+    hideWeatherFreshnessNotes();
     currentWindDirection = null;
     currentWindSpeed = null;
     currentWindVariable = false;
@@ -3549,6 +3692,10 @@ function renderUlmNearbyItem(item) {
         renderFrequencyPanel(matchedFrequency, matchedUlmDetails?.radio || null, matchedUlmDetails);
         renderTerrainWindCard(matchedAirport, matchedUlmDetails);
         tafSummaryValue.textContent = buildSimpleTaf(item.taf, item, icao);
+        updateWeatherFreshnessNotes({
+          rawMetar: item.rawOb || "",
+          rawTaf: item.taf || "",
+        });
       } catch (error) {
         await applyMissingLocalWeatherState({
           icao,
@@ -4210,6 +4357,14 @@ function renderUlmNearbyItem(item) {
       font-size: 0.5rem;
       line-height: 1;
       letter-spacing: 0.002em;
+    }
+
+    .tool-page .decoded-note--timing {
+      margin-top: 4px;
+      color: rgba(198, 212, 223, 0.28);
+      transform: scale(0.84);
+      transform-origin: left top;
+      white-space: normal;
     }
 
     .tool-page .terrain-info-head {
@@ -5482,6 +5637,11 @@ function renderUlmNearbyItem(item) {
         line-height: 1;
         transform: scale(0.78);
         transform-origin: left top;
+      }
+
+      .tool-page .decoded-note--timing {
+        font-size: 0.5rem;
+        line-height: 1.04;
       }
 
       .tool-page .tool-sources-strip {
