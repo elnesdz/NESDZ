@@ -104,16 +104,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               <strong id="fltCatValue">—</strong>
             </div>
 
-            <div
-              id="weatherContextCard"
-              class="decoded-card decoded-card-wide decoded-context-card"
-              hidden
-            >
-              <span class="decoded-label">Météo utilisée</span>
-              <strong id="weatherContextTitle">—</strong>
-              <span id="weatherContextMeta" class="decoded-context-meta">—</span>
-            </div>
-
             <div class="decoded-card decoded-card-wide">
               <span class="decoded-label">Radio</span>
 
@@ -363,9 +353,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const tafSummaryValue = document.getElementById("tafSummaryValue");
     const weatherFreshnessNote = document.getElementById("weatherFreshnessNote");
     const forecastFreshnessNote = document.getElementById("forecastFreshnessNote");
-    const weatherContextCard = document.getElementById("weatherContextCard");
-    const weatherContextTitle = document.getElementById("weatherContextTitle");
-    const weatherContextMeta = document.getElementById("weatherContextMeta");
 
     const weatherRefsBlock = document.getElementById("weatherRefsBlock");
     const weatherRefsList = document.getElementById("weatherRefsList");
@@ -451,7 +438,6 @@ let ulmDetailsPromise = null;
 
       tafSummaryValue.textContent = "Aucune donnée";
       hideWeatherFreshnessNotes();
-      hideWeatherContextCard();
       currentWindDirection = null;
       currentWindSpeed = null;
       currentWindVariable = false;
@@ -463,21 +449,6 @@ let ulmDetailsPromise = null;
       if (weatherRefsList) weatherRefsList.innerHTML = "";
     }
 
-    function hideWeatherContextCard() {
-      if (!weatherContextCard || !weatherContextTitle || !weatherContextMeta) return;
-      weatherContextCard.hidden = true;
-      weatherContextTitle.textContent = "—";
-      weatherContextMeta.textContent = "—";
-      delete weatherContextCard.dataset.state;
-    }
-
-    function showWeatherContextCard({ title, meta, state = "neighbor" }) {
-      if (!weatherContextCard || !weatherContextTitle || !weatherContextMeta) return;
-      weatherContextCard.hidden = false;
-      weatherContextTitle.textContent = title || "—";
-      weatherContextMeta.textContent = meta || "—";
-      weatherContextCard.dataset.state = state;
-    }
 
     function hideWeatherFreshnessNotes() {
       if (weatherFreshnessNote) {
@@ -3319,11 +3290,6 @@ async function applyMissingLocalWeatherState({
 
   if (primaryReference) {
     statusValue.textContent = formatNeighborStatus(primaryReference);
-    showWeatherContextCard({
-      title: `Repère météo voisin — ${formatReferenceIdentity(primaryReference)}`,
-      meta: buildNeighborContextMeta(primaryReference),
-      state: "neighbor",
-    });
 
     currentWindDirection = Number.isFinite(Number(primaryReference.snapshot?.wdir))
       ? Number(primaryReference.snapshot?.wdir)
@@ -3369,11 +3335,6 @@ async function applyMissingLocalWeatherState({
     });
   } else {
     statusValue.textContent = emptyStatusMessage;
-    showWeatherContextCard({
-      title: "Météo locale indisponible",
-      meta: "Aucun repère météo publié trouvé autour de ce terrain.",
-      state: "missing",
-    });
     windValue.textContent = "Non disponible";
     visibilityValue.textContent = "Non disponible";
     cloudsValue.textContent = "Non disponible";
@@ -3668,8 +3629,7 @@ function renderUlmNearbyItem(item) {
         tafOutput.textContent =
           item.taf || "TAF non disponible via cette source actuelle";
 
-        hideWeatherContextCard();
-        statusValue.textContent = formatStatus(item);
+          statusValue.textContent = formatStatus(item);
         nameValue.textContent =
           formatMatchedDisplayName(matchedAirport, matchedUlm) ||
           item.name ||
