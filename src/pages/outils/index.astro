@@ -273,15 +273,22 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           <ul id="weatherRefsList" class="weather-refs-list"></ul>
         </div>
 
-        <div class="tool-block">
-          <h2>Aérodromes à proximité</h2>
-          <button
-            id="nearbyBtn"
-            class="tool-action-btn tool-action-btn--secondary"
-            type="button"
-          >
-            Afficher les terrains proches
-          </button>
+        <div class="tool-block nearby-block">
+          <div class="nearby-block-head">
+            <div class="nearby-block-heading">
+              <h2>Aérodromes à proximité</h2>
+              <p class="nearby-block-note">
+                Repli météo et terrains proches autour du terrain affiché ou de votre position.
+              </p>
+            </div>
+            <button
+              id="nearbyBtn"
+              class="tool-action-btn tool-action-btn--secondary nearby-btn"
+              type="button"
+            >
+              Afficher les terrains proches
+            </button>
+          </div>
           <ul id="nearbyAirports" class="nearby-list"></ul>
         </div>
 
@@ -3191,7 +3198,7 @@ async function applyMissingLocalWeatherState({
       li.className = "nearby-section-header";
       li.innerHTML = `
         <strong>${centerLabel}</strong>
-        <small>Couche aérodromes monde · couche ULM France.</small>
+        <small>Aérodromes météo et plateformes proches autour du point de recherche.</small>
       `;
       nearbyAirports.appendChild(li);
     }
@@ -4039,16 +4046,16 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .decoded-note {
-      margin: 4px 0 0;
-      font-size: 0.52rem;
-      line-height: 1.12;
-      color: rgba(206, 219, 229, 0.34);
+      margin: 3px 0 0;
+      font-size: 0.46rem;
+      line-height: 1.08;
+      color: rgba(206, 219, 229, 0.26);
     }
 
     .tool-page .decoded-note--micro {
-      font-size: 0.5rem;
-      line-height: 1.12;
-      letter-spacing: 0.01em;
+      font-size: 0.43rem;
+      line-height: 1.08;
+      letter-spacing: 0.008em;
     }
 
     .tool-page .terrain-info-head {
@@ -4141,16 +4148,16 @@ function renderUlmNearbyItem(item) {
 
     .tool-page .tool-sources-strip {
       display: grid;
-      gap: 1px;
-      padding-top: 4px;
-      padding-bottom: 4px;
+      gap: 0;
+      padding-top: 2px;
+      padding-bottom: 2px;
     }
 
     .tool-page .tool-source-line {
       margin: 0;
-      color: rgba(206, 219, 229, 0.34);
-      font-size: 0.5rem;
-      line-height: 1.12;
+      color: rgba(206, 219, 229, 0.24);
+      font-size: 0.42rem;
+      line-height: 1.06;
     }
 
     .tool-page .tool-source-line + .tool-source-line {
@@ -4419,9 +4426,9 @@ function renderUlmNearbyItem(item) {
 
     .tool-page .weather-refs-note {
       margin: 1px 0 0;
-      color: rgba(206, 219, 229, 0.34);
-      font-size: 0.5rem;
-      line-height: 1.12;
+      color: rgba(206, 219, 229, 0.26);
+      font-size: 0.43rem;
+      line-height: 1.08;
     }
 
     .tool-page .weather-refs-list {
@@ -4675,6 +4682,41 @@ function renderUlmNearbyItem(item) {
       color: var(--muted);
       font-size: 0.96rem;
     }
+    .tool-page .nearby-block {
+      padding-top: 2px;
+    }
+
+    .tool-page .nearby-block-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 14px 18px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .tool-page .nearby-block-heading {
+      display: grid;
+      gap: 4px;
+    }
+
+    .tool-page .nearby-block-heading h2 {
+      margin: 0;
+    }
+
+    .tool-page .nearby-block-note {
+      margin: 0;
+      color: rgba(214, 226, 235, 0.62);
+      font-size: 0.72rem;
+      line-height: 1.38;
+      max-width: 620px;
+    }
+
+    .tool-page .nearby-btn {
+      min-width: 260px;
+      align-self: flex-start;
+    }
+
 
     .tool-page .nearby-section-header {
       display: grid;
@@ -5120,14 +5162,29 @@ function renderUlmNearbyItem(item) {
       .tool-page .decoded-note--micro,
       .tool-page .weather-refs-note,
       .tool-page .tool-source-line {
-        font-size: 0.44rem;
-        line-height: 1.08;
+        font-size: 0.4rem;
+        line-height: 1.05;
       }
 
       .tool-page .tool-sources-strip {
-        gap: 3px;
-        padding-top: 8px;
-        padding-bottom: 8px;
+        gap: 1px;
+        padding-top: 4px;
+        padding-bottom: 4px;
+      }
+
+      .tool-page .nearby-block-head {
+        align-items: stretch;
+        gap: 10px;
+      }
+
+      .tool-page .nearby-block-note {
+        font-size: 0.68rem;
+        line-height: 1.34;
+      }
+
+      .tool-page .nearby-btn {
+        width: 100%;
+        min-width: 0;
       }
     }
     @media (max-width: 420px) {
