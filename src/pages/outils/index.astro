@@ -3616,6 +3616,41 @@ function renderUlmNearbyItem(item) {
   </script>
 
   <style is:global>
+    .tool-page {
+      width: min(calc(100% - 26px), 1220px);
+      max-width: 1220px;
+    }
+
+    @media (min-width: 1080px) {
+      .tool-page {
+        width: min(calc(100% - 38px), 1280px);
+        max-width: 1280px;
+      }
+
+      .tool-page > .card > .pad {
+        padding-left: 22px;
+        padding-right: 22px;
+      }
+
+      .tool-page .tool-search-col {
+        flex: 1 1 460px;
+        min-width: min(100%, 460px);
+      }
+
+      .tool-page .tool-entry-actions {
+        flex: 0 0 214px;
+        min-width: min(100%, 214px);
+      }
+
+      .tool-page .decoded-grid {
+        gap: 14px;
+      }
+
+      .tool-page .radio-support-grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      }
+    }
+
     .tool-page .tool-block {
       margin-top: 20px;
     }
@@ -3684,15 +3719,15 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .tool-search-col {
-      flex: 1 1 360px;
-      min-width: min(100%, 360px);
+      flex: 1 1 400px;
+      min-width: min(100%, 400px);
       display: grid;
       gap: 5px;
     }
 
     .tool-page .tool-entry-actions {
-      flex: 0 0 198px;
-      min-width: min(100%, 198px);
+      flex: 0 0 206px;
+      min-width: min(100%, 206px);
       display: grid;
       gap: 5px;
       align-content: start;
