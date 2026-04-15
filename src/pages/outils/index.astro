@@ -2936,13 +2936,36 @@ async function fetchWeatherSnapshot(icao) {
 }
 
     function formatWeatherReferenceMeta(snapshot) {
-      const parts = ["METAR disponible"];
-      parts.push(snapshot?.taf ? "TAF disponible" : "TAF indisponible");
+      const parts = [];
 
-      if (snapshot?.fltCat) {
-        parts.push(formatWeatherCategoryLabel(snapshot.fltCat));
+      if (snapshot?.wdir && snapshot?.wspd != null) {
+        const windDirection = String(snapshot.wdir).trim().toUpperCase() === "VRB"
+          ? "Vent variable"
+          : `Vent ${String(Math.round(Number(snapshot.wdir))).padStart(3, "0")}°`;
+        parts.push(`${windDirection} · ${snapshot.wspd} kt`);
+      } else if (snapshot?.wspd != null) {
+        parts.push(`Vent ${snapshot.wspd} kt`);
       }
 
+      if (snapshot?.visib != null) {
+        parts.push(formatVisibility(snapshot.visib));
+      }
+
+      parts.push(snapshot?.taf ? "TAF disponible" : "TAF indisponible");
+      return parts.join(" · ");
+    }
+
+    function getWeatherReferenceCategory(snapshot) {
+      const category = String(snapshot?.fltCat || "").trim().toUpperCase();
+      const label = formatWeatherCategoryLabel(category || "Non disponible");
+      const cssKey = category ? category.toLowerCase() : "unknown";
+      return { label, cssKey };
+    }
+
+    function formatWeatherReferencePlace(airport) {
+      const parts = [];
+      if (airport?.municipality) parts.push(airport.municipality);
+      if (airport?.country) parts.push(airport.country);
       return parts.join(" · ");
     }
 
@@ -3045,16 +3068,36 @@ async function fetchWeatherSnapshot(icao) {
 
       references.forEach((reference) => {
         const li = document.createElement("li");
+        li.className = "weather-ref-item";
+
+        const category = getWeatherReferenceCategory(reference.snapshot);
+        const placeLabel = formatWeatherReferencePlace(reference.airport);
+        const codeLabel = escapeHtml(reference.airport.weatherCode || "—");
+        const nameLabel = escapeHtml(reference.airport.name || codeLabel);
+        const placeMarkup = placeLabel
+          ? `<div class="weather-ref-place">${escapeHtml(placeLabel)}</div>`
+          : "";
+        const metaLabel = escapeHtml(formatWeatherReferenceMeta(reference.snapshot));
+        const distanceLabel = escapeHtml(formatDistanceLabel(reference.distanceKm));
+        const categoryLabel = escapeHtml(category.label);
 
         li.innerHTML = `
-          <button type="button" class="weather-ref-card">
-            <div class="weather-ref-top">
-              <strong>${reference.airport.weatherCode}</strong>
-              <span>${formatDistanceLabel(reference.distanceKm)}</span>
+          <button type="button" class="weather-ref-card weather-ref-card--clickable">
+            <div class="weather-ref-headline">
+              <div class="weather-ref-id-block">
+                <strong class="weather-ref-code">${codeLabel}</strong>
+                <div class="weather-ref-name">${nameLabel}</div>
+              </div>
+              <span class="weather-ref-distance">${distanceLabel}</span>
             </div>
-            <div class="weather-ref-name">${reference.airport.name}</div>
-            <div class="weather-ref-meta">${formatWeatherReferenceMeta(reference.snapshot)}</div>
-            <div class="weather-ref-action">Voir METAR / TAF</div>
+            ${placeMarkup}
+            <div class="weather-ref-meta-row">
+              <span class="weather-ref-category weather-ref-category--${category.cssKey}">${categoryLabel}</span>
+              <span class="weather-ref-meta">${metaLabel}</span>
+            </div>
+            <div class="weather-ref-footer">
+              <span class="weather-ref-action">Voir METAR / TAF</span>
+            </div>
           </button>
         `;
 
@@ -4460,7 +4503,22 @@ function renderUlmNearbyItem(item) {
       margin: 0;
       padding: 0;
       display: grid;
-      gap: 10px;
+      gap: 12px;
+    }
+
+    @media (min-width: 900px) {
+      .tool-page .weather-refs-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+      }
+
+      .tool-page .weather-ref-empty {
+        grid-column: 1 / -1;
+      }
+    }
+
+    .tool-page .weather-ref-item {
+      margin: 0;
     }
 
     .tool-page .weather-ref-card {
@@ -4468,85 +4526,180 @@ function renderUlmNearbyItem(item) {
       -webkit-appearance: none;
       width: 100%;
       display: grid;
-      gap: 6px;
+      gap: 8px;
       text-align: left;
-      padding: 15px 16px;
+      padding: 14px 14px 14px 18px;
       border-radius: 14px;
-      border: 1px solid rgba(111, 184, 214, 0.42);
+      border: 1px solid rgba(111, 184, 214, 0.18);
       background:
         linear-gradient(
           180deg,
-          rgba(111, 184, 214, 0.12),
-          rgba(255, 255, 255, 0.03)
+          rgba(255, 255, 255, 0.04),
+          rgba(255, 255, 255, 0.024)
         ),
-        rgba(17, 25, 34, 0.88);
+        rgba(15, 23, 32, 0.8);
       color: white;
       font: inherit;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .tool-page .weather-ref-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      bottom: 10px;
+      width: 4px;
+      border-radius: 999px;
+      background: rgba(111, 184, 214, 0.9);
+    }
+
+    .tool-page .weather-ref-card--clickable {
       cursor: pointer;
       transition:
         transform 0.18s ease,
         border-color 0.18s ease,
         background 0.18s ease,
         box-shadow 0.18s ease;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
-    .tool-page .weather-ref-card:hover {
+    .tool-page .weather-ref-card--clickable:hover {
       transform: translateY(-1px);
-      border-color: rgba(111, 184, 214, 0.62);
+      border-color: rgba(111, 184, 214, 0.5);
       box-shadow:
-        0 0 0 4px rgba(111, 184, 214, 0.14),
-        0 10px 24px rgba(0, 0, 0, 0.18);
+        0 0 0 4px rgba(111, 184, 214, 0.12),
+        0 10px 24px rgba(0, 0, 0, 0.16);
       background:
         linear-gradient(
           180deg,
-          rgba(111, 184, 214, 0.16),
-          rgba(255, 255, 255, 0.035)
+          rgba(111, 184, 214, 0.1),
+          rgba(255, 255, 255, 0.032)
         ),
-        rgba(18, 27, 37, 0.92);
+        rgba(15, 23, 32, 0.86);
     }
 
     .tool-page .weather-ref-card:focus-visible {
       outline: none;
-      border-color: rgba(111, 184, 214, 0.68);
+      border-color: rgba(111, 184, 214, 0.62);
       box-shadow:
-        0 0 0 4px rgba(111, 184, 214, 0.18),
-        0 0 0 1px rgba(111, 184, 214, 0.24);
+        0 0 0 4px rgba(111, 184, 214, 0.16),
+        0 0 0 1px rgba(111, 184, 214, 0.22);
     }
 
-    .tool-page .weather-ref-top {
+    .tool-page .weather-ref-headline {
       display: flex;
       justify-content: space-between;
-      align-items: center;
       gap: 12px;
+      align-items: flex-start;
     }
 
-    .tool-page .weather-ref-top strong {
-      font-size: 1rem;
+    .tool-page .weather-ref-id-block {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .tool-page .weather-ref-code {
+      font-size: 1.04rem;
       color: #eef7ff;
+      line-height: 1.05;
+      letter-spacing: 0.012em;
     }
 
-    .tool-page .weather-ref-top span {
-      color: var(--muted);
-      font-size: 0.92rem;
+    .tool-page .weather-ref-distance {
+      align-self: flex-start;
       white-space: nowrap;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+      color: rgba(210, 220, 229, 0.88);
+      font-size: 0.8rem;
+      line-height: 1;
     }
 
     .tool-page .weather-ref-name {
-      color: rgba(231, 238, 245, 0.98);
-      font-weight: 650;
+      color: rgba(239, 245, 250, 0.98);
+      font-size: 0.94rem;
+      font-weight: 700;
+      line-height: 1.22;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+
+    .tool-page .weather-ref-place {
+      color: rgba(182, 197, 209, 0.84);
+      font-size: 0.84rem;
+      line-height: 1.36;
+    }
+
+    .tool-page .weather-ref-meta-row {
+      display: grid;
+      gap: 8px;
+    }
+
+    .tool-page .weather-ref-category {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 0.74rem;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.01em;
+    }
+
+    .tool-page .weather-ref-category--vfr {
+      color: rgba(220, 247, 229, 0.98);
+      border-color: rgba(103, 214, 143, 0.36);
+      background: rgba(75, 171, 109, 0.18);
+    }
+
+    .tool-page .weather-ref-category--mvfr {
+      color: rgba(252, 241, 206, 0.98);
+      border-color: rgba(230, 197, 96, 0.34);
+      background: rgba(211, 169, 57, 0.18);
+    }
+
+    .tool-page .weather-ref-category--ifr,
+    .tool-page .weather-ref-category--lifr {
+      color: rgba(255, 224, 224, 0.98);
+      border-color: rgba(221, 114, 114, 0.34);
+      background: rgba(174, 58, 58, 0.18);
+    }
+
+    .tool-page .weather-ref-category--unknown {
+      color: rgba(226, 235, 242, 0.92);
+      border-color: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
     }
 
     .tool-page .weather-ref-meta {
-      color: rgba(220, 231, 239, 0.84);
-      font-size: 0.92rem;
-      line-height: 1.45;
+      color: rgba(213, 224, 232, 0.82);
+      font-size: 0.86rem;
+      line-height: 1.42;
+      overflow-wrap: anywhere;
+    }
+
+    .tool-page .weather-ref-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      margin-top: 2px;
     }
 
     .tool-page .weather-ref-action {
       color: rgba(200, 236, 252, 0.99);
-      font-size: 0.93rem;
+      font-size: 0.9rem;
       font-weight: 700;
+    }
+
+    .tool-page .weather-ref-action::after {
+      content: " →";
     }
 
     .tool-page .weather-ref-empty {
