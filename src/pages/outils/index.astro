@@ -349,6 +349,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     const SIA_VAC_AD_BASE_URL = "/docs/sia/vac/ad/";
     const SIA_AIP_AD_BASE_URL = "/docs/sia/aip-ad/";
+    const HOSTED_VAC_CODES = new Set(["LFAB", "LFAC", "LFAD", "LFAE", "LFAF", "LFAG", "LFAI", "LFAJ", "LFAK", "LFAL", "LFAM", "LFAO", "LFAP", "LFAQ", "LFAR", "LFAS", "LFAT", "LFAU", "LFAV", "LFAW", "LFAX", "LFAY", "LFBA", "LFBD", "LFBE", "LFBF", "LFBG", "LFBH", "LFBI", "LFBJ", "LFBK", "LFBL", "LFBN", "LFBO", "LFBP", "LFBR", "LFBS", "LFBT", "LFBU", "LFBX", "LFBY", "LFBZ", "LFCA", "LFCB", "LFCC", "LFCD", "LFCE", "LFCF", "LFCG", "LFCH", "LFCI", "LFCJ", "LFCK", "LFCL", "LFCM", "LFCN", "LFCO", "LFCP", "LFCQ", "LFCR", "LFCS", "LFCT", "LFCU", "LFCV", "LFCW", "LFCX", "LFCY", "LFCZ", "LFDA", "LFDB", "LFDC", "LFDE", "LFDF", "LFDG", "LFDH", "LFDI", "LFDJ", "LFDK", "LFDL", "LFDM", "LFDN", "LFDP", "LFDQ", "LFDR", "LFDS", "LFDT", "LFDU", "LFDV", "LFDW", "LFDX", "LFDY", "LFEA", "LFEB", "LFEC", "LFED", "LFEF", "LFEG", "LFEH", "LFEI", "LFEJ", "LFEK", "LFEL", "LFEM", "LFEN", "LFEP", "LFEQ", "LFER", "LFES", "LFET", "LFEU", "LFEV", "LFEW", "LFEX", "LFEY", "LFEZ", "LFFB", "LFFC", "LFFD", "LFFE", "LFFG", "LFFH", "LFFI", "LFFJ", "LFFK", "LFFL", "LFFN", "LFFO", "LFFP", "LFFQ", "LFFR", "LFFT", "LFFU", "LFFV", "LFFW", "LFFX", "LFFY", "LFFZ", "LFGA", "LFGB", "LFGC", "LFGE", "LFGF", "LFGG", "LFGH", "LFGI", "LFGJ", "LFGK", "LFGL", "LFGM", "LFGN", "LFGO", "LFGP", "LFGQ", "LFGR", "LFGS", "LFGT", "LFGU", "LFGW", "LFGX", "LFGY", "LFGZ", "LFHA", "LFHB", "LFHC", "LFHD", "LFHE", "LFHF", "LFHG", "LFHH", "LFHI", "LFHJ", "LFHL", "LFHM", "LFHN", "LFHO", "LFHP", "LFHQ", "LFHR", "LFHS", "LFHT", "LFHU", "LFHV", "LFHW", "LFHX", "LFHY", "LFIB", "LFID", "LFIF", "LFIG", "LFIH", "LFIK", "LFIL", "LFIM", "LFIP", "LFIR", "LFIS", "LFIT", "LFIV", "LFIX", "LFIY", "LFJA", "LFJB", "LFJC", "LFJD", "LFJE", "LFJF", "LFJH", "LFJI", "LFJL", "LFJR", "LFJS", "LFJT", "LFJU", "LFJV", "LFJY", "LFKA", "LFKB", "LFKC", "LFKD", "LFKE", "LFKF", "LFKG", "LFKH", "LFKJ", "LFKL", "LFKM", "LFKO", "LFKP", "LFKR", "LFKT", "LFKX", "LFKY", "LFLA", "LFLB", "LFLC", "LFLD", "LFLE", "LFLG", "LFLH", "LFLI", "LFLJ", "LFLL", "LFLM", "LFLN", "LFLO", "LFLP", "LFLQ", "LFLR", "LFLS", "LFLT", "LFLU", "LFLV", "LFLW", "LFLX", "LFLY", "LFLZ", "LFMA", "LFMC", "LFMD", "LFME", "LFMF", "LFMG", "LFMH", "LFMI", "LFMK", "LFML", "LFMN", "LFMP", "LFMQ", "LFMR", "LFMS", "LFMT", "LFMU", "LFMV", "LFMW", "LFMX", "LFMY", "LFMZ", "LFNA", "LFNB", "LFNC", "LFNE", "LFNF", "LFNG", "LFNH", "LFNJ", "LFNL", "LFNN", "LFNO", "LFNQ", "LFNR", "LFNS", "LFNT", "LFNU", "LFNV", "LFNW", "LFNX", "LFNZ", "LFOB", "LFOC", "LFOD", "LFOF", "LFOG", "LFOH", "LFOI", "LFOJ", "LFOK", "LFOL", "LFOM", "LFON", "LFOO", "LFOP", "LFOQ", "LFOR", "LFOS", "LFOT", "LFOU", "LFOV", "LFOW", "LFOX", "LFOY", "LFOZ", "LFPA", "LFPB", "LFPD", "LFPE", "LFPF", "LFPG", "LFPH", "LFPK", "LFPL", "LFPM", "LFPN", "LFPO", "LFPP", "LFPQ", "LFPR", "LFPT", "LFPU", "LFPX", "LFPZ", "LFQA", "LFQB", "LFQC", "LFQD", "LFQE", "LFQF", "LFQG", "LFQH", "LFQJ", "LFQK", "LFQL", "LFQM", "LFQN", "LFQO", "LFQP", "LFQQ", "LFQT", "LFQU", "LFQV", "LFQW", "LFQX", "LFQY", "LFQZ", "LFRB", "LFRC", "LFRD", "LFRE", "LFRF", "LFRG", "LFRH", "LFRI", "LFRJ", "LFRK", "LFRL", "LFRM", "LFRN", "LFRO", "LFRP", "LFRQ", "LFRS", "LFRT", "LFRU", "LFRV", "LFRW", "LFRZ", "LFSA", "LFSB", "LFSD", "LFSE", "LFSG", "LFSH", "LFSJ", "LFSK", "LFSL", "LFSM", "LFSN", "LFSP", "LFSS", "LFST", "LFSU", "LFSV", "LFSW", "LFTA", "LFTB", "LFTF", "LFTH", "LFTM", "LFTN", "LFTP", "LFTQ", "LFTW", "LFTZ", "LFXA", "LFXB", "LFXU", "LFYG", "LFYR", "LFYS", "LFYV"]);
+    const HOSTED_AIP_AD_CODES = new Set(["LFAC", "LFAQ", "LFAT", "LFAV", "LFAY", "LFBA", "LFBC", "LFBD", "LFBE", "LFBF", "LFBG", "LFBH", "LFBI", "LFBK", "LFBL", "LFBM", "LFBN", "LFBO", "LFBP", "LFBR", "LFBS", "LFBT", "LFBU", "LFBX", "LFBY", "LFBZ", "LFCC", "LFCI", "LFCK", "LFCR", "LFCY", "LFDH", "LFDJ", "LFDN", "LFEC", "LFEV", "LFEY", "LFFK", "LFGA", "LFGJ", "LFHP", "LFHV", "LFHY", "LFJL", "LFJR", "LFJY", "LFKB", "LFKC", "LFKF", "LFKJ", "LFKS", "LFLA", "LFLB", "LFLC", "LFLD", "LFLG", "LFLH", "LFLL", "LFLN", "LFLO", "LFLP", "LFLS", "LFLU", "LFLV", "LFLW", "LFLX", "LFLY", "LFMA", "LFMC", "LFMD", "LFMH", "LFMI", "LFMK", "LFML", "LFMN", "LFMO", "LFMP", "LFMQ", "LFMT", "LFMU", "LFMV", "LFMY", "LFNB", "LFOA", "LFOB", "LFOE", "LFOH", "LFOJ", "LFOK", "LFOP", "LFOQ", "LFOT", "LFOU", "LFOV", "LFOZ", "LFPB", "LFPG", "LFPM", "LFPN", "LFPO", "LFPT", "LFPV", "LFQA", "LFQB", "LFQE", "LFQG", "LFQM", "LFQP", "LFQQ", "LFQT", "LFRB", "LFRC", "LFRD", "LFRG", "LFRH", "LFRI", "LFRJ", "LFRK", "LFRL", "LFRM", "LFRN", "LFRO", "LFRQ", "LFRS", "LFRT", "LFRU", "LFRV", "LFRZ", "LFSB", "LFSD", "LFSG", "LFSI", "LFSL", "LFSM", "LFSN", "LFSO", "LFST", "LFSX", "LFTH", "LFTW", "LFTZ"]);
 
     const icaoInput = document.getElementById("icaoInput");
     const metarOutput = document.getElementById("metarOutput");
@@ -661,9 +663,21 @@ let ulmDetailsPromise = null;
       window.history.replaceState({}, "", nextUrl);
     }
 
+    function isCalmWind(speed) {
+      return Number.isFinite(Number(speed)) && Number(speed) === 0;
+    }
+
     function formatWind(dir, speed) {
-      if (dir == null || speed == null) return "—";
-      return `${dir}° à ${speed} kt`;
+      if (speed == null && dir == null) return "—";
+      if (isCalmWind(speed)) return "0 kt";
+      if (String(dir || "").trim().toUpperCase() === "VRB" && speed != null) {
+        return `Variable à ${speed} kt`;
+      }
+      if (speed != null && dir != null && Number.isFinite(Number(dir))) {
+        return `${String(Math.round(Number(dir))).padStart(3, "0")}° à ${speed} kt`;
+      }
+      if (speed != null) return `${speed} kt`;
+      return "—";
     }
 
     function formatVisibility(visib) {
@@ -1828,14 +1842,17 @@ function normalizeUlmDetailsRecord(item) {
     }
 
     function getWindMetaLabel() {
+      if (isCalmWind(currentWindSpeed)) {
+        return "0 kt";
+      }
       if (currentWindVariable && Number.isFinite(currentWindSpeed)) {
         return `Vent variable · ${currentWindSpeed} kt`;
       }
       if (Number.isFinite(currentWindDirection) && Number.isFinite(currentWindSpeed)) {
         return `Vent ${String(Math.round(currentWindDirection)).padStart(3, "0")}° · ${currentWindSpeed} kt`;
       }
-      if (Number.isFinite(currentWindDirection)) {
-        return `Vent ${String(Math.round(currentWindDirection)).padStart(3, "0")}°`;
+      if (Number.isFinite(currentWindSpeed)) {
+        return `${currentWindSpeed} kt`;
       }
       return "Vent indisponible";
     }
@@ -1854,7 +1871,12 @@ function normalizeUlmDetailsRecord(item) {
     }
 
     function getBestWindAlignedHeading(runways) {
-      if (!Array.isArray(runways) || !runways.length || !Number.isFinite(currentWindDirection)) {
+      if (
+        !Array.isArray(runways) ||
+        !runways.length ||
+        !Number.isFinite(currentWindDirection) ||
+        isCalmWind(currentWindSpeed)
+      ) {
         return null;
       }
 
@@ -1949,23 +1971,25 @@ const prefEndDot = isPreferredEnd
         `;
       }).join("");
 
-      const windMarkup = Number.isFinite(currentWindDirection)
-        ? (() => {
-            const start = headingToPoint(cx, cy, radius, currentWindDirection);
-            const end = headingToPoint(cx, cy, 18, currentWindDirection);
-            return `
-              <defs>
-                <marker id="terrainWindArrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto" markerUnits="strokeWidth">
-                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#ffb36b" />
-                </marker>
-              </defs>
-              <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="#ffb36b" stroke-width="4" stroke-linecap="round" marker-end="url(#terrainWindArrow)" />
-              <circle cx="${start.x}" cy="${start.y}" r="3.5" fill="#ffb36b" fill-opacity="0.85" />
-            `;
-          })()
-        : currentWindVariable
-          ? `<circle cx="${cx}" cy="${cy}" r="12" fill="none" stroke="#ffb36b" stroke-width="3" stroke-dasharray="5 5" />`
-          : "";
+      const windMarkup = isCalmWind(currentWindSpeed)
+        ? `<circle cx="${cx}" cy="${cy}" r="12" fill="none" stroke="#ffb36b" stroke-width="3" stroke-dasharray="4 5" />`
+        : Number.isFinite(currentWindDirection)
+          ? (() => {
+              const start = headingToPoint(cx, cy, radius, currentWindDirection);
+              const end = headingToPoint(cx, cy, 18, currentWindDirection);
+              return `
+                <defs>
+                  <marker id="terrainWindArrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto" markerUnits="strokeWidth">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#ffb36b" />
+                  </marker>
+                </defs>
+                <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="#ffb36b" stroke-width="4" stroke-linecap="round" marker-end="url(#terrainWindArrow)" />
+                <circle cx="${start.x}" cy="${start.y}" r="3.5" fill="#ffb36b" fill-opacity="0.85" />
+              `;
+            })()
+          : currentWindVariable
+            ? `<circle cx="${cx}" cy="${cy}" r="12" fill="none" stroke="#ffb36b" stroke-width="3" stroke-dasharray="5 5" />`
+            : "";
 
       platformWindVisual.innerHTML = `
         <svg viewBox="0 0 320 220" role="img" aria-label="Vent et pistes" class="terrain-visual-svg">
@@ -2092,7 +2116,7 @@ const prefEndDot = isPreferredEnd
       }
     }
 
-    function buildOfficialDocsCandidateUrls(matchedAirport, matchedUlm, matchedUlmDetails) {
+    function buildOfficialDocsUrls(matchedAirport, matchedUlm, matchedUlmDetails) {
       if (!isFrenchOfficialDocsEligible(matchedAirport, matchedUlm, matchedUlmDetails)) {
         return null;
       }
@@ -2100,20 +2124,16 @@ const prefEndDot = isPreferredEnd
       const code = getTerrainOfficialCode(matchedAirport, matchedUlm, matchedUlmDetails);
       if (!code) return null;
 
-      return {
-        vacUrl: toHostedDocUrl(`${SIA_VAC_AD_BASE_URL}AD-2.${code}.pdf`),
-        aipUrl: toHostedDocUrl(`${SIA_AIP_AD_BASE_URL}FR-AD-2.${code}-fr-FR.pdf`),
-      };
-    }
+      const vacUrl = HOSTED_VAC_CODES.has(code)
+        ? toHostedDocUrl(`${SIA_VAC_AD_BASE_URL}AD-2.${code}.pdf`)
+        : "";
+      const aipUrl = HOSTED_AIP_AD_CODES.has(code)
+        ? toHostedDocUrl(`${SIA_AIP_AD_BASE_URL}FR-AD-2.${code}-fr-FR.pdf`)
+        : "";
 
-    function buildOfficialDocsUrls(matchedAirport, matchedUlm, matchedUlmDetails) {
-      const candidateUrls = buildOfficialDocsCandidateUrls(matchedAirport, matchedUlm, matchedUlmDetails);
-      if (!candidateUrls) return null;
+      if (!vacUrl && !aipUrl) return null;
 
-      return {
-        vacUrl: candidateUrls.vacUrl,
-        aipUrl: candidateUrls.aipUrl,
-      };
+      return { vacUrl, aipUrl };
     }
 
     function setOfficialDocLinkState(element, href, label) {
@@ -2142,7 +2162,7 @@ const prefEndDot = isPreferredEnd
 
       setOfficialDocLinkState(platformVacLink, urls.vacUrl, "Ouvrir la VAC terrain dans un nouvel onglet");
       setOfficialDocLinkState(platformAipLink, urls.aipUrl, "Ouvrir la fiche AIP AD dans un nouvel onglet");
-      platformDocsCard.hidden = false;
+      platformDocsCard.hidden = !urls.vacUrl && !urls.aipUrl;
     }
 
     function resetPlatformBlock() {
@@ -3418,14 +3438,17 @@ async function applyMissingLocalWeatherState({
   if (primaryReference) {
     statusValue.textContent = formatNeighborStatus(primaryReference);
 
-    currentWindDirection = Number.isFinite(Number(primaryReference.snapshot?.wdir))
-      ? Number(primaryReference.snapshot?.wdir)
-      : null;
     currentWindSpeed = Number.isFinite(Number(primaryReference.snapshot?.wspd))
       ? Number(primaryReference.snapshot?.wspd)
       : null;
     currentWindVariable =
       String(primaryReference.snapshot?.wdir || "").trim().toUpperCase() === "VRB";
+    currentWindDirection =
+      isCalmWind(currentWindSpeed) || currentWindVariable
+        ? null
+        : Number.isFinite(Number(primaryReference.snapshot?.wdir))
+          ? Number(primaryReference.snapshot?.wdir)
+          : null;
 
     windValue.textContent = formatWind(
       primaryReference.snapshot?.wdir,
@@ -3762,13 +3785,16 @@ function renderUlmNearbyItem(item) {
           item.name ||
           item.icaoId ||
           icao;
-        currentWindDirection = Number.isFinite(Number(item.wdir))
-          ? Number(item.wdir)
-          : null;
         currentWindSpeed = Number.isFinite(Number(item.wspd))
           ? Number(item.wspd)
           : null;
         currentWindVariable = String(item.wdir || "").trim().toUpperCase() === "VRB";
+        currentWindDirection =
+          isCalmWind(currentWindSpeed) || currentWindVariable
+            ? null
+            : Number.isFinite(Number(item.wdir))
+              ? Number(item.wdir)
+              : null;
 
         windValue.textContent = formatWind(item.wdir, item.wspd);
         visibilityValue.textContent = formatVisibility(item.visib);
