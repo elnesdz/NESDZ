@@ -414,26 +414,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const platformVacLink = document.getElementById("platformVacLink");
     const platformAipLink = document.getElementById("platformAipLink");
 
-    function bindOfficialDocLink(element) {
-      if (!element || element.dataset.bound === "1") return;
-      element.dataset.bound = "1";
-
-      element.addEventListener("click", (event) => {
-        const href = element.getAttribute("href");
-        if (!href || href === "#") {
-          event.preventDefault();
-          return;
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-        window.open(href, "_blank", "noopener,noreferrer");
-      });
-    }
-
-    bindOfficialDocLink(platformVacLink);
-    bindOfficialDocLink(platformAipLink);
-
     let airportsFrCache = null;
     let airportsFrPromise = null;
     let airportsWorldCache = null;
@@ -2175,12 +2155,10 @@ const prefEndDot = isPreferredEnd
         element.hidden = true;
         element.removeAttribute("href");
         element.removeAttribute("aria-label");
-        element.removeAttribute("data-doc-url");
         return;
       }
       element.hidden = false;
       element.href = href;
-      element.setAttribute("data-doc-url", href);
       element.setAttribute("aria-label", label);
     }
 
