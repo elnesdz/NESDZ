@@ -414,6 +414,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const platformVacLink = document.getElementById("platformVacLink");
     const platformAipLink = document.getElementById("platformAipLink");
 
+    // Liens documents officiels : on laisse le comportement natif du navigateur.
+    // Le handler JS précédent avec window.open rendait les boutons inactifs
+    // chez certains utilisateurs/navigateurs. On garde donc de vrais <a href>
+    // avec target="_blank" sans interception JavaScript.
+
     let airportsFrCache = null;
     let airportsFrPromise = null;
     let airportsWorldCache = null;
@@ -2155,10 +2160,12 @@ const prefEndDot = isPreferredEnd
         element.hidden = true;
         element.removeAttribute("href");
         element.removeAttribute("aria-label");
+        element.removeAttribute("data-doc-url");
         return;
       }
       element.hidden = false;
       element.href = href;
+      element.setAttribute("data-doc-url", href);
       element.setAttribute("aria-label", label);
     }
 
