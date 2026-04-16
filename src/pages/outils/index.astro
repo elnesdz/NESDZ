@@ -196,29 +196,25 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             <div id="platformDocsCard" class="decoded-card decoded-card-wide platform-docs-card" hidden>
               <span class="decoded-label">Documents officiels</span>
               <div class="platform-docs-actions">
-                <a
+                <button
                   id="platformVacLink"
                   class="platform-doc-link platform-doc-link--vac"
-                  href="#"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  type="button"
                   hidden
                 >
                   <span class="platform-doc-link-title">VAC</span>
                   <span class="platform-doc-link-note">Carte terrain SIA</span>
-                </a>
+                </button>
 
-                <a
+                <button
                   id="platformAipLink"
                   class="platform-doc-link platform-doc-link--aip"
-                  href="#"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  type="button"
                   hidden
                 >
                   <span class="platform-doc-link-title">AIP AD</span>
                   <span class="platform-doc-link-note">Fiche officielle terrain</span>
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -2083,15 +2079,6 @@ const prefEndDot = isPreferredEnd
       return isValidWeatherCode(code) ? code : "";
     }
 
-    function toHostedDocUrl(path) {
-      if (!path) return "";
-      try {
-        return new URL(path, window.location.origin).href;
-      } catch (_error) {
-        return path;
-      }
-    }
-
     function buildOfficialDocsCandidateUrls(matchedAirport, matchedUlm, matchedUlmDetails) {
       if (!isFrenchOfficialDocsEligible(matchedAirport, matchedUlm, matchedUlmDetails)) {
         return null;
@@ -2101,38 +2088,50 @@ const prefEndDot = isPreferredEnd
       if (!code) return null;
 
       return {
-        vacUrl: toHostedDocUrl(`${SIA_VAC_AD_BASE_URL}AD-2.${code}.pdf`),
-        aipUrl: toHostedDocUrl(`${SIA_AIP_AD_BASE_URL}FR-AD-2.${code}-fr-FR.pdf`),
+        vacUrl: `${SIA_VAC_AD_BASE_URL}AD-2.${code}.pdf`,
+        aipUrl: `${SIA_AIP_AD_BASE_URL}FR-AD-2.${code}-fr-FR.pdf`,
       };
     }
 
-    function buildOfficialDocsUrls(matchedAirport, matchedUlm, matchedUlmDetails) {
-      const candidateUrls = buildOfficialDocsCandidateUrls(matchedAirport, matchedUlm, matchedUlmDetails);
-      if (!candidateUrls) return null;
-
-      return {
-        vacUrl: candidateUrls.vacUrl,
-        aipUrl: candidateUrls.aipUrl,
-      };
+    function openHostedPdf(url) {
+      if (!url) return;
+      const popup = window.open(url, "_blank", "noopener,noreferrer");
+      if (!popup) {
+        window.location.href = url;
+      }
     }
+
+    function bindOfficialDocButton(button) {
+      if (!button || button.dataset.bound === "1") return;
+      button.dataset.bound = "1";
+      button.addEventListener("click", () => {
+        const url = button.dataset.docUrl || "";
+        openHostedPdf(url);
+      });
+    }
+
+    bindOfficialDocButton(platformVacLink);
+    bindOfficialDocButton(platformAipLink);
 
     function setOfficialDocLinkState(element, href, label) {
       if (!element) return;
       if (!href) {
         element.hidden = true;
-        element.removeAttribute("href");
+        element.disabled = true;
+        delete element.dataset.docUrl;
         element.removeAttribute("aria-label");
         return;
       }
       element.hidden = false;
-      element.setAttribute("href", href);
+      element.disabled = false;
+      element.dataset.docUrl = href;
       element.setAttribute("aria-label", label);
     }
 
     function renderOfficialDocs(matchedAirport, matchedUlm, matchedUlmDetails) {
       if (!platformDocsCard) return;
 
-      const urls = buildOfficialDocsUrls(matchedAirport, matchedUlm, matchedUlmDetails);
+      const urls = buildOfficialDocsCandidateUrls(matchedAirport, matchedUlm, matchedUlmDetails);
       if (!urls) {
         platformDocsCard.hidden = true;
         setOfficialDocLinkState(platformVacLink, "", "");
@@ -4561,6 +4560,10 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .platform-doc-link {
+      appearance: none;
+      -webkit-appearance: none;
+      font: inherit;
+      cursor: pointer;
       position: relative;
       z-index: 3;
       pointer-events: auto;
