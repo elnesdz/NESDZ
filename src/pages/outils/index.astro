@@ -347,6 +347,13 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const WEATHER_REFERENCE_MAX_KM = 50 * 1.852;
     const LOCATION_ENTRY_RADIUS_KM = 120;
 
+    const HOSTED_SIA_DOCS = {
+      LFQQ: {
+        vacUrl: "/docs/sia/vac/ad/AD-2.LFQQ.pdf",
+        aipUrl: "/docs/sia/aip-ad/FR-AD-2.LFQQ-fr-FR.pdf",
+      },
+    };
+
     const icaoInput = document.getElementById("icaoInput");
     const metarOutput = document.getElementById("metarOutput");
     const tafOutput = document.getElementById("tafOutput");
@@ -2066,16 +2073,13 @@ const prefEndDot = isPreferredEnd
       const code = normalizeCode(
         matchedAirport?.weatherCode ||
         matchedAirport?.icao ||
+        matchedUlmDetails?.weatherCode ||
         matchedUlmDetails?.code ||
-        matchedUlm?.code ||
         matchedUlm?.weatherCode ||
+        matchedUlm?.code ||
         ""
       );
       return isValidWeatherCode(code) ? code : "";
-    }
-
-    function buildSiaPdfSearchUrl(query) {
-      return `https://www.sia.aviation-civile.gouv.fr/catalogsearch/result/?c=8&format=pdf&q=${encodeURIComponent(query)}`;
     }
 
     function buildOfficialDocsUrls(matchedAirport, matchedUlm, matchedUlmDetails) {
@@ -2086,10 +2090,7 @@ const prefEndDot = isPreferredEnd
       const code = getTerrainOfficialCode(matchedAirport, matchedUlm, matchedUlmDetails);
       if (!code) return null;
 
-      return {
-        vacUrl: buildSiaPdfSearchUrl(`AD-2.${code}.pdf`),
-        aipUrl: buildSiaPdfSearchUrl(`FR-AD-2.${code}-fr-FR.pdf`),
-      };
+      return HOSTED_SIA_DOCS[code] || null;
     }
 
     function setOfficialDocLinkState(element, href, label) {
