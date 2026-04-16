@@ -349,8 +349,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
     const SIA_VAC_AD_BASE_URL = "/docs/sia/vac/ad/";
     const SIA_AIP_AD_BASE_URL = "/docs/sia/aip-ad/";
-    const officialDocsAvailabilityCache = new Map();
-    let officialDocsRenderToken = 0;
 
     const icaoInput = document.getElementById("icaoInput");
     const metarOutput = document.getElementById("metarOutput");
@@ -2085,6 +2083,15 @@ const prefEndDot = isPreferredEnd
       return isValidWeatherCode(code) ? code : "";
     }
 
+    function toHostedDocUrl(path) {
+      if (!path) return "";
+      try {
+        return new URL(path, window.location.origin).href;
+      } catch (_error) {
+        return path;
+      }
+    }
+
     function buildOfficialDocsCandidateUrls(matchedAirport, matchedUlm, matchedUlmDetails) {
       if (!isFrenchOfficialDocsEligible(matchedAirport, matchedUlm, matchedUlmDetails)) {
         return null;
@@ -2094,63 +2101,18 @@ const prefEndDot = isPreferredEnd
       if (!code) return null;
 
       return {
-        vacUrl: `${SIA_VAC_AD_BASE_URL}AD-2.${code}.pdf`,
-        aipUrl: `${SIA_AIP_AD_BASE_URL}FR-AD-2.${code}-fr-FR.pdf`,
+        vacUrl: toHostedDocUrl(`${SIA_VAC_AD_BASE_URL}AD-2.${code}.pdf`),
+        aipUrl: toHostedDocUrl(`${SIA_AIP_AD_BASE_URL}FR-AD-2.${code}-fr-FR.pdf`),
       };
     }
 
-    async function hostedFileExists(url) {
-      if (!url) return false;
-
-      const cached = officialDocsAvailabilityCache.get(url);
-      if (cached) {
-        return cached;
-      }
-
-      const checkPromise = (async () => {
-        try {
-          const headResponse = await fetch(url, {
-            method: "HEAD",
-            cache: "no-store",
-          });
-
-          if (headResponse.ok) return true;
-
-          if (headResponse.status === 405 || headResponse.status === 501) {
-            const getResponse = await fetch(url, {
-              method: "GET",
-              cache: "no-store",
-              headers: { Range: "bytes=0-0" },
-            });
-            return getResponse.ok || getResponse.status === 206;
-          }
-
-          return false;
-        } catch (_error) {
-          return false;
-        }
-      })();
-
-      officialDocsAvailabilityCache.set(url, checkPromise);
-      return checkPromise;
-    }
-
-    async function buildOfficialDocsUrls(matchedAirport, matchedUlm, matchedUlmDetails) {
+    function buildOfficialDocsUrls(matchedAirport, matchedUlm, matchedUlmDetails) {
       const candidateUrls = buildOfficialDocsCandidateUrls(matchedAirport, matchedUlm, matchedUlmDetails);
       if (!candidateUrls) return null;
 
-      const [hasVac, hasAip] = await Promise.all([
-        hostedFileExists(candidateUrls.vacUrl),
-        hostedFileExists(candidateUrls.aipUrl),
-      ]);
-
-      if (!hasVac && !hasAip) {
-        return null;
-      }
-
       return {
-        vacUrl: hasVac ? candidateUrls.vacUrl : "",
-        aipUrl: hasAip ? candidateUrls.aipUrl : "",
+        vacUrl: candidateUrls.vacUrl,
+        aipUrl: candidateUrls.aipUrl,
       };
     }
 
@@ -2160,36 +2122,27 @@ const prefEndDot = isPreferredEnd
         element.hidden = true;
         element.removeAttribute("href");
         element.removeAttribute("aria-label");
-        element.removeAttribute("data-doc-url");
         return;
       }
       element.hidden = false;
-      element.href = href;
-      element.setAttribute("data-doc-url", href);
+      element.setAttribute("href", href);
       element.setAttribute("aria-label", label);
     }
 
-    async function renderOfficialDocs(matchedAirport, matchedUlm, matchedUlmDetails) {
+    function renderOfficialDocs(matchedAirport, matchedUlm, matchedUlmDetails) {
       if (!platformDocsCard) return;
 
-      const renderToken = ++officialDocsRenderToken;
-      platformDocsCard.hidden = true;
-      setOfficialDocLinkState(platformVacLink, "", "");
-      setOfficialDocLinkState(platformAipLink, "", "");
-
-      const urls = await buildOfficialDocsUrls(matchedAirport, matchedUlm, matchedUlmDetails);
-      if (renderToken !== officialDocsRenderToken) {
-        return;
-      }
-
+      const urls = buildOfficialDocsUrls(matchedAirport, matchedUlm, matchedUlmDetails);
       if (!urls) {
         platformDocsCard.hidden = true;
+        setOfficialDocLinkState(platformVacLink, "", "");
+        setOfficialDocLinkState(platformAipLink, "", "");
         return;
       }
 
       setOfficialDocLinkState(platformVacLink, urls.vacUrl, "Ouvrir la VAC terrain dans un nouvel onglet");
       setOfficialDocLinkState(platformAipLink, urls.aipUrl, "Ouvrir la fiche AIP AD dans un nouvel onglet");
-      platformDocsCard.hidden = !urls.vacUrl && !urls.aipUrl;
+      platformDocsCard.hidden = false;
     }
 
     function resetPlatformBlock() {
@@ -2205,7 +2158,6 @@ const prefEndDot = isPreferredEnd
       if (platformSourceNote) {
         platformSourceNote.textContent = "Terrains : base monde · France / BASULM.";
       }
-      officialDocsRenderToken += 1;
       if (platformDocsCard) platformDocsCard.hidden = true;
       setOfficialDocLinkState(platformVacLink, "", "");
       setOfficialDocLinkState(platformAipLink, "", "");
