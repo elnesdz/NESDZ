@@ -193,29 +193,30 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               <strong id="platformContactValue">—</strong>
             </div>
 
-            <div id="platformDocsCard" class="decoded-card decoded-card-wide platform-docs-card" hidden>
-              <span class="decoded-label">Documents officiels</span>
-              <div class="platform-docs-actions">
-                <button
-                  id="platformVacLink"
-                  class="platform-doc-link platform-doc-link--vac"
-                  type="button"
-                  hidden
-                >
-                  <span class="platform-doc-link-title">VAC</span>
-                  <span class="platform-doc-link-note">Carte terrain SIA</span>
-                </button>
+          </div>
 
-                <button
-                  id="platformAipLink"
-                  class="platform-doc-link platform-doc-link--aip"
-                  type="button"
-                  hidden
-                >
-                  <span class="platform-doc-link-title">AIP AD</span>
-                  <span class="platform-doc-link-note">Fiche officielle terrain</span>
-                </button>
-              </div>
+          <div id="platformDocsCard" class="tool-block tool-block--compact platform-docs-panel" hidden>
+            <span class="decoded-label">Documents officiels</span>
+            <div class="platform-docs-actions">
+              <button
+                id="platformVacLink"
+                class="platform-doc-link platform-doc-link--vac"
+                type="button"
+                hidden
+              >
+                <span class="platform-doc-link-title">VAC</span>
+                <span class="platform-doc-link-note">Carte terrain SIA</span>
+              </button>
+
+              <button
+                id="platformAipLink"
+                class="platform-doc-link platform-doc-link--aip"
+                type="button"
+                hidden
+              >
+                <span class="platform-doc-link-title">AIP AD</span>
+                <span class="platform-doc-link-note">Fiche officielle terrain</span>
+              </button>
             </div>
           </div>
 
@@ -2093,55 +2094,94 @@ const prefEndDot = isPreferredEnd
       };
     }
 
-    function openHostedPdf(url) {
-      if (!url) return;
-      const popup = window.open(url, "_blank", "noopener,noreferrer");
-      if (!popup) {
-        window.location.href = url;
+    function setOfficialDocLinkState(element, href, label) {
+      if (!element) return;
+      if (!href) {
+        element.hidden = true;
+        element.removeAttribute("data-doc-url");
+        element.removeAttribute("aria-label");
+        return;
       }
+      element.hidden = false;
+      element.setAttribute("data-doc-url", href);
+      element.setAttribute("aria-label", label);
     }
 
-    function bindOfficialDocButton(button) {
-      if (!button || button.dataset.bound === "1") return;
-      button.dataset.bound = "1";
-      button.addEventListener("click", () => {
-        const url = button.dataset.docUrl || "";
-        openHostedPdf(url);
+    function buildOfficialDocsUrls(matchedAirport, matchedUlm, matchedUlmDetails) {
+      return buildOfficialDocsCandidateUrls(matchedAirport, matchedUlm, matchedUlmDetails);
+    }
+
+    function openOfficialDoc(url) {
+      if (!url) return;
+      window.location.assign(url);
+    }
+
+    function bindOfficialDocButton(element) {
+      if (!element || element.dataset.bound === "1") return;
+      element.dataset.bound = "1";
+      element.addEventListener("click", () => {
+        const url = element.getAttribute("data-doc-url") || "";
+        openOfficialDoc(url);
       });
     }
 
     bindOfficialDocButton(platformVacLink);
     bindOfficialDocButton(platformAipLink);
 
-    function setOfficialDocLinkState(element, href, label) {
+    function renderOfficialDocs(matchedAirport, matchedUlm, matchedUlmDetails) {
+      if (!platformDocsCard) return;
+      platformDocsCard.hidden = true;
+      setOfficialDocLinkState(platformVacLink, "", "");
+      setOfficialDocLinkState(platformAipLink, "", "");
+
+      const urls = buildOfficialDocsUrls(matchedAirport, matchedUlm, matchedUlmDetails);
+      if (!urls) {
+        platformDocsCard.hidden = true;
+        return;
+      }
+
+      setOfficialDocLinkState(platformVacLink, urls.vacUrl, "Ouvrir la VAC terrain");
+      setOfficialDocLinkState(platformAipLink, urls.aipUrl, "Ouvrir la fiche AIP AD");
+      platformDocsCard.hidden = !urls.vacUrl && !urls.aipUrl;
+    }
+
+    function resetPlatformBlock() {
+
       if (!element) return;
       if (!href) {
         element.hidden = true;
-        element.disabled = true;
-        delete element.dataset.docUrl;
+        element.removeAttribute("href");
         element.removeAttribute("aria-label");
+        element.removeAttribute("data-doc-url");
         return;
       }
       element.hidden = false;
-      element.disabled = false;
-      element.dataset.docUrl = href;
+      element.href = href;
+      element.setAttribute("data-doc-url", href);
       element.setAttribute("aria-label", label);
     }
 
-    function renderOfficialDocs(matchedAirport, matchedUlm, matchedUlmDetails) {
+    async function renderOfficialDocs(matchedAirport, matchedUlm, matchedUlmDetails) {
       if (!platformDocsCard) return;
 
-      const urls = buildOfficialDocsCandidateUrls(matchedAirport, matchedUlm, matchedUlmDetails);
+      const renderToken = ++officialDocsRenderToken;
+      platformDocsCard.hidden = true;
+      setOfficialDocLinkState(platformVacLink, "", "");
+      setOfficialDocLinkState(platformAipLink, "", "");
+
+      const urls = await buildOfficialDocsUrls(matchedAirport, matchedUlm, matchedUlmDetails);
+      if (renderToken !== officialDocsRenderToken) {
+        return;
+      }
+
       if (!urls) {
         platformDocsCard.hidden = true;
-        setOfficialDocLinkState(platformVacLink, "", "");
-        setOfficialDocLinkState(platformAipLink, "", "");
         return;
       }
 
       setOfficialDocLinkState(platformVacLink, urls.vacUrl, "Ouvrir la VAC terrain dans un nouvel onglet");
       setOfficialDocLinkState(platformAipLink, urls.aipUrl, "Ouvrir la fiche AIP AD dans un nouvel onglet");
-      platformDocsCard.hidden = false;
+      platformDocsCard.hidden = !urls.vacUrl && !urls.aipUrl;
     }
 
     function resetPlatformBlock() {
@@ -4559,13 +4599,18 @@ function renderUlmNearbyItem(item) {
       gap: 10px;
     }
 
+    .tool-page .platform-docs-panel {
+      margin-top: 14px;
+      position: relative;
+      z-index: 8;
+      isolation: isolate;
+    }
+
     .tool-page .platform-doc-link {
       appearance: none;
       -webkit-appearance: none;
-      font: inherit;
-      cursor: pointer;
       position: relative;
-      z-index: 3;
+      z-index: 9;
       pointer-events: auto;
       display: inline-flex;
       flex-direction: column;
@@ -4586,6 +4631,7 @@ function renderUlmNearbyItem(item) {
         0 10px 24px rgba(0, 0, 0, 0.22);
       color: #f6fbff;
       text-decoration: none;
+      cursor: pointer;
       transition:
         transform 0.18s ease,
         box-shadow 0.18s ease,
