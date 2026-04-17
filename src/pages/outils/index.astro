@@ -199,7 +199,27 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             <div class="platform-docs-panel-head">
               <span class="decoded-label">Documents officiels</span>
             </div>
-            <div id="platformDocsActions" class="platform-docs-actions"></div>
+            <div class="platform-docs-actions">
+              <button
+                id="platformVacBtn"
+                class="platform-doc-link platform-doc-link--vac platform-doc-button"
+                type="button"
+                hidden
+              >
+                <span class="platform-doc-link-title">VAC</span>
+                <span class="platform-doc-link-note">Carte terrain SIA</span>
+              </button>
+
+              <button
+                id="platformAipBtn"
+                class="platform-doc-link platform-doc-link--aip platform-doc-button"
+                type="button"
+                hidden
+              >
+                <span class="platform-doc-link-title">AIP AD</span>
+                <span class="platform-doc-link-note">Fiche officielle terrain</span>
+              </button>
+            </div>
           </div>
 
           <details id="platformDetailsDisclosure" class="tool-disclosure terrain-disclosure" hidden>
@@ -390,7 +410,13 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const platformNotesLine = document.getElementById("platformNotesLine");
     const platformUpdatedLine = document.getElementById("platformUpdatedLine");
     const platformDocsPanel = document.getElementById("platformDocsPanel");
-    const platformDocsActions = document.getElementById("platformDocsActions");
+    const platformVacBtn = document.getElementById("platformVacBtn");
+    const platformAipBtn = document.getElementById("platformAipBtn");
+
+    // Liens documents officiels : on laisse le comportement natif du navigateur.
+    // Le handler JS précédent avec window.open rendait les boutons inactifs
+    // chez certains utilisateurs/navigateurs. On garde donc de vrais <a href>
+    // avec target="_blank" sans interception JavaScript.
 
     let airportsFrCache = null;
     let airportsFrPromise = null;
@@ -2062,9 +2088,11 @@ const prefEndDot = isPreferredEnd
     }
 
     function isFrenchOfficialDocsEligible(matchedAirport, matchedUlm, matchedUlmDetails) {
+      if (matchedAirport) {
+        return normalizeCode(matchedAirport.country || matchedAirport.iso_country || "") === "FR";
+      }
       if (matchedUlmDetails || matchedUlm) return false;
-      if (!matchedAirport) return false;
-      return normalizeCode(matchedAirport.country || matchedAirport.iso_country || "") === "FR";
+      return false;
     }
 
     function getTerrainOfficialCode(matchedAirport, matchedUlm, matchedUlmDetails) {
@@ -2109,50 +2137,41 @@ const prefEndDot = isPreferredEnd
       return { vacUrl, aipUrl };
     }
 
-    function buildOfficialDocLinkHtml(kind, href) {
-      if (!href) return "";
-      const title = kind === "vac" ? "VAC" : "AIP AD";
-      const note = kind === "vac" ? "Carte terrain SIA" : "Fiche officielle terrain";
-      const modifier = kind === "vac" ? "platform-doc-link--vac" : "platform-doc-link--aip";
-      return `
-        <a
-          class="platform-doc-link ${modifier}"
-          href="${href}"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <span class="platform-doc-link-title">${title}</span>
-          <span class="platform-doc-link-note">${note}</span>
-        </a>
-      `;
+    function openOfficialDoc(url) {
+      if (!url) return;
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+
+    function setOfficialDocButtonState(element, href, label) {
+      if (!element) return;
+      if (!href) {
+        element.hidden = true;
+        element.removeAttribute("data-doc-url");
+        element.removeAttribute("aria-label");
+        return;
+      }
+      element.hidden = false;
+      element.setAttribute("data-doc-url", href);
+      element.setAttribute("aria-label", label);
     }
 
     function renderOfficialDocs(matchedAirport, matchedUlm, matchedUlmDetails) {
-      if (!platformDocsPanel || !platformDocsActions) return;
+      if (!platformDocsPanel) return;
 
       const urls = buildOfficialDocsUrls(matchedAirport, matchedUlm, matchedUlmDetails);
       if (!urls) {
-        platformDocsActions.innerHTML = "";
         platformDocsPanel.hidden = true;
+        setOfficialDocButtonState(platformVacBtn, "", "");
+        setOfficialDocButtonState(platformAipBtn, "", "");
         return;
       }
 
-      const html = [
-        buildOfficialDocLinkHtml("vac", urls.vacUrl),
-        buildOfficialDocLinkHtml("aip", urls.aipUrl),
-      ].filter(Boolean).join("");
-
-      if (!html) {
-        platformDocsActions.innerHTML = "";
-        platformDocsPanel.hidden = true;
-        return;
-      }
-
-      platformDocsActions.innerHTML = html;
-      platformDocsPanel.hidden = false;
+      setOfficialDocButtonState(platformVacBtn, urls.vacUrl, "Ouvrir la VAC terrain dans un nouvel onglet");
+      setOfficialDocButtonState(platformAipBtn, urls.aipUrl, "Ouvrir la fiche AIP AD dans un nouvel onglet");
+      platformDocsPanel.hidden = !urls.vacUrl && !urls.aipUrl;
     }
 
-function resetPlatformBlock() {
+    function resetPlatformBlock() {
       if (platformBlock) platformBlock.hidden = true;
       if (platformSourceValue) platformSourceValue.textContent = "—";
       if (platformTypeValue) platformTypeValue.textContent = "—";
@@ -2165,8 +2184,9 @@ function resetPlatformBlock() {
       if (platformSourceNote) {
         platformSourceNote.textContent = "Terrains : base monde · France / BASULM.";
       }
-      if (platformDocsActions) platformDocsActions.innerHTML = "";
       if (platformDocsPanel) platformDocsPanel.hidden = true;
+      setOfficialDocButtonState(platformVacBtn, "", "");
+      setOfficialDocButtonState(platformAipBtn, "", "");
       if (platformDetailsDisclosure) {
         platformDetailsDisclosure.hidden = true;
         platformDetailsDisclosure.open = false;
