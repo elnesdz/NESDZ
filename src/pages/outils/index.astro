@@ -193,33 +193,32 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               <strong id="platformContactValue">—</strong>
             </div>
 
-            <div id="platformDocsCard" class="decoded-card decoded-card-wide platform-docs-card" hidden>
-              <span class="decoded-label">Documents officiels</span>
-              <div class="platform-docs-actions">
-                <a
-                  id="platformVacLink"
-                  class="platform-doc-link platform-doc-link--vac"
-                  href="#"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  hidden
-                >
-                  <span class="platform-doc-link-title">VAC</span>
-                  <span class="platform-doc-link-note">Carte terrain SIA</span>
-                </a>
+          </div>
 
-                <a
-                  id="platformAipLink"
-                  class="platform-doc-link platform-doc-link--aip"
-                  href="#"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  hidden
-                >
-                  <span class="platform-doc-link-title">AIP AD</span>
-                  <span class="platform-doc-link-note">Fiche officielle terrain</span>
-                </a>
-              </div>
+          <div id="platformDocsPanel" class="tool-block tool-block--compact platform-docs-panel" hidden>
+            <div class="platform-docs-panel-head">
+              <span class="decoded-label">Documents officiels</span>
+            </div>
+            <div class="platform-docs-actions">
+              <button
+                id="platformVacBtn"
+                class="platform-doc-link platform-doc-link--vac platform-doc-button"
+                type="button"
+                hidden
+              >
+                <span class="platform-doc-link-title">VAC</span>
+                <span class="platform-doc-link-note">Carte terrain SIA</span>
+              </button>
+
+              <button
+                id="platformAipBtn"
+                class="platform-doc-link platform-doc-link--aip platform-doc-button"
+                type="button"
+                hidden
+              >
+                <span class="platform-doc-link-title">AIP AD</span>
+                <span class="platform-doc-link-note">Fiche officielle terrain</span>
+              </button>
             </div>
           </div>
 
@@ -410,9 +409,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const platformSiteLine = document.getElementById("platformSiteLine");
     const platformNotesLine = document.getElementById("platformNotesLine");
     const platformUpdatedLine = document.getElementById("platformUpdatedLine");
-    const platformDocsCard = document.getElementById("platformDocsCard");
-    const platformVacLink = document.getElementById("platformVacLink");
-    const platformAipLink = document.getElementById("platformAipLink");
+    const platformDocsPanel = document.getElementById("platformDocsPanel");
+    const platformVacBtn = document.getElementById("platformVacBtn");
+    const platformAipBtn = document.getElementById("platformAipBtn");
 
     // Liens documents officiels : on laisse le comportement natif du navigateur.
     // Le handler JS précédent avec window.open rendait les boutons inactifs
@@ -2136,33 +2135,38 @@ const prefEndDot = isPreferredEnd
       return { vacUrl, aipUrl };
     }
 
-    function setOfficialDocLinkState(element, href, label) {
+    function openOfficialDoc(url) {
+      if (!url) return;
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+
+    function setOfficialDocButtonState(element, href, label) {
       if (!element) return;
       if (!href) {
         element.hidden = true;
-        element.removeAttribute("href");
+        element.removeAttribute("data-doc-url");
         element.removeAttribute("aria-label");
         return;
       }
       element.hidden = false;
-      element.setAttribute("href", href);
+      element.setAttribute("data-doc-url", href);
       element.setAttribute("aria-label", label);
     }
 
     function renderOfficialDocs(matchedAirport, matchedUlm, matchedUlmDetails) {
-      if (!platformDocsCard) return;
+      if (!platformDocsPanel) return;
 
       const urls = buildOfficialDocsUrls(matchedAirport, matchedUlm, matchedUlmDetails);
       if (!urls) {
-        platformDocsCard.hidden = true;
-        setOfficialDocLinkState(platformVacLink, "", "");
-        setOfficialDocLinkState(platformAipLink, "", "");
+        platformDocsPanel.hidden = true;
+        setOfficialDocButtonState(platformVacBtn, "", "");
+        setOfficialDocButtonState(platformAipBtn, "", "");
         return;
       }
 
-      setOfficialDocLinkState(platformVacLink, urls.vacUrl, "Ouvrir la VAC terrain dans un nouvel onglet");
-      setOfficialDocLinkState(platformAipLink, urls.aipUrl, "Ouvrir la fiche AIP AD dans un nouvel onglet");
-      platformDocsCard.hidden = !urls.vacUrl && !urls.aipUrl;
+      setOfficialDocButtonState(platformVacBtn, urls.vacUrl, "Ouvrir la VAC terrain dans un nouvel onglet");
+      setOfficialDocButtonState(platformAipBtn, urls.aipUrl, "Ouvrir la fiche AIP AD dans un nouvel onglet");
+      platformDocsPanel.hidden = !urls.vacUrl && !urls.aipUrl;
     }
 
     function resetPlatformBlock() {
@@ -2178,9 +2182,9 @@ const prefEndDot = isPreferredEnd
       if (platformSourceNote) {
         platformSourceNote.textContent = "Terrains : base monde · France / BASULM.";
       }
-      if (platformDocsCard) platformDocsCard.hidden = true;
-      setOfficialDocLinkState(platformVacLink, "", "");
-      setOfficialDocLinkState(platformAipLink, "", "");
+      if (platformDocsPanel) platformDocsPanel.hidden = true;
+      setOfficialDocButtonState(platformVacBtn, "", "");
+      setOfficialDocButtonState(platformAipBtn, "", "");
       if (platformDetailsDisclosure) {
         platformDetailsDisclosure.hidden = true;
         platformDetailsDisclosure.open = false;
@@ -3944,6 +3948,14 @@ function renderUlmNearbyItem(item) {
       }
     }
 
+    platformVacBtn?.addEventListener("click", () => {
+      openOfficialDoc(platformVacBtn.getAttribute("data-doc-url") || "");
+    });
+
+    platformAipBtn?.addEventListener("click", () => {
+      openOfficialDoc(platformAipBtn.getAttribute("data-doc-url") || "");
+    });
+
     loadMetarBtn?.addEventListener("click", submitSearch);
     locateBtn?.addEventListener("click", locateFromEntry);
     nearbyBtn?.addEventListener("click", getLocation);
@@ -4564,7 +4576,7 @@ function renderUlmNearbyItem(item) {
       height: auto;
     }
 
-    .tool-page .platform-docs-card {
+    .tool-page .platform-docs-panel {
       position: relative;
       z-index: 2;
       display: grid;
@@ -4578,6 +4590,14 @@ function renderUlmNearbyItem(item) {
           rgba(255, 255, 255, 0.03)
         ),
         rgba(255, 255, 255, 0.025);
+    }
+
+    .tool-page .platform-docs-panel {
+      margin-top: 12px;
+    }
+
+    .tool-page .platform-docs-panel-head {
+      margin-bottom: 8px;
     }
 
     .tool-page .platform-docs-actions {
@@ -4614,6 +4634,20 @@ function renderUlmNearbyItem(item) {
         box-shadow 0.18s ease,
         border-color 0.18s ease,
         background 0.18s ease;
+    }
+
+    .tool-page .platform-doc-button {
+      appearance: none;
+      -webkit-appearance: none;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      width: auto;
+      overflow: visible;
+    }
+
+    .tool-page .platform-doc-button[hidden] {
+      display: none !important;
     }
 
     .tool-page .platform-doc-link:hover {
