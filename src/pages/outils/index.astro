@@ -9,20 +9,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
   <section class="container tool-page" style="padding: 20px 0;">
     <div class="card">
       <div class="pad">
-        <div class="tool-page-hero">
-          <p class="tool-hero-kicker">Briefing rapide</p>
-          <h1>Météo & terrains</h1>
-          <p class="tool-hero-note">
-            Briefing terrain, météo, docs officiels et alternatives proches pour préparer le vol en quelques secondes.
-          </p>
-        </div>
+        <h1>Météo & terrains</h1>
 
         <div class="tool-block tool-entry-block">
           <label for="icaoInput" class="tool-entry-label">
             Code OACI ou ville
           </label>
           <p class="tool-entry-help">
-            Entre un code OACI, une ville ou utilise <strong>Me localiser</strong> pour lancer un briefing rapide.
+            Entre un code OACI, une ville ou utilise <strong>Me localiser</strong>.
           </p>
 
           <div class="row tool-row">
@@ -53,7 +47,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                 class="tool-action-btn tool-action-btn--primary"
                 type="button"
               >
-                Lancer le briefing
+                Voir METAR / TAF
               </button>
               <button
                 id="locateBtn"
@@ -312,15 +306,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           <ul id="weatherRefsList" class="weather-refs-list"></ul>
         </div>
 
-        <div class="tool-block nearby-block" data-expanded="false">
+        <div class="tool-block nearby-block">
           <div class="nearby-block-head">
             <div class="nearby-block-heading">
               <h2>Terrains proches</h2>
               <p class="nearby-block-note">
-                Étapes et alternatives autour du terrain affiché ou de votre position.
-              </p>
-              <p id="nearbySummary" class="nearby-block-summary">
-                Voir les terrains accessibles autour du terrain affiché ou de votre position.
+                Étapes, alternatives et déroutements autour du terrain affiché ou de votre position.
               </p>
             </div>
             <button
@@ -328,12 +319,13 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               class="tool-action-btn tool-action-btn--secondary nearby-btn"
               type="button"
               aria-expanded="false"
-              aria-controls="nearbyResults"
+              aria-controls="nearbyPanel"
             >
               Afficher les terrains proches
             </button>
           </div>
-          <div id="nearbyResults" class="nearby-results" hidden>
+          <p id="nearbySummary" class="nearby-summary" hidden></p>
+          <div id="nearbyPanel" class="nearby-panel" hidden>
             <ul id="nearbyAirports" class="nearby-list"></ul>
           </div>
         </div>
@@ -369,12 +361,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const metarOutput = document.getElementById("metarOutput");
     const tafOutput = document.getElementById("tafOutput");
     const nearbyAirports = document.getElementById("nearbyAirports");
+    const nearbyPanel = document.getElementById("nearbyPanel");
+    const nearbySummary = document.getElementById("nearbySummary");
     const loadMetarBtn = document.getElementById("loadMetarBtn");
     const locateBtn = document.getElementById("locateBtn");
     const nearbyBtn = document.getElementById("nearbyBtn");
-    const nearbyResults = document.getElementById("nearbyResults");
-    const nearbySummary = document.getElementById("nearbySummary");
-    const nearbyBlock = nearbyBtn?.closest(".nearby-block") || null;
     const searchSuggestions = document.getElementById("searchSuggestions");
     const searchFeedback = document.getElementById("searchFeedback");
 
@@ -431,10 +422,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const platformVacBtn = document.getElementById("platformVacBtn");
     const platformAipBtn = document.getElementById("platformAipBtn");
 
-    let nearbyExpanded = false;
-    let nearbyLoading = false;
-    let nearbyLastContextKey = "";
-
     // Liens documents officiels : on laisse le comportement natif du navigateur.
     // Le handler JS précédent avec window.open rendait les boutons inactifs
     // chez certains utilisateurs/navigateurs. On garde donc de vrais <a href>
@@ -454,6 +441,9 @@ let ulmDetailsCache = null;
 let ulmDetailsPromise = null;
 
     let currentWindDirection = null;
+    let nearbyLoaded = false;
+    let nearbyOpen = false;
+
     let currentWindSpeed = null;
     let currentWindVariable = false;
 
@@ -3603,46 +3593,6 @@ async function applyMissingLocalWeatherState({
   );
 }
 
-    function setNearbySummary(text) {
-      if (!nearbySummary) return;
-      nearbySummary.textContent = text;
-    }
-
-    function setNearbyExpanded(expanded) {
-      nearbyExpanded = expanded;
-      if (nearbyResults) nearbyResults.hidden = !expanded;
-      if (nearbyBtn) {
-        nearbyBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
-        nearbyBtn.textContent = expanded ? "Replier les terrains proches" : "Afficher les terrains proches";
-      }
-      if (nearbyBlock) {
-        nearbyBlock.dataset.expanded = expanded ? "true" : "false";
-      }
-    }
-
-    function resetNearbyPanel() {
-      nearbyLastContextKey = normalizeCode(icaoInput?.value);
-      if (nearbyAirports) nearbyAirports.innerHTML = "";
-      setNearbyExpanded(false);
-      setNearbySummary("Voir les terrains accessibles autour du terrain affiché ou de votre position.");
-    }
-
-    function summarizeNearbyResults(centerLabel, weatherNearby, ulmNearby) {
-      const total = weatherNearby.length + ulmNearby.length;
-      if (total === 0) {
-        setNearbySummary(`Aucun terrain trouvé autour de ${centerLabel.replace(/^Terrains autour de /, "")}.`);
-        return;
-      }
-
-      const distances = [...weatherNearby, ...ulmNearby].map((item) => item.distanceKm).filter((value) => Number.isFinite(value));
-      const maxKm = distances.length ? Math.max(...distances) : 0;
-      const maxNm = Math.max(1, Math.round(maxKm / 1.852));
-      const weatherCount = weatherNearby.length;
-      const noun = total > 1 ? "terrains" : "terrain";
-      const weatherPart = weatherCount > 0 ? ` · ${weatherCount} avec météo publiée` : "";
-      setNearbySummary(`${total} ${noun} trouvés · jusqu’à ${maxNm} NM${weatherPart}`);
-    }
-
     async function resolveNearbyCenter() {
       const enteredCode = normalizeCode(icaoInput?.value);
 
@@ -3793,7 +3743,6 @@ function renderUlmNearbyItem(item) {
       const icao = normalizeCode(icaoInput?.value);
 
       resetWeatherReferences();
-      resetNearbyPanel();
 
       if (!icao) {
         syncIcaoInUrl("");
@@ -3802,6 +3751,8 @@ function renderUlmNearbyItem(item) {
         resetDecoded();
         return;
       }
+
+      resetNearbyPanel();
 
       metarOutput.textContent = "Chargement...";
       tafOutput.textContent = "Chargement...";
@@ -3965,20 +3916,61 @@ function renderUlmNearbyItem(item) {
       }
     }
 
-    async function getLocation() {
-      const currentContextKey = normalizeCode(icaoInput?.value);
-
-      if (nearbyExpanded && nearbyLastContextKey === currentContextKey && !nearbyLoading) {
-        setNearbyExpanded(false);
-        return;
+    function formatNearbySummary(total, maxDistanceKm, weatherPublishedCount) {
+      const parts = [];
+      if (Number.isFinite(total) && total > 0) {
+        parts.push(`${total} terrains trouvés`);
       }
+      if (Number.isFinite(maxDistanceKm) && maxDistanceKm > 0) {
+        parts.push(`jusqu’à ${Math.max(1, Math.round(maxDistanceKm / 1.852))} NM`);
+      }
+      if (Number.isFinite(weatherPublishedCount) && weatherPublishedCount > 0) {
+        parts.push(`${weatherPublishedCount} avec météo`);
+      }
+      return parts.join(" · ");
+    }
 
-      nearbyLoading = true;
-      nearbyLastContextKey = currentContextKey;
-      setNearbyExpanded(true);
-      setNearbySummary("Recherche des terrains proches en cours...");
-      nearbyAirports.innerHTML =
-        "<li class='nearby-loading'>Recherche des terrains proches...</li>";
+    function updateNearbyButton() {
+      if (!nearbyBtn) return;
+      nearbyBtn.textContent = nearbyOpen
+        ? "Replier les terrains proches"
+        : nearbyLoaded
+          ? "Réafficher les terrains proches"
+          : "Afficher les terrains proches";
+      nearbyBtn.setAttribute("aria-expanded", nearbyOpen ? "true" : "false");
+      nearbyBtn.classList.toggle("is-open", nearbyOpen);
+    }
+
+    function setNearbyOpen(open) {
+      nearbyOpen = Boolean(open);
+      if (nearbyPanel) nearbyPanel.hidden = !nearbyOpen;
+      updateNearbyButton();
+    }
+
+    function resetNearbyPanel() {
+      nearbyLoaded = false;
+      if (nearbyAirports) nearbyAirports.innerHTML = "";
+      if (nearbySummary) {
+        nearbySummary.textContent = "";
+        nearbySummary.hidden = true;
+      }
+      setNearbyOpen(false);
+    }
+
+    function applyNearbySummary(total, maxDistanceKm, weatherPublishedCount) {
+      if (!nearbySummary) return;
+      const summary = formatNearbySummary(total, maxDistanceKm, weatherPublishedCount);
+      nearbySummary.textContent = summary;
+      nearbySummary.hidden = !summary;
+    }
+
+    async function getLocation() {
+      setNearbyOpen(true);
+      nearbyLoaded = false;
+      if (nearbyAirports) {
+        nearbyAirports.innerHTML =
+          "<li class='nearby-loading'>Recherche des terrains proches...</li>";
+      }
 
       try {
         const center = await resolveNearbyCenter();
@@ -4042,6 +4034,16 @@ function renderUlmNearbyItem(item) {
           .sort((a, b) => a.distanceKm - b.distanceKm)
           .slice(0, 10);
 
+        const totalNearby = weatherNearby.length + ulmNearby.length;
+        const maxDistanceKm = Math.max(
+          0,
+          ...weatherNearby.map((item) => item.distanceKm),
+          ...ulmNearby.map((item) => item.distanceKm)
+        );
+        const weatherPublishedCount = weatherNearby.length + ulmNearby.filter((item) => item.weatherCapable).length;
+
+        applyNearbySummary(totalNearby, maxDistanceKm, weatherPublishedCount);
+        nearbyLoaded = true;
         nearbyAirports.innerHTML = "";
         renderNearbyHeader(center.label);
 
@@ -4063,8 +4065,6 @@ function renderUlmNearbyItem(item) {
           ulmNearby.forEach(renderUlmNearbyItem);
         }
 
-        summarizeNearbyResults(center.label, weatherNearby, ulmNearby);
-
         if (weatherNearby.length === 0 && ulmNearby.length === 0) {
           const note = document.createElement("li");
           note.className = "nearby-empty";
@@ -4074,6 +4074,8 @@ function renderUlmNearbyItem(item) {
         }
       } catch (error) {
         if (error.message === "geolocation_not_supported") {
+          if (nearbySummary) nearbySummary.hidden = true;
+          setNearbyOpen(true);
           nearbyAirports.innerHTML =
             "<li class='nearby-empty'>La géolocalisation n’est pas supportée sur cet appareil.</li>";
           return;
@@ -4085,16 +4087,22 @@ function renderUlmNearbyItem(item) {
           error.message === "geolocation_timeout" ||
           error.message === "geolocation_failed"
         ) {
+          if (nearbySummary) nearbySummary.hidden = true;
+          setNearbyOpen(true);
           nearbyAirports.innerHTML =
             "<li class='nearby-empty'>Impossible de récupérer la position. Saisis un terrain ou utilise la recherche par ville.</li>";
           return;
         }
 
+        if (nearbySummary) nearbySummary.hidden = true;
+        setNearbyOpen(true);
         nearbyAirports.innerHTML =
           "<li class='nearby-empty'>Impossible de charger les terrains proches pour le moment.</li>";
         console.error(error);
       }
     }
+
+    updateNearbyButton();
 
     platformVacBtn?.addEventListener("click", () => {
       openOfficialDoc(platformVacBtn.getAttribute("data-doc-url") || "");
@@ -4106,7 +4114,17 @@ function renderUlmNearbyItem(item) {
 
     loadMetarBtn?.addEventListener("click", submitSearch);
     locateBtn?.addEventListener("click", locateFromEntry);
-    nearbyBtn?.addEventListener("click", getLocation);
+    nearbyBtn?.addEventListener("click", async () => {
+      if (nearbyOpen) {
+        setNearbyOpen(false);
+        return;
+      }
+      if (nearbyLoaded) {
+        setNearbyOpen(true);
+        return;
+      }
+      await getLocation();
+    });
 
     icaoInput?.addEventListener("input", () => {
       if (searchHideTimer) {
@@ -4156,8 +4174,6 @@ function renderUlmNearbyItem(item) {
     if (initialIcao && icaoInput) {
       icaoInput.value = initialIcao;
     }
-
-    resetNearbyPanel();
 
     if (icaoInput?.value) {
       loadMetar();
@@ -4237,29 +4253,6 @@ function renderUlmNearbyItem(item) {
       font-size: clamp(1.22rem, 1.75vw, 1.54rem);
       line-height: 1.04;
       letter-spacing: -0.014em;
-    }
-
-    .tool-page .tool-page-hero {
-      display: grid;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
-    .tool-page .tool-hero-kicker {
-      margin: 0;
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: rgba(111, 184, 214, 0.9);
-    }
-
-    .tool-page .tool-hero-note {
-      margin: 0;
-      max-width: 760px;
-      color: rgba(220, 231, 239, 0.72);
-      font-size: 0.92rem;
-      line-height: 1.5;
     }
 
     .tool-page .tool-entry-label {
@@ -5548,13 +5541,6 @@ function renderUlmNearbyItem(item) {
       padding-top: 2px;
     }
 
-    .tool-page .nearby-block[data-expanded="true"] {
-      border-color: rgba(111, 184, 214, 0.3);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.03),
-        0 0 0 1px rgba(111, 184, 214, 0.04);
-    }
-
     .tool-page .nearby-block-head {
       display: flex;
       align-items: flex-end;
@@ -5577,33 +5563,47 @@ function renderUlmNearbyItem(item) {
       margin: 1px 0 0;
       display: inline-block;
       max-width: 520px;
-      color: rgba(206, 218, 228, 0.78);
+      color: rgba(215, 226, 235, 0.78);
       font-size: 0.96rem;
-      line-height: 1.46;
+      line-height: 1.5;
+      letter-spacing: 0.002em;
     }
 
-    .tool-page .nearby-block-summary {
-      margin: 2px 0 0;
-      color: rgba(111, 184, 214, 0.9);
-      font-size: 0.82rem;
-      line-height: 1.35;
-      font-weight: 650;
+    .tool-page .nearby-summary {
+      margin: 0 0 12px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(140, 213, 248, 0.18);
+      background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.018));
+      color: rgba(214, 236, 247, 0.92);
+      font-size: 0.92rem;
+      font-weight: 700;
       letter-spacing: 0.01em;
     }
 
+    .tool-page .nearby-panel {
+      margin-top: 10px;
+    }
+
     .tool-page .nearby-btn {
-      min-width: 280px;
+      min-width: 270px;
       align-self: flex-start;
+      position: relative;
+      padding-right: 44px;
     }
 
-    .tool-page .nearby-results[hidden] {
-      display: none !important;
+    .tool-page .nearby-btn::after {
+      content: "▾";
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem;
+      opacity: 0.86;
     }
 
-    .tool-page .nearby-results {
-      display: grid;
-      gap: 12px;
-      margin-top: 8px;
+    .tool-page .nearby-btn.is-open::after {
+      content: "▴";
     }
 
     .tool-page .nearby-section-header {
@@ -5877,15 +5877,6 @@ function renderUlmNearbyItem(item) {
         margin-bottom: 8px;
       }
 
-      .tool-page .tool-hero-kicker {
-        font-size: 0.68rem;
-      }
-
-      .tool-page .tool-hero-note {
-        font-size: 0.84rem;
-        line-height: 1.42;
-      }
-
       .tool-page .tool-entry-label {
         margin-bottom: 4px;
         font-size: 0.78rem;
@@ -5910,25 +5901,6 @@ function renderUlmNearbyItem(item) {
       .tool-page .tool-entry-actions {
         min-width: 100%;
         gap: 6px;
-      }
-
-      .tool-page .nearby-block-head {
-        align-items: stretch;
-        gap: 12px;
-      }
-
-      .tool-page .nearby-block-note {
-        font-size: 0.88rem;
-        line-height: 1.42;
-      }
-
-      .tool-page .nearby-block-summary {
-        font-size: 0.76rem;
-      }
-
-      .tool-page .nearby-btn {
-        width: 100%;
-        min-width: 0;
       }
 
       .tool-page .tool-search-suggestions {
@@ -6127,12 +6099,12 @@ function renderUlmNearbyItem(item) {
       }
 
       .tool-page .nearby-block-note {
-        font-size: 0.88rem;
-        line-height: 1.42;
+        font-size: 0.92rem;
+        line-height: 1.45;
       }
 
-      .tool-page .nearby-block-summary {
-        font-size: 0.76rem;
+      .tool-page .nearby-summary {
+        font-size: 0.88rem;
       }
 
       .tool-page .nearby-btn {
