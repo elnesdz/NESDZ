@@ -80,6 +80,16 @@ const ogType = isArticlePage ? "article" : "website";
           </div>
         </a>
 
+        <div class="nav-spotlight">
+          <a
+            href="/outils/"
+            class={`service-cta service-cta--spotlight ${pathname.startsWith("/outils/") || pathname === "/outils" ? "is-active" : ""}`}
+            aria-label="Accéder au briefing vol"
+          >
+            Briefing vol
+          </a>
+        </div>
+
         <div class="nav-right">
           <nav class="navlinks" aria-label="Navigation principale">
             <a href="/journal/">Journal</a>
@@ -87,14 +97,6 @@ const ogType = isArticlePage ? "article" : "website";
             <a href="/edito/">Édito</a>
             <a href="/a-propos/">À propos</a>
           </nav>
-
-          <a
-            href="/outils/"
-            class={`service-cta ${pathname.startsWith("/outils/") || pathname === "/outils" ? "is-active" : ""}`}
-            aria-label="Accéder au service météo et terrains"
-          >
-            Météo & terrains
-          </a>
         </div>
       </div>
     </header>
@@ -118,10 +120,10 @@ const ogType = isArticlePage ? "article" : "website";
 
     <style>
       .nav-inner {
-        display: flex;
+        display: grid;
+        grid-template-columns: auto minmax(240px, 1fr) auto;
         align-items: center;
-        justify-content: space-between;
-        gap: 24px;
+        gap: 22px;
       }
 
       .brand-subtitle {
@@ -130,12 +132,16 @@ const ogType = isArticlePage ? "article" : "website";
         margin-top: -2px;
       }
 
+      .nav-spotlight {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
       .nav-right {
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        gap: 18px;
-        flex-wrap: wrap;
       }
 
       .navlinks {
@@ -143,10 +149,11 @@ const ogType = isArticlePage ? "article" : "website";
         align-items: center;
         gap: 18px;
         flex-wrap: wrap;
+        justify-content: flex-end;
       }
 
       .navlinks a {
-        color: rgba(255, 255, 255, 0.86);
+        color: rgba(255, 255, 255, 0.78);
         text-decoration: none;
         font-size: 0.98rem;
         line-height: 1.2;
@@ -189,6 +196,14 @@ const ogType = isArticlePage ? "article" : "website";
           box-shadow 0.18s ease,
           color 0.18s ease,
           filter 0.18s ease;
+      }
+
+      .service-cta--spotlight {
+        min-height: 48px;
+        padding: 13px 28px;
+        min-width: min(320px, 100%);
+        font-size: 1.02rem;
+        letter-spacing: 0.018em;
       }
 
       .service-cta:hover,
@@ -236,17 +251,27 @@ const ogType = isArticlePage ? "article" : "website";
           0 16px 38px rgba(44, 116, 152, 0.34);
       }
 
-      @media (max-width: 900px) {
+      @media (max-width: 1080px) {
         .nav-inner {
-          gap: 18px;
+          grid-template-columns: auto 1fr;
+          grid-template-areas:
+            "brand spotlight"
+            "nav nav";
+          gap: 16px 20px;
+        }
+
+        .brand {
+          grid-area: brand;
+        }
+
+        .nav-spotlight {
+          grid-area: spotlight;
+          justify-content: flex-end;
         }
 
         .nav-right {
-          gap: 14px;
-        }
-
-        .navlinks {
-          gap: 14px;
+          grid-area: nav;
+          justify-content: center;
         }
       }
 
@@ -279,6 +304,10 @@ const ogType = isArticlePage ? "article" : "website";
           line-height: 1.1;
         }
 
+        .nav-spotlight {
+          justify-content: center;
+        }
+
         .nav-right {
           display: flex;
           flex-direction: column;
@@ -300,8 +329,10 @@ const ogType = isArticlePage ? "article" : "website";
           white-space: nowrap;
         }
 
-        .service-cta {
+        .service-cta,
+        .service-cta--spotlight {
           width: 100%;
+          min-width: 0;
           min-height: 46px;
         }
       }
