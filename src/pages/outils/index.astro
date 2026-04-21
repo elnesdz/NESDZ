@@ -307,26 +307,26 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         </div>
 
         <div class="tool-block nearby-block nearby-block--spotlight">
-          <span class="nearby-kicker">Navigation locale · déroutement</span>
+          <span class="nearby-kicker">Navigation locale</span>
           <div class="nearby-block-head">
             <div class="nearby-block-heading">
               <h2>Terrains proches</h2>
               <p class="nearby-block-note">
-                Sauts de puce, alternatives et terrains de déroutement.
+                Alternatives et terrains proches autour du terrain affiché ou de votre position.
               </p>
             </div>
             <button
               id="nearbyBtn"
-              class="tool-action-btn tool-action-btn--secondary nearby-btn"
+              class="tool-action-btn tool-action-btn--primary nearby-btn"
               type="button"
               aria-expanded="false"
               aria-controls="nearbyPanel"
             >
-              Ouvrir les terrains proches
+              Afficher les terrains proches
             </button>
           </div>
           <p id="nearbySummary" class="nearby-summary nearby-summary--placeholder">
-            Affiche les terrains accessibles autour du terrain affiché ou de votre position.
+            Alternatives, étapes locales et terrains proches autour du terrain affiché ou de votre position.
           </p>
           <div id="nearbyPanel" class="nearby-panel" hidden>
             <ul id="nearbyAirports" class="nearby-list"></ul>
@@ -351,18 +351,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               >
                 Ouvrir SOFIA-Briefing
               </a>
-              <a
-                class="tool-action-btn tool-action-btn--secondary notam-btn notam-btn--secondary"
-                href="https://www.sia.aviation-civile.gouv.fr/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                SIA / SUP AIP
-              </a>
             </div>
           </div>
           <p class="decoded-note decoded-note--micro notam-source">
-            NOTAM et PIB officiels via SOFIA-Briefing · SUP AIP et AIC sur le site du SIA.
+            PIB et NOTAM officiels via SOFIA-Briefing.
           </p>
         </div>
 
@@ -3666,7 +3658,7 @@ async function applyMissingLocalWeatherState({
       li.className = "nearby-section-header";
       li.innerHTML = `
         <strong>${centerLabel}</strong>
-        <small>Aérodromes météo et plateformes proches autour du point de recherche.</small>
+        <small>Alternatives et terrains proches autour du point de recherche.</small>
       `;
       nearbyAirports.appendChild(li);
     }
@@ -5582,18 +5574,19 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .nearby-block--spotlight {
-      border: 1px solid rgba(111, 184, 214, 0.32);
+      border: 1px solid rgba(118, 196, 232, 0.24);
+      border-radius: 20px;
       background:
         linear-gradient(
           180deg,
-          rgba(111, 184, 214, 0.14),
-          rgba(255, 255, 255, 0.03)
+          rgba(108, 188, 228, 0.12),
+          rgba(255, 255, 255, 0.026)
         ),
-        rgba(12, 18, 26, 0.78);
+        rgba(12, 18, 26, 0.82);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.04),
-        0 16px 34px rgba(0, 0, 0, 0.16),
-        0 0 0 1px rgba(111, 184, 214, 0.05);
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 14px 30px rgba(0, 0, 0, 0.14),
+        0 0 0 1px rgba(118, 196, 232, 0.04);
     }
 
     .tool-page .nearby-kicker,
@@ -5634,35 +5627,37 @@ function renderUlmNearbyItem(item) {
     .tool-page .nearby-block-note {
       margin: 1px 0 0;
       display: inline-block;
-      max-width: 580px;
+      max-width: 620px;
       color: rgba(229, 238, 245, 0.82);
-      font-size: 0.98rem;
+      font-size: 0.97rem;
       line-height: 1.5;
       letter-spacing: 0.002em;
     }
 
     .tool-page .nearby-summary {
-      margin: 0 0 12px;
-      padding: 12px 15px;
-      border-radius: 15px;
+      margin: 0 0 14px;
+      padding: 14px 16px;
+      border-radius: 18px;
       border: 1px solid rgba(140, 213, 248, 0.24);
       background:
-        linear-gradient(180deg, rgba(111, 184, 214, 0.12), rgba(255,255,255,0.024)),
-        rgba(11, 18, 26, 0.76);
+        linear-gradient(180deg, rgba(111, 184, 214, 0.14), rgba(255,255,255,0.024)),
+        rgba(11, 18, 26, 0.78);
       color: rgba(228, 242, 249, 0.96);
       font-size: 0.95rem;
       font-weight: 800;
       letter-spacing: 0.01em;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.03),
+        0 8px 20px rgba(0,0,0,0.10);
     }
 
     .tool-page .nearby-summary--placeholder {
-      color: rgba(220, 231, 238, 0.78);
+      color: rgba(220, 231, 238, 0.84);
       font-weight: 650;
-      border-style: dashed;
+      border-style: solid;
       background:
         linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015)),
-        rgba(12, 18, 26, 0.7);
+        rgba(12, 18, 26, 0.72);
     }
 
     .tool-page .nearby-panel {
@@ -5670,25 +5665,28 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .nearby-btn {
-      min-width: 290px;
+      min-width: 320px;
       align-self: flex-start;
       position: relative;
       padding-right: 46px;
-      border-color: rgba(111, 184, 214, 0.44);
+      border-color: rgba(136, 214, 248, 0.62);
       background:
-        linear-gradient(180deg, rgba(111, 184, 214, 0.22), rgba(111, 184, 214, 0.12)),
-        rgba(20, 32, 43, 0.92);
+        linear-gradient(180deg, rgba(117, 179, 214, 0.34), rgba(48, 76, 100, 0.58));
       color: rgba(245, 250, 253, 0.98);
       box-shadow:
-        0 12px 24px rgba(0, 0, 0, 0.14),
+        inset 0 1px 0 rgba(255,255,255,0.18),
+        0 12px 24px rgba(0, 0, 0, 0.18),
         0 0 0 1px rgba(111, 184, 214, 0.08);
     }
 
     .tool-page .nearby-btn:hover {
-      border-color: rgba(136, 214, 248, 0.66);
+      border-color: rgba(164, 226, 252, 0.78);
       background:
-        linear-gradient(180deg, rgba(111, 184, 214, 0.32), rgba(111, 184, 214, 0.16)),
-        rgba(20, 32, 43, 0.96);
+        linear-gradient(180deg, rgba(129, 191, 226, 0.42), rgba(58, 86, 110, 0.64));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.22),
+        0 14px 28px rgba(0, 0, 0, 0.20),
+        0 0 0 4px rgba(111,184,214,0.12);
     }
 
     .tool-page .nearby-btn::after {
@@ -5705,20 +5703,25 @@ function renderUlmNearbyItem(item) {
       content: "▴";
     }
 
+    .tool-page .nearby-btn {
+      justify-content: center;
+    }
+
     .tool-page .nearby-section-header {
       display: grid;
       gap: 4px;
-      margin-bottom: 6px;
-      padding: 13px 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 8px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(118, 196, 232, 0.18);
       background:
         linear-gradient(
           180deg,
-          rgba(255, 255, 255, 0.032),
-          rgba(255, 255, 255, 0.018)
+          rgba(108, 188, 228, 0.10),
+          rgba(255, 255, 255, 0.02)
         ),
-        rgba(15, 23, 32, 0.58);
+        rgba(15, 23, 32, 0.72);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     }
 
     .tool-page .nearby-section-header strong {
@@ -5736,8 +5739,8 @@ function renderUlmNearbyItem(item) {
       display: grid;
       gap: 4px;
       margin-top: 12px;
-      padding: 13px 14px 13px 18px;
-      border-radius: 14px;
+      padding: 14px 15px 14px 19px;
+      border-radius: 18px;
       border: 1px solid rgba(255, 255, 255, 0.1);
       font-size: 0.96rem;
       font-weight: 700;
@@ -5798,21 +5801,23 @@ function renderUlmNearbyItem(item) {
       display: grid;
       gap: 8px;
       text-align: left;
-      padding: 14px 14px 14px 18px;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.11);
+      padding: 15px 15px 15px 19px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.10);
       background:
         linear-gradient(
           180deg,
-          rgba(255, 255, 255, 0.04),
-          rgba(255, 255, 255, 0.024)
+          rgba(255, 255, 255, 0.045),
+          rgba(255, 255, 255, 0.022)
         ),
-        rgba(15, 23, 32, 0.8);
+        rgba(15, 23, 32, 0.82);
       color: white;
       font: inherit;
       position: relative;
       overflow: hidden;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        0 10px 24px rgba(0,0,0,0.10);
     }
 
     .tool-page .airport-nearby-card::before {
@@ -5956,17 +5961,30 @@ function renderUlmNearbyItem(item) {
 
 
     .tool-page .notam-block {
-      border: 1px solid rgba(244, 193, 85, 0.22);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 20px;
       background:
         linear-gradient(
           180deg,
-          rgba(244, 193, 85, 0.1),
-          rgba(255, 255, 255, 0.022)
+          rgba(255, 255, 255, 0.05),
+          rgba(255, 255, 255, 0.02)
         ),
-        rgba(18, 17, 15, 0.8);
+        rgba(15, 23, 32, 0.82);
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.03),
         0 12px 28px rgba(0, 0, 0, 0.12);
+      position: relative;
+    }
+
+    .tool-page .notam-block::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 16px;
+      bottom: 16px;
+      width: 4px;
+      border-radius: 999px;
+      background: rgba(244, 193, 85, 0.92);
     }
 
     .tool-page .notam-kicker {
@@ -5978,6 +5996,7 @@ function renderUlmNearbyItem(item) {
     .tool-page .notam-head {
       display: flex;
       align-items: flex-end;
+      padding-left: 6px;
       justify-content: space-between;
       gap: 14px 18px;
       flex-wrap: wrap;
@@ -5995,9 +6014,10 @@ function renderUlmNearbyItem(item) {
 
     .tool-page .notam-note {
       margin: 0;
-      color: rgba(235, 227, 206, 0.82);
+      color: rgba(224, 232, 240, 0.84);
       font-size: 0.95rem;
       line-height: 1.5;
+      max-width: 660px;
     }
 
     .tool-page .notam-actions {
@@ -6008,13 +6028,9 @@ function renderUlmNearbyItem(item) {
     }
 
     .tool-page .notam-btn {
-      min-width: 230px;
+      min-width: 250px;
       text-decoration: none;
       justify-content: center;
-    }
-
-    .tool-page .notam-btn--secondary {
-      min-width: 180px;
     }
 
     .tool-page .notam-source {
@@ -6295,8 +6311,7 @@ function renderUlmNearbyItem(item) {
         width: 100%;
       }
 
-      .tool-page .notam-btn,
-      .tool-page .notam-btn--secondary {
+      .tool-page .notam-btn {
         width: 100%;
         min-width: 0;
       }
