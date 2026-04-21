@@ -3617,6 +3617,7 @@ async function applyMissingLocalWeatherState({
     matchedUlm,
     references
   );
+  await prefetchNearbySummary();
 }
 
     async function resolveNearbyCenter() {
@@ -3925,6 +3926,7 @@ function renderUlmNearbyItem(item) {
           rawMetar: item.rawOb || "",
           rawTaf: item.taf || "",
         });
+        await prefetchNearbySummary();
       } catch (error) {
         await applyMissingLocalWeatherState({
           icao,
@@ -3991,12 +3993,13 @@ function renderUlmNearbyItem(item) {
       nearbySummary.classList.toggle("nearby-summary--placeholder", !summary);
     }
 
-    async function getLocation() {
-      setNearbyOpen(true);
+    async function getLocation(openPanel = true) {
+      setNearbyOpen(openPanel);
       nearbyLoaded = false;
       if (nearbyAirports) {
-        nearbyAirports.innerHTML =
-          "<li class='nearby-loading'>Recherche des terrains proches...</li>";
+        nearbyAirports.innerHTML = openPanel
+          ? "<li class='nearby-loading'>Recherche des terrains proches...</li>"
+          : "";
       }
 
       try {
@@ -4072,6 +4075,7 @@ function renderUlmNearbyItem(item) {
         applyNearbySummary(totalNearby, maxDistanceKm, weatherPublishedCount);
         nearbyLoaded = true;
         nearbyAirports.innerHTML = "";
+        setNearbyOpen(openPanel);
         renderNearbyHeader(center.label);
 
         renderNearbyGroupTitle("Aérodromes couverts");
@@ -4102,9 +4106,14 @@ function renderUlmNearbyItem(item) {
       } catch (error) {
         if (error.message === "geolocation_not_supported") {
           if (nearbySummary) nearbySummary.hidden = true;
-          setNearbyOpen(true);
-          nearbyAirports.innerHTML =
-            "<li class='nearby-empty'>La géolocalisation n’est pas supportée sur cet appareil.</li>";
+          if (openPanel) {
+            setNearbyOpen(true);
+            nearbyAirports.innerHTML =
+              "<li class='nearby-empty'>La géolocalisation n’est pas supportée sur cet appareil.</li>";
+          } else {
+            setNearbyOpen(false);
+            nearbyAirports.innerHTML = "";
+          }
           return;
         }
 
@@ -4115,16 +4124,36 @@ function renderUlmNearbyItem(item) {
           error.message === "geolocation_failed"
         ) {
           if (nearbySummary) nearbySummary.hidden = true;
-          setNearbyOpen(true);
-          nearbyAirports.innerHTML =
-            "<li class='nearby-empty'>Impossible de récupérer la position. Saisis un terrain ou utilise la recherche par ville.</li>";
+          if (openPanel) {
+            setNearbyOpen(true);
+            nearbyAirports.innerHTML =
+              "<li class='nearby-empty'>Impossible de récupérer la position. Saisis un terrain ou utilise la recherche par ville.</li>";
+          } else {
+            setNearbyOpen(false);
+            nearbyAirports.innerHTML = "";
+          }
           return;
         }
 
         if (nearbySummary) nearbySummary.hidden = true;
-        setNearbyOpen(true);
-        nearbyAirports.innerHTML =
-          "<li class='nearby-empty'>Impossible de charger les terrains proches pour le moment.</li>";
+        if (openPanel) {
+          setNearbyOpen(true);
+          nearbyAirports.innerHTML =
+            "<li class='nearby-empty'>Impossible de charger les terrains proches pour le moment.</li>";
+        } else {
+          setNearbyOpen(false);
+          nearbyAirports.innerHTML = "";
+        }
+        console.error(error);
+      }
+    }
+
+    async function prefetchNearbySummary() {
+      const enteredCode = normalizeCode(icaoInput?.value);
+      if (!enteredCode || nearbyLoaded) return;
+      try {
+        await getLocation(false);
+      } catch (error) {
         console.error(error);
       }
     }
