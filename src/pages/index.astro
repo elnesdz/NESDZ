@@ -4,7 +4,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
 <BaseLayout
   title="Accueil · NESDZ"
-  description="NESDZ : édito, articles et annuaire des ULM (fiches techniques + vidéos)."
+  description="NESDZ : magazine ULM, fiches modèles, culture de vol, sécurité, briefing météo et aviation ultralégère."
 >
   <section class="hero home-restore-hero">
     <div class="container home-hero-grid">
@@ -12,26 +12,38 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <div class="meta">
           <a class="pill" href="/journal/">Journal</a>
           <a class="pill" href="/modeles/">Annuaire ULM</a>
-          <span class="pill">Vidéos</span>
+          <a class="pill" href="/meteo/">Briefing vol</a>
           <a class="pill" href="/tags/securite/">Sécurité</a>
         </div>
 
-        <h1>ULM &amp; ultra-léger : le journal qui vole au ras des nuages.</h1>
+        <div class="home-hero-kicker">Magazine ULM · culture de vol · comparaison des machines</div>
+
+        <h1>
+          Le média ULM pour<br />
+          voler mieux, comparer juste,<br />
+          garder la tête froide.
+        </h1>
 
         <p class="lead">
-          NESDZ est un carnet de vol collectif : édito, articles et fiches modèles,
-          pour apprendre, comparer, rêver… et garder la tête froide quand le vent se lève.
+          NESDZ rassemble un journal aéronautique, un annuaire de modèles et des outils
+          conçus pour les pilotes, les instructeurs et les passionnés qui veulent apprendre,
+          choisir plus lucidement et rester précis quand les conditions se compliquent.
         </p>
 
         <div class="actions">
-          <a class="btn" href="/journal/">Lire le journal</a>
-          <a class="btn" href="/modeles/">Explorer l’annuaire</a>
+          <a class="btn home-btn-primary" href="/journal/">Lire le journal</a>
+          <a class="btn home-btn-secondary" href="/modeles/">Explorer l’annuaire</a>
         </div>
+
+        <p class="home-hero-note">
+          Pensé pour les pilotes de loisir, les pros de terrain et tous ceux qui lèvent
+          les yeux vers le ciel avant de sortir de chez eux.
+        </p>
 
         <hr class="sep" />
 
-        <div>
-          <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;">
+        <div class="home-featured-panel">
+          <div class="row home-featured-top" style="justify-content:space-between;align-items:center;flex-wrap:wrap;">
             <div class="row" style="gap:10px;flex-wrap:wrap;">
               <span class="badge">À la une</span>
               <span class="pill">Édito</span>
@@ -48,13 +60,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <h2 style="margin-top:10px;">L’Esprit ULM : Manifeste pour un ciel libre et responsable</h2>
 
           <p>
-            Pour le lancement de ce nouveau journal, nous explorons ce qui définit l’essence profonde
-            de l’aviation ultralégère. Entre prouesses technologiques et héritage des pionniers,
-            découvrez pourquoi l’ULM est bien plus qu’un loisir : c’est une école de la responsabilité
-            et une quête de liberté absolue, portée par le souvenir de figures inspirantes comme Thierry Barbier.
+            Pour le lancement de NESDZ, nous explorons ce qui fait la valeur profonde
+            de l’aviation ultralégère : liberté, responsabilité, précision, culture
+            de vol… et mémoire de celles et ceux qui ont façonné cet univers.
           </p>
 
-          <a class="btn" href="/journal/2026-01-edito-nesdz/">Ouvrir l’article</a>
+          <a class="btn home-btn-primary" href="/journal/2026-01-edito-nesdz/">Ouvrir l’article</a>
         </div>
       </article>
 
@@ -75,10 +86,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                   </div>
                   <h3>L’Esprit ULM : Manifeste pour un ciel libre et responsable</h3>
                   <p>
-                    Pour le lancement de ce nouveau journal, nous explorons ce qui définit l’essence
-                    profonde de l’aviation ultralégère. Entre prouesses technologiques et héritage des
-                    pionniers, découvrez pourquoi l’ULM est bien plus qu’un loisir : c’est une école de
-                    la responsabilité et une quête de liberté absolue.
+                    Pour le lancement de ce nouveau journal, nous explorons ce qui définit
+                    l’essence profonde de l’aviation ultralégère.
                   </p>
                 </a>
               </li>
@@ -90,8 +99,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                   </div>
                   <h3>Choisir son ULM : une méthode simple (et anti-auto-mensonge)</h3>
                   <p>
-                    Avant de regarder les photos, regarde ton usage : terrain, météo, budget,
-                    maintenance, objectifs.
+                    Avant de regarder les photos, regarde ton usage : terrain, météo,
+                    budget, maintenance et objectifs réels.
                   </p>
                 </a>
               </li>
@@ -103,8 +112,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                   </div>
                   <h3>Lire le vent comme un pilote (pas comme une appli)</h3>
                   <p>
-                    Comprendre les indices sur le terrain : fumées, arbres, relief, gradient…
-                    pour décider sans panique.
+                    Comprendre les indices du terrain pour décider vite, calmement
+                    et sans illusion dangereuse.
                   </p>
                 </a>
               </li>
@@ -132,7 +141,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                     <div class="home-model-text">
                       <div class="t">Aeroprakt A-22 (Foxbat)</div>
                       <div class="s">
-                        Aeroprakt · Multiaxe · 2 places · Rotax 912 UL / 912 ULS (selon versions) ·
+                        Aeroprakt · Multiaxe · 2 places · Rotax 912 UL / 912 ULS ·
                         Croisière ~150 km/h
                       </div>
                     </div>
@@ -279,7 +288,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         </p>
 
         <div class="grid grid-2" style="margin-top:14px;gap:14px;">
-          <div class="card" style="box-shadow:none;">
+          <div class="card home-topic-card" style="box-shadow:none;">
             <div class="pad">
               <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
                 <h3 style="margin:0;">Journal</h3>
@@ -298,7 +307,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             </div>
           </div>
 
-          <div class="card" style="box-shadow:none;">
+          <div class="card home-topic-card" style="box-shadow:none;">
             <div class="pad">
               <div class="row" style="justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
                 <h3 style="margin:0;">Modèles ULM</h3>
@@ -330,21 +339,21 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <h2>La promesse NESDZ</h2>
 
         <div class="grid grid-3" style="margin-top:12px;">
-          <div class="card" style="box-shadow:none;">
+          <div class="card home-promise-card" style="box-shadow:none;">
             <div class="pad">
               <h3>Clarté</h3>
               <p>Des fiches techniques lisibles, des articles structurés, des sources quand c’est nécessaire.</p>
             </div>
           </div>
 
-          <div class="card" style="box-shadow:none;">
+          <div class="card home-promise-card" style="box-shadow:none;">
             <div class="pad">
               <h3>Sécurité</h3>
               <p>Le style, c’est bien. Les marges, c’est mieux. On garde toujours un œil sur les bonnes pratiques.</p>
             </div>
           </div>
 
-          <div class="card" style="box-shadow:none;">
+          <div class="card home-promise-card" style="box-shadow:none;">
             <div class="pad">
               <h3>Plaisir</h3>
               <p>Parce que l’ULM est une école de liberté — et une excuse légale pour parler météo au café.</p>
@@ -357,7 +366,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   <style is:global>
     .home-restore-hero {
-      padding: 34px 0 18px;
+      padding: 38px 0 22px;
     }
 
     .home-hero-grid {
@@ -379,7 +388,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
 
     .home-main-card {
-      padding: 22px;
+      padding: 24px;
+      background:
+        radial-gradient(1200px 600px at 0% 0%, rgba(125, 211, 252, 0.07), transparent 45%),
+        radial-gradient(900px 420px at 100% 10%, rgba(167, 139, 250, 0.08), transparent 42%),
+        linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
     }
 
     .home-side-stack {
@@ -388,87 +401,147 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       gap: 18px;
     }
 
+    .home-hero-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(139, 220, 255, 0.92);
+    }
+
+    .home-main-card h1 {
+      max-width: 12ch;
+      margin-bottom: 14px;
+      line-height: 0.98;
+      letter-spacing: -0.03em;
+    }
+
+    .home-main-card .lead {
+      max-width: 68ch;
+      font-size: 1.08rem;
+      line-height: 1.72;
+      color: rgba(231, 238, 247, 0.9);
+    }
+
+    .home-main-card .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .home-btn-primary {
+      background: linear-gradient(180deg, rgba(125,211,252,.22), rgba(125,211,252,.10));
+      border-color: rgba(125,211,252,.35);
+    }
+
+    .home-btn-secondary {
+      background: rgba(255,255,255,.035);
+    }
+
+    .home-hero-note {
+      margin: 16px 0 0;
+      font-size: 0.93rem;
+      line-height: 1.6;
+      color: rgba(167, 182, 201, 0.95);
+      max-width: 62ch;
+    }
+
+    .home-featured-panel {
+      padding-top: 6px;
+    }
+
+    .home-featured-top {
+      margin-bottom: 8px;
+    }
+
     .hero-cover {
       width: 100%;
       max-width: 100%;
       border-radius: 18px;
       margin: 18px 0 20px;
       object-fit: cover;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.28);
     }
 
-.home-article-list {
-  list-style: none;
-  padding: 0;
-  margin: 18px 0 0;
-  display: grid;
-  gap: 14px;
-}
+    .home-article-list {
+      list-style: none;
+      padding: 0;
+      margin: 18px 0 0;
+      display: grid;
+      gap: 14px;
+    }
 
-.home-article-item {
-  margin: 0;
-  padding: 0;
-}
+    .home-article-item {
+      margin: 0;
+      padding: 0;
+    }
 
-.home-article-link {
-  display: block;
-  color: inherit;
-  text-decoration: none;
-  padding: 14px 14px 15px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.02);
-  transition:
-    background-color 0.18s ease,
-    border-color 0.18s ease,
-    box-shadow 0.18s ease,
-    transform 0.18s ease;
-}
+    .home-article-link {
+      display: block;
+      color: inherit;
+      text-decoration: none;
+      padding: 14px 14px 15px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.02);
+      transition:
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        transform 0.18s ease;
+    }
 
-.home-article-link:hover,
-.home-article-link:focus-visible {
-  background: rgba(139, 220, 255, 0.05);
-  border-color: rgba(139, 220, 255, 0.16);
-  box-shadow: inset 0 0 0 1px rgba(139, 220, 255, 0.10);
-  transform: translateY(-1px);
-}
+    .home-article-link:hover,
+    .home-article-link:focus-visible {
+      background: rgba(139, 220, 255, 0.05);
+      border-color: rgba(139, 220, 255, 0.16);
+      box-shadow: inset 0 0 0 1px rgba(139, 220, 255, 0.10);
+      transform: translateY(-1px);
+      text-decoration: none;
+    }
 
-.home-article-link:hover h3,
-.home-article-link:focus-visible h3 {
-  color: #8bdcff;
-}
+    .home-article-link:hover h3,
+    .home-article-link:focus-visible h3 {
+      color: #8bdcff;
+    }
 
-.home-article-meta {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
-  font-size: 0.78rem;
-  color: var(--muted);
-}
+    .home-article-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
 
-.home-article-highlight {
-  color: #67d9ff;
-  font-weight: 700;
-}
+    .home-article-highlight {
+      color: #67d9ff;
+      font-weight: 700;
+    }
 
-.home-article-link h3 {
-  margin: 0;
-  font-size: 1rem;
-  line-height: 1.4;
-  transition: color 0.2s ease;
-}
+    .home-article-link h3 {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.4;
+      transition: color 0.2s ease;
+    }
 
-.home-article-link p {
-  margin: 10px 0 0;
-  color: var(--muted);
-  font-size: 0.94rem;
-  line-height: 1.62;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
+    .home-article-link p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.62;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
 
     .home-model-list {
       margin-top: 12px;
@@ -476,48 +549,48 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       gap: 12px;
     }
 
-.home-model-item {
-  position: relative;
-  display: block;
-  color: inherit;
-  text-decoration: none;
-  padding: 14px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 14px;
-  transition:
-    background-color 0.18s ease,
-    box-shadow 0.18s ease,
-    transform 0.18s ease;
-}
+    .home-model-item {
+      position: relative;
+      display: block;
+      color: inherit;
+      text-decoration: none;
+      padding: 14px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      transition:
+        background-color 0.18s ease,
+        box-shadow 0.18s ease,
+        transform 0.18s ease;
+    }
 
-.home-model-item:hover,
-.home-model-item:focus-within {
-  background: rgba(139, 220, 255, 0.05);
-  box-shadow: inset 0 0 0 1px rgba(139, 220, 255, 0.14);
-  transform: translateY(-1px);
-}
+    .home-model-item:hover,
+    .home-model-item:focus-within {
+      background: rgba(139, 220, 255, 0.05);
+      box-shadow: inset 0 0 0 1px rgba(139, 220, 255, 0.14);
+      transform: translateY(-1px);
+    }
 
-.home-model-item:hover .home-model-text .t,
-.home-model-item:focus-within .home-model-text .t {
-  color: #8bdcff;
-}
+    .home-model-item:hover .home-model-text .t,
+    .home-model-item:focus-within .home-model-text .t {
+      color: #8bdcff;
+    }
 
-.home-model-item:first-child {
-  border-top: 0;
-  padding-top: 0;
-}
+    .home-model-item:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
 
-.home-model-link {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  cursor: pointer;
-}
+    .home-model-link {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      cursor: pointer;
+    }
 
-.home-model-content {
-  position: relative;
-  z-index: 1;
-}
+    .home-model-content {
+      position: relative;
+      z-index: 1;
+    }
 
     .home-model-head {
       display: flex;
@@ -563,6 +636,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       text-decoration: none;
     }
 
+    .home-topic-card,
+    .home-promise-card {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.02)),
+        rgba(12,18,25,.56);
+      border-color: rgba(255,255,255,.06);
+    }
+
     @media (min-width: 1100px) {
       .home-hero-grid {
         grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.9fr);
@@ -570,6 +651,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
 
     @media (max-width: 720px) {
+      .home-main-card h1 {
+        max-width: none;
+      }
+
       .home-model-head {
         flex-direction: column;
         align-items: flex-start;
