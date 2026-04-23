@@ -18,6 +18,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           <p class="tool-entry-help">
             Entre un code OACI, une ville ou utilise <strong>Me localiser</strong>.
           </p>
+          <p class="tool-entry-help tool-entry-help--reference">
+            Lecture rapide utile. Pour la préparation du vol, les services officiels en vigueur restent la référence.
+          </p>
 
           <div class="row tool-row">
             <div class="tool-search-col">
@@ -4331,6 +4334,12 @@ function renderUlmNearbyItem(item) {
     .tool-page .tool-entry-help strong {
       color: rgba(244, 249, 252, 0.98);
       font-weight: 700;
+    }
+
+    .tool-page .tool-entry-help--reference {
+      margin: 8px 0 0;
+      color: rgba(219, 230, 238, 0.48);
+      max-width: 72ch;
     }
 
     .tool-page .tool-row {
