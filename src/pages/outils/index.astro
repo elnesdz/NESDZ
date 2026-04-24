@@ -597,6 +597,23 @@ let ulmDetailsPromise = null;
       ).padStart(2, "0")}`;
     }
 
+    function formatUtcDayMonth(date) {
+      if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+      return new Intl.DateTimeFormat("fr-FR", {
+        day: "numeric",
+        month: "long",
+        timeZone: "UTC",
+      }).format(date);
+    }
+
+    function formatLocalDayMonth(date) {
+      if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+      return new Intl.DateTimeFormat("fr-FR", {
+        day: "numeric",
+        month: "long",
+      }).format(date);
+    }
+
     function buildClosestUtcIssueDate(day, hour, minute, now = new Date()) {
       const year = now.getUTCFullYear();
       const month = now.getUTCMonth();
@@ -926,11 +943,30 @@ let ulmDetailsPromise = null;
 
     function formatUtcAndLocal(date) {
       if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
-      return `${formatUtcClock(date).replace("Z", " UTC")} · ${formatLocalClock(date)} locale`;
+      const utcDate = formatUtcDayMonth(date);
+      const localDate = formatLocalDayMonth(date);
+      const utcPart = `${utcDate} · ${formatUtcClock(date).replace("Z", " UTC")}`;
+      const localPart = utcDate === localDate
+        ? `${formatLocalClock(date)} locale`
+        : `${localDate} · ${formatLocalClock(date)} locale`;
+      return `${utcPart} · ${localPart}`;
     }
 
     function formatUtcRange(range) {
       if (!range?.start || !range?.end) return "";
+      const utcStartDate = formatUtcDayMonth(range.start);
+      const utcEndDate = formatUtcDayMonth(range.end);
+      const localStartDate = formatLocalDayMonth(range.start);
+      const localEndDate = formatLocalDayMonth(range.end);
+
+      if (utcStartDate === utcEndDate) {
+        const utcPart = `${utcStartDate} · ${formatUtcClock(range.start).replace("Z", " UTC")} → ${formatUtcClock(range.end).replace("Z", " UTC")}`;
+        const localPart = localStartDate === localEndDate
+          ? `${localStartDate} · ${formatLocalClock(range.start)} → ${formatLocalClock(range.end)} locale`
+          : `${localStartDate} ${formatLocalClock(range.start)} → ${localEndDate} ${formatLocalClock(range.end)} locale`;
+        return `${utcPart} · ${localPart}`;
+      }
+
       return `${formatUtcAndLocal(range.start)} → ${formatUtcAndLocal(range.end)}`;
     }
 
