@@ -273,32 +273,33 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     .home-hero-mark {
       position: absolute;
-      top: 22px;
-      right: 22px;
-      width: clamp(112px, 13vw, 154px);
+      top: 24px;
+      right: 24px;
+      width: clamp(148px, 16vw, 188px);
       aspect-ratio: 1;
-      border-radius: 28px;
+      border-radius: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
       background:
-        radial-gradient(120% 120% at 30% 18%, rgba(125, 211, 252, 0.10), transparent 46%),
-        linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
-      border: 1px solid rgba(255,255,255,0.08);
+        radial-gradient(120% 120% at 30% 18%, rgba(125, 211, 252, 0.18), transparent 46%),
+        linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.05));
+      border: 1px solid rgba(255,255,255,0.12);
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.12),
-        0 20px 44px rgba(5, 12, 18, 0.16);
-      opacity: 0.34;
+        inset 0 1px 0 rgba(255,255,255,0.16),
+        0 22px 52px rgba(5, 12, 18, 0.22),
+        0 0 40px rgba(125, 211, 252, 0.06);
       pointer-events: none;
       z-index: 0;
     }
 
     .home-hero-mark img {
-      width: 70%;
-      height: 70%;
+      width: 72%;
+      height: 72%;
       object-fit: contain;
       display: block;
-      filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.20));
+      opacity: 0.74;
+      filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.24));
     }
 
     .home-hero-card > * {
@@ -320,18 +321,18 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     .home-hero-card h1 {
       margin: 0;
-      max-width: 12ch;
-      line-height: 1.08;
+      max-width: 11.5ch;
+      line-height: 1.05;
       letter-spacing: -0.026em;
-      font-size: clamp(1.95rem, 3.8vw, 3.35rem);
+      font-size: clamp(1.74rem, 3.15vw, 2.95rem);
       text-wrap: balance;
     }
 
     .home-lead {
       margin: 16px 0 0;
-      max-width: 52ch;
-      font-size: 1.02rem;
-      line-height: 1.72;
+      max-width: 50ch;
+      font-size: 1rem;
+      line-height: 1.7;
       color: rgba(231, 238, 247, 0.9);
     }
 
@@ -692,8 +693,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       .home-hero-mark {
         top: 18px;
         right: 18px;
-        width: 112px;
-        opacity: 0.28;
+        width: 132px;
       }
     }
 
@@ -714,16 +714,15 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       }
 
       .home-hero-mark {
-        width: 86px;
+        width: 112px;
         right: 14px;
         top: 14px;
-        border-radius: 20px;
-        opacity: 0.26;
+        border-radius: 24px;
       }
 
       .home-hero-card h1 {
         max-width: none;
-        padding-right: 88px;
+        padding-right: 116px;
       }
 
       .home-article-link--with-thumb {
