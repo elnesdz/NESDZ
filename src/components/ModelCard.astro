@@ -86,28 +86,62 @@ const editorialStatusTooltip = editorialStatus
     display: block;
     color: inherit;
     text-decoration: none;
+    border: 1px solid rgba(182, 222, 255, 0.09);
+    border-radius: 24px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.012) 24%),
+      linear-gradient(180deg, rgba(8,18,36,.92), rgba(5,12,24,.96));
+    box-shadow: 0 22px 60px rgba(0,0,0,.26);
+    overflow: hidden;
+    transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+
+  .item:hover,
+  .item:focus-within {
+    border-color: rgba(127,220,255,.20);
+    box-shadow: 0 0 0 1px rgba(127,220,255,.08), 0 30px 72px rgba(0,0,0,.34);
+    transform: translateY(-2px);
   }
 
   .itemLink {
     position: absolute;
     inset: 0;
-    z-index: 1;
+    z-index: 2;
+    border-radius: 24px;
   }
 
   .itemContent {
     position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 16px;
+    padding: 18px;
   }
 
   .itemHead {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 12px;
+    gap: 14px;
   }
 
   .itemText {
     min-width: 0;
     flex: 1;
+  }
+
+  .itemText .t {
+    font-size: 1.2rem;
+    line-height: 1.16;
+    font-weight: 800;
+    color: #f5fbff;
+    margin-bottom: 8px;
+  }
+
+  .itemText .s {
+    font-size: 0.98rem;
+    line-height: 1.68;
+    color: rgba(231,238,245,.74);
   }
 
   .itemStatus {
@@ -117,28 +151,41 @@ const editorialStatusTooltip = editorialStatus
     flex: 0 0 auto;
   }
 
+  .itemStatus .pill {
+    background: rgba(7, 24, 49, 0.78);
+    color: #d7efff;
+    border-color: rgba(127,220,255,.16);
+    font-weight: 700;
+  }
+
   .itemMeta {
     display: flex;
-    gap: 8px;
     flex-wrap: wrap;
-    margin-top: 10px;
+    gap: 10px;
   }
 
   .tagLink {
     position: relative;
-    z-index: 2;
+    z-index: 3;
   }
 
-  @media (max-width: 720px) {
+  @media (max-width: 560px) {
+    .item {
+      border-radius: 22px;
+    }
+
+    .itemLink {
+      border-radius: 22px;
+    }
+
+    .itemContent {
+      padding: 16px;
+      gap: 14px;
+    }
+
     .itemHead {
       flex-direction: column;
       align-items: flex-start;
-      gap: 10px;
-    }
-
-    .itemStatus {
-      justify-content: flex-start;
-      width: 100%;
     }
   }
 </style>
