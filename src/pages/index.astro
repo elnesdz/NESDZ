@@ -9,7 +9,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <section class="hero home-top-section">
     <div class="container home-top-grid">
       <article class="card home-hero-card">
-        <div class="home-hero-brandmark" aria-hidden="true">
+        <div class="home-hero-mark" aria-hidden="true">
           <img src="/logo.png" alt="" loading="eager" />
         </div>
 
@@ -318,25 +318,36 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.018));
     }
 
-    .home-hero-brandmark {
+    .home-hero-mark {
       position: absolute;
       right: 28px;
-      top: 26px;
-      width: 132px;
-      height: 132px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: clamp(88px, 12vw, 136px);
+      aspect-ratio: 1;
+      border-radius: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.05);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+      opacity: 0.2;
       pointer-events: none;
-      opacity: 0.14;
-      filter: saturate(0.92);
+      z-index: 0;
     }
 
-    .home-hero-brandmark img {
-      width: 100%;
-      height: 100%;
+    .home-hero-mark img {
+      width: 66%;
+      height: 66%;
       object-fit: contain;
       display: block;
+      filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.18));
+    }
+
+    .home-hero-card > * {
+      position: relative;
+      z-index: 1;
     }
 
     .home-kicker {
@@ -353,7 +364,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     .home-hero-card h1 {
       margin: 0;
-      max-width: 16ch;
+      max-width: 13ch;
       line-height: 1.08;
       letter-spacing: -0.026em;
       font-size: clamp(1.95rem, 3.8vw, 3.35rem);
@@ -362,7 +373,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     .home-lead {
       margin: 16px 0 0;
-      max-width: 64ch;
+      max-width: 56ch;
       font-size: 1.02rem;
       line-height: 1.72;
       color: rgba(231, 238, 247, 0.9);
@@ -486,45 +497,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     .home-article-link--with-thumb {
       display: grid;
-      grid-template-columns: 96px minmax(0, 1fr);
+      grid-template-columns: 116px minmax(0, 1fr);
       gap: 14px;
       align-items: start;
-    }
-
-    .home-article-thumb {
-      width: 96px;
-      height: 64px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(255, 255, 255, 0.03);
-      flex-shrink: 0;
-    }
-
-    .home-article-thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .home-article-thumb--logo {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px;
-      background:
-        radial-gradient(120px 80px at 50% 20%, rgba(139, 220, 255, 0.12), transparent 55%),
-        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-    }
-
-    .home-article-thumb--logo img {
-      object-fit: contain;
-      opacity: 0.92;
-    }
-
-    .home-article-copy {
-      min-width: 0;
     }
 
     .home-article-link:hover,
@@ -539,6 +514,44 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     .home-article-link:hover h3,
     .home-article-link:focus-visible h3 {
       color: #8bdcff;
+    }
+
+    .home-article-thumb {
+      width: 116px;
+      height: 68px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .home-article-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .home-article-thumb--logo {
+      padding: 12px;
+      background:
+        radial-gradient(120% 120% at 30% 10%, rgba(125, 211, 252, 0.18), transparent 44%),
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+    }
+
+    .home-article-thumb--logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .home-article-copy {
+      min-width: 0;
     }
 
     .home-article-meta {
@@ -567,9 +580,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       margin: 10px 0 0;
       color: var(--muted);
       font-size: 0.94rem;
-      line-height: 1.62;
+      line-height: 1.58;
       display: -webkit-box;
-      -webkit-line-clamp: 4;
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -750,6 +763,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       .home-top-grid {
         grid-template-columns: 1fr;
       }
+
+      .home-hero-mark {
+        right: 22px;
+        top: 26px;
+        transform: none;
+        width: 96px;
+        opacity: 0.16;
+      }
     }
 
     @media (max-width: 900px) {
@@ -769,26 +790,30 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         padding: 20px;
       }
 
-      .home-hero-brandmark {
+      .home-hero-mark {
+        width: 78px;
         right: 18px;
         top: 18px;
-        width: 92px;
-        height: 92px;
-        opacity: 0.12;
+        border-radius: 18px;
       }
 
       .home-hero-card h1 {
         max-width: none;
+        padding-right: 74px;
       }
 
       .home-article-link--with-thumb {
-        grid-template-columns: 80px minmax(0, 1fr);
-        gap: 12px;
+        grid-template-columns: 92px minmax(0, 1fr);
+        gap: 10px;
       }
 
       .home-article-thumb {
-        width: 80px;
+        width: 92px;
         height: 56px;
+      }
+
+      .home-article-thumb--logo {
+        padding: 10px;
       }
 
       .home-model-card-inner {
