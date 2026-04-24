@@ -9,6 +9,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <section class="hero home-top-section">
     <div class="container home-top-grid">
       <article class="card home-hero-card">
+        <div class="home-hero-brandmark" aria-hidden="true">
+          <img src="/logo.png" alt="" loading="eager" />
+        </div>
+
         <div class="home-kicker">Briefing vol · Journal · Annuaire ULM</div>
 
         <h1>Briefing vol, journal pilote et annuaire ULM.</h1>
@@ -48,42 +52,57 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
           <ul class="home-article-list">
             <li class="home-article-item">
-              <a class="home-article-link" href="/journal/2026-01-edito-nesdz/">
-                <div class="home-article-meta">
-                  <span class="home-article-highlight">Mis à jour</span>
-                  <time datetime="2026-02-27T00:00:00.000Z">27 févr. 2026</time>
+              <a class="home-article-link home-article-link--with-thumb" href="/journal/2026-01-edito-nesdz/">
+                <div class="home-article-thumb">
+                  <img src="/edito-esprit-ulm.png" alt="Édito du mois NESDZ" loading="lazy" />
                 </div>
-                <h3>L’Esprit ULM : Manifeste pour un ciel libre et responsable</h3>
-                <p>
-                  Pour le lancement de ce nouveau journal, nous explorons ce qui définit
-                  l’essence profonde de l’aviation ultralégère.
-                </p>
+                <div class="home-article-copy">
+                  <div class="home-article-meta">
+                    <span class="home-article-highlight">Mis à jour</span>
+                    <time datetime="2026-02-27T00:00:00.000Z">27 févr. 2026</time>
+                  </div>
+                  <h3>L’Esprit ULM : Manifeste pour un ciel libre et responsable</h3>
+                  <p>
+                    Pour le lancement de ce nouveau journal, nous explorons ce qui définit
+                    l’essence profonde de l’aviation ultralégère.
+                  </p>
+                </div>
               </a>
             </li>
 
             <li class="home-article-item">
-              <a class="home-article-link" href="/journal/2026-02-choisir-ulm/">
-                <div class="home-article-meta">
-                  <time datetime="2026-02-02T00:00:00.000Z">2 févr. 2026</time>
+              <a class="home-article-link home-article-link--with-thumb" href="/journal/2026-02-choisir-ulm/">
+                <div class="home-article-thumb">
+                  <img src="/articles/bienchoisirsonulm.png" alt="Choisir son ULM" loading="lazy" />
                 </div>
-                <h3>Choisir son ULM : une méthode simple (et anti-auto-mensonge)</h3>
-                <p>
-                  Avant de regarder les photos, regarde ton usage : terrain, météo,
-                  budget, maintenance et objectifs réels.
-                </p>
+                <div class="home-article-copy">
+                  <div class="home-article-meta">
+                    <time datetime="2026-02-02T00:00:00.000Z">2 févr. 2026</time>
+                  </div>
+                  <h3>Choisir son ULM : une méthode simple (et anti-auto-mensonge)</h3>
+                  <p>
+                    Avant de regarder les photos, regarde ton usage : terrain, météo,
+                    budget, maintenance et objectifs réels.
+                  </p>
+                </div>
               </a>
             </li>
 
             <li class="home-article-item">
-              <a class="home-article-link" href="/journal/2025-12-metrologie-du-vent/">
-                <div class="home-article-meta">
-                  <time datetime="2025-12-14T00:00:00.000Z">14 déc. 2025</time>
+              <a class="home-article-link home-article-link--with-thumb" href="/journal/2025-12-metrologie-du-vent/">
+                <div class="home-article-thumb home-article-thumb--logo">
+                  <img src="/logo.png" alt="NESDZ" loading="lazy" />
                 </div>
-                <h3>Lire le vent comme un pilote (pas comme une appli)</h3>
-                <p>
-                  Comprendre les indices du terrain pour décider vite, calmement
-                  et sans illusion dangereuse.
-                </p>
+                <div class="home-article-copy">
+                  <div class="home-article-meta">
+                    <time datetime="2025-12-14T00:00:00.000Z">14 déc. 2025</time>
+                  </div>
+                  <h3>Lire le vent comme un pilote (pas comme une appli)</h3>
+                  <p>
+                    Comprendre les indices du terrain pour décider vite, calmement
+                    et sans illusion dangereuse.
+                  </p>
+                </div>
               </a>
             </li>
           </ul>
@@ -290,11 +309,34 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
 
     .home-hero-card {
+      position: relative;
+      overflow: hidden;
       padding: 24px;
       background:
         radial-gradient(1100px 560px at 0% 0%, rgba(125, 211, 252, 0.07), transparent 42%),
         radial-gradient(820px 360px at 100% 10%, rgba(167, 139, 250, 0.08), transparent 40%),
         linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.018));
+    }
+
+    .home-hero-brandmark {
+      position: absolute;
+      right: 28px;
+      top: 26px;
+      width: 132px;
+      height: 132px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      opacity: 0.14;
+      filter: saturate(0.92);
+    }
+
+    .home-hero-brandmark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
     }
 
     .home-kicker {
@@ -440,6 +482,49 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         border-color 0.18s ease,
         box-shadow 0.18s ease,
         transform 0.18s ease;
+    }
+
+    .home-article-link--with-thumb {
+      display: grid;
+      grid-template-columns: 96px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .home-article-thumb {
+      width: 96px;
+      height: 64px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.03);
+      flex-shrink: 0;
+    }
+
+    .home-article-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .home-article-thumb--logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      background:
+        radial-gradient(120px 80px at 50% 20%, rgba(139, 220, 255, 0.12), transparent 55%),
+        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    }
+
+    .home-article-thumb--logo img {
+      object-fit: contain;
+      opacity: 0.92;
+    }
+
+    .home-article-copy {
+      min-width: 0;
     }
 
     .home-article-link:hover,
@@ -684,8 +769,26 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         padding: 20px;
       }
 
+      .home-hero-brandmark {
+        right: 18px;
+        top: 18px;
+        width: 92px;
+        height: 92px;
+        opacity: 0.12;
+      }
+
       .home-hero-card h1 {
         max-width: none;
+      }
+
+      .home-article-link--with-thumb {
+        grid-template-columns: 80px minmax(0, 1fr);
+        gap: 12px;
+      }
+
+      .home-article-thumb {
+        width: 80px;
+        height: 56px;
       }
 
       .home-model-card-inner {
