@@ -111,53 +111,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     </div>
   </section>
 
-  <section class="container home-pillars-section">
-    <div class="card">
-      <div class="pad home-pillars-wrap">
-        <div class="home-section-head home-section-head--tight">
-          <div>
-            <h2>Les trois accès utiles</h2>
-            <p class="home-section-intro compact">
-              Briefing, journal et annuaire : trois entrées différentes, un même réflexe de lecture claire.
-            </p>
-          </div>
-        </div>
-
-        <div class="home-pillars-grid">
-          <article class="home-pillar-card">
-            <div class="home-pillar-label">Central</div>
-            <h3>Briefing vol</h3>
-            <p>
-              Météo terrain, terrains proches, docs officiels locaux quand ils existent
-              et accès honnête aux NOTAM officiels sur une seule page.
-            </p>
-            <a class="home-text-link" href="/outils/">Ouvrir le briefing</a>
-          </article>
-
-          <article class="home-pillar-card">
-            <div class="home-pillar-label">Pour approfondir</div>
-            <h3>Journal</h3>
-            <p>
-              Pilotage, sécurité, météo, méthode et culture de vol pour garder des marges
-              et raisonner terrain, pas seulement cliquer vite.
-            </p>
-            <a class="home-text-link" href="/journal/">Entrer dans le journal</a>
-          </article>
-
-          <article class="home-pillar-card">
-            <div class="home-pillar-label">Pour comparer</div>
-            <h3>Annuaire ULM</h3>
-            <p>
-              Fiches modèles, specs, vidéos et filtres utiles pour comparer une machine
-              en pensant usage réel, pas promesse brochure.
-            </p>
-            <a class="home-text-link" href="/modeles/">Parcourir l’annuaire</a>
-          </article>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <section class="container home-model-section">
     <div class="card">
       <div class="pad">
@@ -320,29 +273,32 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     .home-hero-mark {
       position: absolute;
-      right: 28px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: clamp(88px, 12vw, 136px);
+      top: 22px;
+      right: 22px;
+      width: clamp(112px, 13vw, 154px);
       aspect-ratio: 1;
-      border-radius: 24px;
+      border-radius: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-      border: 1px solid rgba(255,255,255,0.05);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
-      opacity: 0.2;
+      background:
+        radial-gradient(120% 120% at 30% 18%, rgba(125, 211, 252, 0.10), transparent 46%),
+        linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.12),
+        0 20px 44px rgba(5, 12, 18, 0.16);
+      opacity: 0.34;
       pointer-events: none;
       z-index: 0;
     }
 
     .home-hero-mark img {
-      width: 66%;
-      height: 66%;
+      width: 70%;
+      height: 70%;
       object-fit: contain;
       display: block;
-      filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.18));
+      filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.20));
     }
 
     .home-hero-card > * {
@@ -364,7 +320,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     .home-hero-card h1 {
       margin: 0;
-      max-width: 13ch;
+      max-width: 12ch;
       line-height: 1.08;
       letter-spacing: -0.026em;
       font-size: clamp(1.95rem, 3.8vw, 3.35rem);
@@ -373,7 +329,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     .home-lead {
       margin: 16px 0 0;
-      max-width: 56ch;
+      max-width: 52ch;
       font-size: 1.02rem;
       line-height: 1.72;
       color: rgba(231, 238, 247, 0.9);
@@ -421,7 +377,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
 
     .home-journal-card .pad,
-    .home-pillars-wrap,
     .home-themes-wrap {
       display: grid;
       gap: 14px;
@@ -587,45 +542,15 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       overflow: hidden;
     }
 
-    .home-pillars-section,
     .home-model-section,
     .home-themes-section {
       padding: 8px 0 18px;
     }
 
-    .home-pillars-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
 
-    .home-pillar-card {
-      padding: 16px;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(255, 255, 255, 0.02);
-      display: grid;
-      gap: 10px;
-    }
 
-    .home-pillar-label {
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: rgba(139, 220, 255, 0.92);
-    }
 
-    .home-pillar-card h3 {
-      margin: 0;
-    }
 
-    .home-pillar-card p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.62;
-      font-size: 0.95rem;
-    }
 
     .home-model-grid {
       margin-top: 8px;
@@ -765,16 +690,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       }
 
       .home-hero-mark {
-        right: 22px;
-        top: 26px;
-        transform: none;
-        width: 96px;
-        opacity: 0.16;
+        top: 18px;
+        right: 18px;
+        width: 112px;
+        opacity: 0.28;
       }
     }
 
     @media (max-width: 900px) {
-      .home-pillars-grid,
       .home-model-grid,
       .home-theme-groups {
         grid-template-columns: 1fr;
@@ -791,15 +714,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       }
 
       .home-hero-mark {
-        width: 78px;
-        right: 18px;
-        top: 18px;
-        border-radius: 18px;
+        width: 86px;
+        right: 14px;
+        top: 14px;
+        border-radius: 20px;
+        opacity: 0.26;
       }
 
       .home-hero-card h1 {
         max-width: none;
-        padding-right: 74px;
+        padding-right: 88px;
       }
 
       .home-article-link--with-thumb {
