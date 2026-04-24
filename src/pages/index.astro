@@ -6,231 +6,226 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   title="Accueil · NESDZ"
   description="NESDZ : briefing vol, journal utile et annuaire ULM pour préparer, comparer et voler plus juste."
 >
-  <section class="hero home-top-section">
-    <div class="container home-top-grid">
-      <article class="card home-hero-card">
-        <div class="home-kicker">Briefing vol · Journal · Annuaire ULM</div>
+  <section class="hero home-hero-section">
+    <div class="container">
+      <article class="card home-hero-card-v2">
+        <div class="home-hero-topline">Briefing vol · Journal · Annuaire ULM</div>
 
-        <h1>Préparer un vol, comparer un ULM, garder le terrain en tête.</h1>
+        <div class="home-hero-main">
+          <div class="home-hero-copy">
+            <h1>Le site pilote pour préparer, progresser et comparer juste.</h1>
 
-        <p class="home-lead">
-          NESDZ réunit un briefing vol rapide pour revenir souvent, un journal
-          utile pour voler plus fin et un annuaire clair pour comparer les machines
-          sans folklore.
-        </p>
+            <p class="home-lead-v2">
+              NESDZ réunit un briefing vol simple à ouvrir, un journal utile pour voler plus fin
+              et un annuaire clair pour comparer les machines sans folklore.
+            </p>
 
-        <div class="home-hero-actions">
-          <a class="btn home-primary-btn" href="/outils/">Ouvrir le briefing vol</a>
-        </div>
-
-        <div class="home-hero-links" aria-label="Accès secondaires NESDZ">
-          <a href="/journal/">Voir le journal</a>
-          <span aria-hidden="true">·</span>
-          <a href="/modeles/">Voir l’annuaire ULM</a>
-        </div>
-
-        <p class="home-hero-note">
-          Pour la préparation du vol, les services officiels en vigueur restent la référence.
-        </p>
-      </article>
-
-      <aside class="card home-journal-card">
-        <div class="pad">
-          <div class="home-section-head">
-            <div>
-              <h2>Journal</h2>
-              <p class="home-section-intro compact">
-                Des articles pour voler plus fin, choisir plus juste et garder des marges.
-              </p>
+            <div class="home-hero-actions-v2">
+              <a class="btn home-primary-btn-v2" href="/outils/">Ouvrir le briefing vol</a>
+              <div class="home-hero-links-v2" aria-label="Accès secondaires NESDZ">
+                <a href="/journal/">Voir le journal</a>
+                <span aria-hidden="true">·</span>
+                <a href="/modeles/">Voir l’annuaire ULM</a>
+              </div>
             </div>
-            <a class="home-text-link" href="/journal/">Tout lire</a>
+
+            <p class="home-hero-note-v2">
+              Pour la préparation du vol, les services officiels en vigueur restent la référence.
+            </p>
           </div>
 
-          <ul class="home-article-list">
-            <li class="home-article-item">
-              <a class="home-article-link" href="/journal/2026-01-edito-nesdz/">
-                <div class="home-article-meta">
-                  <span class="home-article-highlight">Mis à jour</span>
-                  <time datetime="2026-02-27T00:00:00.000Z">27 févr. 2026</time>
+          <div class="home-hero-pillars">
+            <a class="home-pillar-link" href="/outils/">
+              <span class="home-pillar-kicker">Central</span>
+              <strong>Briefing vol</strong>
+              <span>Météo terrain, terrains proches, docs officiels utiles et NOTAM officiels.</span>
+            </a>
+
+            <a class="home-pillar-link" href="/journal/">
+              <span class="home-pillar-kicker">Pour progresser</span>
+              <strong>Journal</strong>
+              <span>Pilotage, sécurité, météo et culture de vol pour raisonner terrain.</span>
+            </a>
+
+            <a class="home-pillar-link" href="/modeles/">
+              <span class="home-pillar-kicker">Pour comparer</span>
+              <strong>Annuaire ULM</strong>
+              <span>Fiches modèles, specs, vidéos et filtres utiles pour comparer sans brochure.</span>
+            </a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="container home-journal-section-v2">
+    <div class="home-journal-grid-v2">
+      <article class="card home-edito-card-v2">
+        <div class="pad">
+          <div class="home-section-head-v2">
+            <div>
+              <div class="home-kicker-v2">Édito du mois</div>
+              <h2>L’Esprit ULM : Manifeste pour un ciel libre et responsable</h2>
+            </div>
+            <a class="home-text-link-v2" href="/edito/">Tous les éditos</a>
+          </div>
+
+          <a class="home-edito-visual" href="/journal/2026-01-edito-nesdz/" aria-label="Lire l’édito du mois">
+            <img src="/articles/edito-esprit-ulm.png" alt="L’Esprit ULM : Manifeste pour un ciel libre et responsable" loading="lazy" />
+          </a>
+
+          <p class="home-section-intro-v2">
+            Un rendez-vous éditorial pour poser un cap clair : liberté, responsabilité,
+            précision, culture de vol et mémoire du terrain.
+          </p>
+
+          <div class="home-edito-actions">
+            <a class="btn home-primary-btn-v2" href="/journal/2026-01-edito-nesdz/">Lire l’édito</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="card home-journal-card-v2">
+        <div class="pad">
+          <div class="home-section-head-v2">
+            <div>
+              <h2>Journal</h2>
+              <p class="home-section-intro-v2 compact">
+                Des articles utiles pour voler plus fin, choisir plus juste et garder des marges.
+              </p>
+            </div>
+            <a class="home-text-link-v2" href="/journal/">Tout lire</a>
+          </div>
+
+          <ul class="home-article-list-v2">
+            <li class="home-article-item-v2">
+              <a class="home-article-link-v2" href="/journal/2026-02-choisir-ulm/">
+                <div class="home-article-thumb-v2">
+                  <img src="/articles/bienchoisirsonulm.png" alt="Choisir son ULM" loading="lazy" />
                 </div>
-                <h3>L’Esprit ULM : Manifeste pour un ciel libre et responsable</h3>
-                <p>
-                  Pour le lancement de ce nouveau journal, nous explorons ce qui définit
-                  l’essence profonde de l’aviation ultralégère.
-                </p>
+                <div class="home-article-copy-v2">
+                  <div class="home-article-meta-v2">
+                    <time datetime="2026-02-02T00:00:00.000Z">2 févr. 2026</time>
+                  </div>
+                  <h3>Choisir son ULM : une méthode simple (et anti-auto-mensonge)</h3>
+                  <p>
+                    Terrain, météo, budget, maintenance et objectifs réels avant les photos.
+                  </p>
+                </div>
               </a>
             </li>
 
-            <li class="home-article-item">
-              <a class="home-article-link" href="/journal/2026-02-choisir-ulm/">
-                <div class="home-article-meta">
-                  <time datetime="2026-02-02T00:00:00.000Z">2 févr. 2026</time>
+            <li class="home-article-item-v2 home-article-item-v2--compact">
+              <a class="home-article-link-v2 home-article-link-v2--compact" href="/journal/2025-12-metrologie-du-vent/">
+                <div class="home-article-copy-v2">
+                  <div class="home-article-meta-v2">
+                    <time datetime="2025-12-14T00:00:00.000Z">14 déc. 2025</time>
+                  </div>
+                  <h3>Lire le vent comme un pilote (pas comme une appli)</h3>
+                  <p>
+                    Comprendre les indices du terrain pour décider vite, calmement et sans illusion dangereuse.
+                  </p>
                 </div>
-                <h3>Choisir son ULM : une méthode simple (et anti-auto-mensonge)</h3>
-                <p>
-                  Avant de regarder les photos, regarde ton usage : terrain, météo,
-                  budget, maintenance et objectifs réels.
-                </p>
-              </a>
-            </li>
-
-            <li class="home-article-item">
-              <a class="home-article-link" href="/journal/2025-12-metrologie-du-vent/">
-                <div class="home-article-meta">
-                  <time datetime="2025-12-14T00:00:00.000Z">14 déc. 2025</time>
-                </div>
-                <h3>Lire le vent comme un pilote (pas comme une appli)</h3>
-                <p>
-                  Comprendre les indices du terrain pour décider vite, calmement
-                  et sans illusion dangereuse.
-                </p>
               </a>
             </li>
           </ul>
         </div>
-      </aside>
+      </article>
     </div>
   </section>
 
-  <section class="container home-pillars-section">
-    <div class="card">
-      <div class="pad home-pillars-wrap">
-        <div class="home-section-head home-section-head--tight">
-          <div>
-            <h2>Les trois accès utiles</h2>
-            <p class="home-section-intro compact">
-              Briefing, journal et annuaire : trois entrées différentes, un même réflexe de lecture claire.
-            </p>
-          </div>
-        </div>
-
-        <div class="home-pillars-grid">
-          <article class="home-pillar-card">
-            <div class="home-pillar-label">Central</div>
-            <h3>Briefing vol</h3>
-            <p>
-              Météo terrain, terrains proches, docs officiels locaux quand ils existent
-              et accès honnête aux NOTAM officiels sur une seule page.
-            </p>
-            <a class="home-text-link" href="/outils/">Ouvrir le briefing</a>
-          </article>
-
-          <article class="home-pillar-card">
-            <div class="home-pillar-label">Pour approfondir</div>
-            <h3>Journal</h3>
-            <p>
-              Pilotage, sécurité, météo, méthode et culture de vol pour garder des marges
-              et raisonner terrain, pas seulement cliquer vite.
-            </p>
-            <a class="home-text-link" href="/journal/">Entrer dans le journal</a>
-          </article>
-
-          <article class="home-pillar-card">
-            <div class="home-pillar-label">Pour comparer</div>
-            <h3>Annuaire ULM</h3>
-            <p>
-              Fiches modèles, specs, vidéos et filtres utiles pour comparer une machine
-              en pensant usage réel, pas promesse brochure.
-            </p>
-            <a class="home-text-link" href="/modeles/">Parcourir l’annuaire</a>
-          </article>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="container home-model-section">
+  <section class="container home-model-section-v2">
     <div class="card">
       <div class="pad">
-        <div class="home-section-head">
+        <div class="home-section-head-v2">
           <div>
             <h2>Modèles en vedette</h2>
-            <p class="home-section-intro compact">
-              Quelques fiches utiles pour comparer des machines déjà enrichies sans reprendre la recherche à zéro.
+            <p class="home-section-intro-v2 compact">
+              Quelques fiches déjà enrichies pour comparer vite des machines utiles.
             </p>
           </div>
-          <a class="home-text-link" href="/modeles/">Voir l’annuaire ULM</a>
+          <a class="home-text-link-v2" href="/modeles/">Voir l’annuaire ULM</a>
         </div>
 
-        <div class="home-model-grid">
-          <article class="home-model-card">
-            <a class="home-model-overlay" href="/modeles/aeroprakt-a-22-foxbat/" aria-label="Ouvrir la fiche modèle : Aeroprakt A-22 (Foxbat)"></a>
-            <div class="home-model-card-inner">
-              <div class="home-model-media">
+        <div class="home-model-grid-v2">
+          <article class="home-model-card-v2">
+            <a class="home-model-overlay-v2" href="/modeles/aeroprakt-a-22-foxbat/" aria-label="Ouvrir la fiche modèle : Aeroprakt A-22 (Foxbat)"></a>
+            <div class="home-model-card-inner-v2">
+              <div class="home-model-media-v2">
                 <img src="/images/ulm/AeroPrakt-A22-Foxbat.jpg" alt="Aeroprakt A-22 Foxbat" loading="lazy" />
               </div>
-              <div class="home-model-copy">
-                <div class="home-model-topline">
+              <div class="home-model-copy-v2">
+                <div class="home-model-topline-v2">
                   <h3>Aeroprakt A-22 (Foxbat)</h3>
                   <span class="pill">Enrichie</span>
                 </div>
                 <p>Aeroprakt · Multiaxe · 2 places · Rotax 912 UL / 912 ULS · Croisière ~150 km/h</p>
-                <div class="home-model-tags">
-                  <a class="pill home-model-tag" href="/tags/stol/">stol</a>
-                  <a class="pill home-model-tag" href="/tags/ecole/">ecole</a>
-                  <a class="pill home-model-tag" href="/tags/aluminium/">aluminium</a>
+                <div class="home-model-tags-v2">
+                  <a class="pill home-model-tag-v2" href="/tags/stol/">stol</a>
+                  <a class="pill home-model-tag-v2" href="/tags/ecole/">école</a>
+                  <a class="pill home-model-tag-v2" href="/tags/aluminium/">aluminium</a>
                 </div>
               </div>
             </div>
           </article>
 
-          <article class="home-model-card">
-            <a class="home-model-overlay" href="/modeles/aeroprakt-a-32-vixxen/" aria-label="Ouvrir la fiche modèle : Aeroprakt A-32 Vixxen"></a>
-            <div class="home-model-card-inner">
-              <div class="home-model-media">
+          <article class="home-model-card-v2">
+            <a class="home-model-overlay-v2" href="/modeles/aeroprakt-a-32-vixxen/" aria-label="Ouvrir la fiche modèle : Aeroprakt A-32 Vixxen"></a>
+            <div class="home-model-card-inner-v2">
+              <div class="home-model-media-v2">
                 <img src="/images/ulm/AeroPrakt-A32-Vixxen.jpg" alt="Aeroprakt A-32 Vixxen" loading="lazy" />
               </div>
-              <div class="home-model-copy">
-                <div class="home-model-topline">
+              <div class="home-model-copy-v2">
+                <div class="home-model-topline-v2">
                   <h3>Aeroprakt A-32 Vixxen</h3>
                   <span class="pill">Enrichie</span>
                 </div>
                 <p>Aeroprakt · Multiaxe · 2 places · Rotax 912 ULS · Croisière ~175 km/h</p>
-                <div class="home-model-tags">
-                  <a class="pill home-model-tag" href="/tags/voyage/">voyage</a>
-                  <a class="pill home-model-tag" href="/tags/rapide/">rapide</a>
-                  <a class="pill home-model-tag" href="/tags/aluminium/">aluminium</a>
+                <div class="home-model-tags-v2">
+                  <a class="pill home-model-tag-v2" href="/tags/voyage/">voyage</a>
+                  <a class="pill home-model-tag-v2" href="/tags/rapide/">rapide</a>
+                  <a class="pill home-model-tag-v2" href="/tags/aluminium/">aluminium</a>
                 </div>
               </div>
             </div>
           </article>
 
-          <article class="home-model-card">
-            <a class="home-model-overlay" href="/modeles/aerospool-wt9-dynamic/" aria-label="Ouvrir la fiche modèle : Aerospool WT9 Dynamic"></a>
-            <div class="home-model-card-inner">
-              <div class="home-model-media">
+          <article class="home-model-card-v2">
+            <a class="home-model-overlay-v2" href="/modeles/aerospool-wt9-dynamic/" aria-label="Ouvrir la fiche modèle : Aerospool WT9 Dynamic"></a>
+            <div class="home-model-card-inner-v2">
+              <div class="home-model-media-v2">
                 <img src="/images/ulm/aerospool-wt9.jpg" alt="Aerospool WT9 Dynamic" loading="lazy" />
               </div>
-              <div class="home-model-copy">
-                <div class="home-model-topline">
+              <div class="home-model-copy-v2">
+                <div class="home-model-topline-v2">
                   <h3>Aerospool WT9 Dynamic</h3>
                   <span class="pill">Enrichie</span>
                 </div>
                 <p>Aerospool · Multiaxe · 2 places · Rotax 912 ULS</p>
-                <div class="home-model-tags">
-                  <a class="pill home-model-tag" href="/tags/voyage/">voyage</a>
-                  <a class="pill home-model-tag" href="/tags/rapide/">rapide</a>
-                  <a class="pill home-model-tag" href="/tags/composite/">composite</a>
+                <div class="home-model-tags-v2">
+                  <a class="pill home-model-tag-v2" href="/tags/voyage/">voyage</a>
+                  <a class="pill home-model-tag-v2" href="/tags/rapide/">rapide</a>
+                  <a class="pill home-model-tag-v2" href="/tags/composite/">composite</a>
                 </div>
               </div>
             </div>
           </article>
 
-          <article class="home-model-card">
-            <a class="home-model-overlay" href="/modeles/autogyro-cavalon/" aria-label="Ouvrir la fiche modèle : AutoGyro Cavalon"></a>
-            <div class="home-model-card-inner">
-              <div class="home-model-media">
+          <article class="home-model-card-v2">
+            <a class="home-model-overlay-v2" href="/modeles/autogyro-cavalon/" aria-label="Ouvrir la fiche modèle : AutoGyro Cavalon"></a>
+            <div class="home-model-card-inner-v2">
+              <div class="home-model-media-v2">
                 <img src="/images/ulm/AutoGyroCavalon.jpg" alt="AutoGyro Cavalon" loading="lazy" />
               </div>
-              <div class="home-model-copy">
-                <div class="home-model-topline">
+              <div class="home-model-copy-v2">
+                <div class="home-model-topline-v2">
                   <h3>AutoGyro Cavalon</h3>
                   <span class="pill">Enrichie</span>
                 </div>
                 <p>AutoGyro GmbH · Autogire · 2 places · Rotax 915 iS</p>
-                <div class="home-model-tags">
-                  <a class="pill home-model-tag" href="/tags/voyage/">voyage</a>
-                  <a class="pill home-model-tag" href="/tags/composite/">composite</a>
+                <div class="home-model-tags-v2">
+                  <a class="pill home-model-tag-v2" href="/tags/voyage/">voyage</a>
+                  <a class="pill home-model-tag-v2" href="/tags/composite/">composite</a>
                 </div>
               </div>
             </div>
@@ -240,32 +235,32 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     </div>
   </section>
 
-  <section class="container home-themes-section">
+  <section class="container home-tags-section-v2">
     <div class="card">
-      <div class="pad home-themes-wrap">
-        <div class="home-section-head home-section-head--tight">
+      <div class="pad home-tags-wrap-v2">
+        <div class="home-section-head-v2 home-section-head-v2--compact">
           <div>
             <h2>Explorer par thèmes</h2>
-            <p class="home-section-intro compact">
-              Une entrée courte vers les sujets du journal et les profils de machines de l’annuaire.
+            <p class="home-section-intro-v2 compact">
+              Une entrée courte vers les sujets du journal et les profils utiles de l’annuaire.
             </p>
           </div>
-          <a class="home-text-link" href="/tags/">Tous les tags</a>
+          <a class="home-text-link-v2" href="/tags/">Tous les tags</a>
         </div>
 
-        <div class="home-theme-groups">
-          <div class="home-theme-group">
+        <div class="home-tag-lines-v2">
+          <div class="home-tag-line-v2">
             <strong>Journal</strong>
-            <div class="home-theme-pills">
+            <div class="home-theme-pills-v2">
               <a class="pill" href="/tags/pilotage/">pilotage</a>
               <a class="pill" href="/tags/meteo/">météo</a>
               <a class="pill" href="/tags/securite/">sécurité</a>
             </div>
           </div>
 
-          <div class="home-theme-group">
+          <div class="home-tag-line-v2">
             <strong>Modèles ULM</strong>
-            <div class="home-theme-pills">
+            <div class="home-theme-pills-v2">
               <a class="pill" href="/tags/voyage/">voyage</a>
               <a class="pill" href="/tags/ecole/">école</a>
               <a class="pill" href="/tags/polyvalent/">polyvalent</a>
@@ -278,102 +273,155 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   </section>
 
   <style is:global>
-    .home-top-section {
+    .home-hero-section {
       padding: 34px 0 18px;
     }
 
-    .home-top-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.9fr);
-      gap: 18px;
-      align-items: start;
-    }
-
-    .home-hero-card {
-      padding: 24px;
+    .home-hero-card-v2 {
+      padding: 26px;
       background:
         radial-gradient(1100px 560px at 0% 0%, rgba(125, 211, 252, 0.07), transparent 42%),
         radial-gradient(820px 360px at 100% 10%, rgba(167, 139, 250, 0.08), transparent 40%),
         linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.018));
     }
 
-    .home-kicker {
+    .home-hero-topline,
+    .home-kicker-v2,
+    .home-pillar-kicker {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 14px;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: rgba(139, 220, 255, 0.92);
     }
 
-    .home-hero-card h1 {
-      margin: 0;
-      max-width: 14ch;
-      line-height: 1.02;
-      letter-spacing: -0.028em;
-      font-size: clamp(2.2rem, 5vw, 4rem);
+    .home-hero-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.95fr);
+      gap: 18px;
+      align-items: start;
+      margin-top: 14px;
     }
 
-    .home-lead {
+    .home-hero-copy h1 {
+      margin: 0;
+      max-width: 14ch;
+      line-height: 1.06;
+      letter-spacing: -0.028em;
+      font-size: clamp(2rem, 3.8vw, 3.25rem);
+    }
+
+    .home-lead-v2 {
       margin: 16px 0 0;
-      max-width: 62ch;
-      font-size: 1.06rem;
-      line-height: 1.72;
+      max-width: 60ch;
+      font-size: 1.04rem;
+      line-height: 1.7;
       color: rgba(231, 238, 247, 0.9);
     }
 
-    .home-hero-actions {
+    .home-hero-actions-v2 {
       display: flex;
-      gap: 12px;
+      gap: 14px;
       flex-wrap: wrap;
+      align-items: center;
       margin-top: 18px;
     }
 
-    .home-primary-btn {
+    .home-primary-btn-v2 {
       background: linear-gradient(180deg, rgba(125,211,252,.24), rgba(125,211,252,.11));
       border-color: rgba(156,223,255,.44);
       box-shadow: 0 10px 24px rgba(24, 74, 102, 0.18);
     }
 
-    .home-hero-links {
+    .home-hero-links-v2 {
       display: flex;
       align-items: center;
       gap: 10px;
       flex-wrap: wrap;
-      margin-top: 14px;
       font-size: 0.96rem;
       color: var(--muted);
     }
 
-    .home-hero-links a {
+    .home-hero-links-v2 a {
       color: rgba(220, 236, 247, 0.9);
       text-decoration: none;
     }
 
-    .home-hero-links a:hover {
+    .home-hero-links-v2 a:hover,
+    .home-text-link-v2:hover {
       color: #8bdcff;
       text-decoration: none;
     }
 
-    .home-hero-note {
+    .home-hero-note-v2 {
       margin: 14px 0 0;
-      max-width: 56ch;
-      font-size: 0.92rem;
+      max-width: 54ch;
+      font-size: 0.91rem;
       line-height: 1.58;
       color: rgba(167, 182, 201, 0.95);
     }
 
-    .home-journal-card .pad,
-    .home-pillars-wrap,
-    .home-themes-wrap {
+    .home-hero-pillars {
       display: grid;
-      gap: 14px;
+      gap: 12px;
     }
 
-    .home-section-head {
+    .home-pillar-link {
+      display: grid;
+      gap: 8px;
+      padding: 15px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.02);
+      color: inherit;
+      text-decoration: none;
+      transition:
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        transform 0.18s ease;
+    }
+
+    .home-pillar-link:hover,
+    .home-pillar-link:focus-visible,
+    .home-article-link-v2:hover,
+    .home-article-link-v2:focus-visible,
+    .home-model-card-v2:hover,
+    .home-model-card-v2:focus-within {
+      background: rgba(139, 220, 255, 0.05);
+      border-color: rgba(139, 220, 255, 0.16);
+      box-shadow: inset 0 0 0 1px rgba(139, 220, 255, 0.10);
+      transform: translateY(-1px);
+      text-decoration: none;
+    }
+
+    .home-pillar-link strong {
+      font-size: 1.04rem;
+    }
+
+    .home-pillar-link span:last-child {
+      color: var(--muted);
+      line-height: 1.58;
+      font-size: 0.94rem;
+    }
+
+    .home-journal-section-v2,
+    .home-model-section-v2,
+    .home-tags-section-v2 {
+      padding: 8px 0 18px;
+    }
+
+    .home-journal-grid-v2 {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .home-section-head-v2 {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
@@ -381,56 +429,75 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       flex-wrap: wrap;
     }
 
-    .home-section-head--tight {
-      margin-bottom: 2px;
+    .home-section-head-v2--compact {
+      align-items: center;
     }
 
-    .home-section-head h2 {
+    .home-section-head-v2 h2 {
       margin: 0;
     }
 
-    .home-section-intro {
+    .home-section-intro-v2 {
       margin: 8px 0 0;
       color: var(--muted);
       line-height: 1.64;
-      max-width: 70ch;
+      max-width: 62ch;
     }
 
-    .home-section-intro.compact {
+    .home-section-intro-v2.compact {
       margin-top: 6px;
-      max-width: 54ch;
+      max-width: 50ch;
     }
 
-    .home-text-link {
+    .home-text-link-v2 {
       color: rgba(220, 236, 247, 0.88);
       text-decoration: none;
       font-size: 0.94rem;
       white-space: nowrap;
     }
 
-    .home-text-link:hover {
-      color: #8bdcff;
+    .home-edito-visual {
+      display: block;
+      margin-top: 14px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.02);
       text-decoration: none;
     }
 
-    .home-article-list {
+    .home-edito-visual img {
+      width: 100%;
+      display: block;
+      object-fit: cover;
+      aspect-ratio: 16 / 8.4;
+    }
+
+    .home-edito-actions {
+      margin-top: 16px;
+    }
+
+    .home-article-list-v2 {
       list-style: none;
       padding: 0;
-      margin: 4px 0 0;
+      margin: 14px 0 0;
       display: grid;
       gap: 12px;
     }
 
-    .home-article-item {
+    .home-article-item-v2 {
       margin: 0;
       padding: 0;
     }
 
-    .home-article-link {
-      display: block;
+    .home-article-link-v2 {
+      display: grid;
+      grid-template-columns: 112px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
       color: inherit;
       text-decoration: none;
-      padding: 14px 14px 15px;
+      padding: 12px;
       border: 1px solid rgba(255, 255, 255, 0.06);
       border-radius: 14px;
       background: rgba(255, 255, 255, 0.02);
@@ -441,101 +508,71 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         transform 0.18s ease;
     }
 
-    .home-article-link:hover,
-    .home-article-link:focus-visible {
-      background: rgba(139, 220, 255, 0.05);
-      border-color: rgba(139, 220, 255, 0.16);
-      box-shadow: inset 0 0 0 1px rgba(139, 220, 255, 0.10);
-      transform: translateY(-1px);
-      text-decoration: none;
+    .home-article-link-v2--compact {
+      grid-template-columns: 1fr;
     }
 
-    .home-article-link:hover h3,
-    .home-article-link:focus-visible h3 {
-      color: #8bdcff;
+    .home-article-thumb-v2 {
+      width: 112px;
+      height: 76px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.05);
     }
 
-    .home-article-meta {
+    .home-article-thumb-v2 img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .home-article-copy-v2 {
+      min-width: 0;
+    }
+
+    .home-article-meta-v2 {
       display: flex;
       gap: 8px;
       align-items: center;
       flex-wrap: wrap;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       font-size: 0.78rem;
       color: var(--muted);
     }
 
-    .home-article-highlight {
-      color: #67d9ff;
-      font-weight: 700;
-    }
-
-    .home-article-link h3 {
+    .home-article-copy-v2 h3 {
       margin: 0;
       font-size: 1rem;
-      line-height: 1.4;
+      line-height: 1.36;
       transition: color 0.2s ease;
     }
 
-    .home-article-link p {
-      margin: 10px 0 0;
+    .home-article-link-v2:hover h3,
+    .home-article-link-v2:focus-visible h3 {
+      color: #8bdcff;
+    }
+
+    .home-article-copy-v2 p {
+      margin: 8px 0 0;
       color: var(--muted);
-      font-size: 0.94rem;
-      line-height: 1.62;
+      font-size: 0.93rem;
+      line-height: 1.56;
       display: -webkit-box;
-      -webkit-line-clamp: 4;
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
 
-    .home-pillars-section,
-    .home-model-section,
-    .home-themes-section {
-      padding: 8px 0 18px;
-    }
-
-    .home-pillars-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .home-pillar-card {
-      padding: 16px;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(255, 255, 255, 0.02);
-      display: grid;
-      gap: 10px;
-    }
-
-    .home-pillar-label {
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: rgba(139, 220, 255, 0.92);
-    }
-
-    .home-pillar-card h3 {
-      margin: 0;
-    }
-
-    .home-pillar-card p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.62;
-      font-size: 0.95rem;
-    }
-
-    .home-model-grid {
-      margin-top: 6px;
+    .home-model-grid-v2 {
+      margin-top: 8px;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 14px;
     }
 
-    .home-model-card {
+    .home-model-card-v2 {
       position: relative;
       border: 1px solid rgba(255, 255, 255, 0.06);
       border-radius: 16px;
@@ -547,22 +584,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         transform 0.18s ease;
     }
 
-    .home-model-card:hover,
-    .home-model-card:focus-within {
-      background: rgba(139, 220, 255, 0.05);
-      border-color: rgba(139, 220, 255, 0.16);
-      box-shadow: inset 0 0 0 1px rgba(139, 220, 255, 0.10);
-      transform: translateY(-1px);
-    }
-
-    .home-model-overlay {
+    .home-model-overlay-v2 {
       position: absolute;
       inset: 0;
       z-index: 2;
       border-radius: 16px;
     }
 
-    .home-model-card-inner {
+    .home-model-card-inner-v2 {
       position: relative;
       z-index: 1;
       display: grid;
@@ -572,7 +601,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       align-items: start;
     }
 
-    .home-model-media {
+    .home-model-media-v2 {
       width: 96px;
       height: 68px;
       border-radius: 12px;
@@ -581,114 +610,128 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    .home-model-media img {
+    .home-model-media-v2 img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
     }
 
-    .home-model-copy {
+    .home-model-copy-v2 {
       min-width: 0;
     }
 
-    .home-model-topline {
+    .home-model-topline-v2 {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       gap: 10px;
     }
 
-    .home-model-topline h3 {
+    .home-model-topline-v2 h3 {
       margin: 0;
-      font-size: 1.03rem;
-      line-height: 1.35;
+      font-size: 1.02rem;
+      line-height: 1.34;
     }
 
-    .home-model-copy p {
+    .home-model-copy-v2 p {
       margin: 6px 0 0;
       color: var(--muted);
       line-height: 1.56;
       font-size: 0.94rem;
     }
 
-    .home-model-tags {
+    .home-model-tags-v2,
+    .home-theme-pills-v2 {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
       margin-top: 10px;
     }
 
-    .home-model-tag {
+    .home-model-tag-v2 {
       position: relative;
       z-index: 3;
       text-decoration: none;
     }
 
-    .home-theme-groups {
+    .home-tags-wrap-v2 {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 14px;
-      margin-top: 2px;
     }
 
-    .home-theme-group {
+    .home-tag-lines-v2 {
+      display: grid;
+      gap: 12px;
+    }
+
+    .home-tag-line-v2 {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
       padding: 14px 16px;
       border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.02);
     }
 
-    .home-theme-group strong {
-      display: block;
-      margin-bottom: 10px;
+    .home-tag-line-v2 strong {
       font-size: 0.98rem;
-    }
-
-    .home-theme-pills {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+      white-space: nowrap;
     }
 
     @media (max-width: 1100px) {
-      .home-top-grid {
+      .home-hero-main,
+      .home-journal-grid-v2 {
         grid-template-columns: 1fr;
+      }
+
+      .home-hero-copy h1 {
+        max-width: 16ch;
       }
     }
 
     @media (max-width: 900px) {
-      .home-pillars-grid,
-      .home-model-grid,
-      .home-theme-groups {
+      .home-model-grid-v2 {
         grid-template-columns: 1fr;
       }
     }
 
     @media (max-width: 720px) {
-      .home-top-section {
+      .home-hero-section {
         padding-top: 28px;
       }
 
-      .home-hero-card {
+      .home-hero-card-v2 {
         padding: 20px;
       }
 
-      .home-hero-card h1 {
+      .home-hero-copy h1 {
         max-width: none;
       }
 
-      .home-model-card-inner {
+      .home-article-link-v2 {
+        grid-template-columns: 88px minmax(0, 1fr);
+      }
+
+      .home-article-thumb-v2 {
+        width: 88px;
+        height: 64px;
+      }
+
+      .home-model-card-inner-v2 {
         grid-template-columns: 80px minmax(0, 1fr);
         gap: 12px;
       }
 
-      .home-model-media {
+      .home-model-media-v2 {
         width: 80px;
         height: 60px;
       }
 
-      .home-model-topline {
+      .home-model-topline-v2 {
         flex-direction: column;
         align-items: flex-start;
       }
