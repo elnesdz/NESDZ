@@ -7034,5 +7034,242 @@ function renderUlmNearbyItem(item) {
       }
     }
 
-  </style>
+  
+
+    /* premium visual pass inspired by provided references — visual only */
+    .nesdz-premium-ui .tool-page {
+      padding-top: 28px !important;
+      padding-bottom: 24px !important;
+    }
+
+    .nesdz-premium-ui .tool-page > .card {
+      overflow: hidden;
+      border-radius: 32px;
+      border-color: rgba(181,221,255,.09);
+      box-shadow: 0 30px 74px rgba(0,0,0,.30);
+      background:
+        linear-gradient(180deg, rgba(4,9,23,.34), rgba(4,9,23,.94)),
+        linear-gradient(90deg, rgba(4,9,23,.94) 12%, rgba(4,9,23,.66) 54%, rgba(4,9,23,.94) 100%),
+        url('/images/ulm/aerospool-wt9.jpg') center top / cover no-repeat;
+    }
+
+    .nesdz-premium-ui .tool-page > .card > .pad {
+      max-width: 1180px;
+      padding: 28px;
+      position: relative;
+    }
+
+    .nesdz-premium-ui .tool-page > .card > .pad::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(160,200,240,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(160,200,240,.04) 1px, transparent 1px);
+      background-size: 56px 56px;
+      opacity: .36;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,.85), rgba(0,0,0,.15));
+    }
+
+    .nesdz-premium-ui .tool-page > .card > .pad > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .nesdz-premium-ui .tool-page h1,
+    .nesdz-premium-ui .tool-page h2 {
+      text-shadow: 0 6px 22px rgba(0,0,0,.18);
+    }
+
+    .nesdz-premium-ui .tool-page h1 {
+      font-size: clamp(2.75rem, 6vw, 4.8rem);
+      margin-bottom: 18px;
+      max-width: 10ch;
+    }
+
+    .nesdz-premium-ui .tool-page h2 {
+      font-size: clamp(1.75rem, 2.6vw, 2.4rem);
+      margin-bottom: 14px;
+    }
+
+    .nesdz-premium-ui .tool-block,
+    .nesdz-premium-ui .decoded-card,
+    .nesdz-premium-ui .tool-search-suggestions,
+    .nesdz-premium-ui .tool-search-suggestion,
+    .nesdz-premium-ui .airport-nearby-card,
+    .nesdz-premium-ui .airport-doc-card,
+    .nesdz-premium-ui .tool-empty,
+    .nesdz-premium-ui details.tool-accordion,
+    .nesdz-premium-ui .taf-meta-card,
+    .nesdz-premium-ui .taf-disclosure,
+    .nesdz-premium-ui .taf-timeline-item {
+      border-radius: 24px;
+      border-color: rgba(181,221,255,.09) !important;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.014) 22%), rgba(7,17,34,.88) !important;
+      box-shadow: 0 20px 48px rgba(0,0,0,.20);
+    }
+
+    .nesdz-premium-ui .tool-entry-block,
+    .nesdz-premium-ui .tool-block {
+      padding: 22px;
+    }
+
+    .nesdz-premium-ui .tool-entry-help,
+    .nesdz-premium-ui .decoded-note,
+    .nesdz-premium-ui .tool-page p,
+    .nesdz-premium-ui .decoded-micro-note {
+      color: rgba(231,238,245,.74);
+    }
+
+    .nesdz-premium-ui .tool-entry-label,
+    .nesdz-premium-ui .decoded-label,
+    .nesdz-premium-ui .taf-meta-label,
+    .nesdz-premium-ui .taf-disclosure-title {
+      color: #7fdcff;
+      letter-spacing: .05em;
+    }
+
+    .nesdz-premium-ui .tool-page input,
+    .nesdz-premium-ui .tool-page select,
+    .nesdz-premium-ui .tool-page textarea {
+      min-height: 62px;
+      border-radius: 22px;
+      border: 1.5px solid rgba(232,242,255,.20);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015)), rgba(8,20,40,.90) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    .nesdz-premium-ui .tool-action-btn,
+    .nesdz-premium-ui .airport-doc-btn,
+    .nesdz-premium-ui .tool-block button,
+    .nesdz-premium-ui .tool-page button {
+      min-height: 58px;
+      border-radius: 20px;
+      font-weight: 800;
+      letter-spacing: .01em;
+    }
+
+    .nesdz-premium-ui .tool-action-btn--primary,
+    .nesdz-premium-ui .airport-doc-btn,
+    .nesdz-premium-ui .tool-page button.tool-action-btn--primary {
+      background: linear-gradient(180deg, rgba(149,222,255,.94) 0%, rgba(52,177,237,.92) 100%) !important;
+      border: 1px solid rgba(245,251,255,.88) !important;
+      color: #fff !important;
+      box-shadow: 0 18px 42px rgba(12,86,130,.28), 0 0 0 1px rgba(72,194,255,.14);
+    }
+
+    .nesdz-premium-ui .tool-action-btn--secondary,
+    .nesdz-premium-ui .tool-page button.tool-action-btn--secondary {
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)), rgba(8,21,43,.82) !important;
+      border: 1px solid rgba(220,244,255,.16) !important;
+      color: var(--text) !important;
+    }
+
+    .nesdz-premium-ui .tool-page button:hover,
+    .nesdz-premium-ui .tool-page button:focus-visible,
+    .nesdz-premium-ui .tool-action-btn:hover,
+    .nesdz-premium-ui .airport-doc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 0 6px rgba(33,183,255,.12), 0 18px 42px rgba(12,86,130,.24);
+    }
+
+    .nesdz-premium-ui .decoded-grid--summary {
+      gap: 14px;
+    }
+
+    .nesdz-premium-ui .decoded-card {
+      padding: 18px 18px 16px;
+      min-height: 132px;
+    }
+
+    .nesdz-premium-ui .decoded-card strong {
+      font-size: 1.18rem;
+      line-height: 1.24;
+      color: #f5fbff;
+    }
+
+    .nesdz-premium-ui .decoded-card-status strong,
+    .nesdz-premium-ui .decoded-card-terrain strong {
+      font-size: 1.34rem;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-meta-grid {
+      gap: 12px;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-disclosure > summary {
+      padding: 15px 16px;
+      background: linear-gradient(180deg, rgba(130,197,235,.18), rgba(130,197,235,.05));
+    }
+
+    .nesdz-premium-ui .tool-page .taf-disclosure-count {
+      background: rgba(7, 23, 46, 0.76);
+      color: #dff4ff;
+      border-color: rgba(127,220,255,.16);
+    }
+
+    .nesdz-premium-ui .tool-page .taf-disclosure-content {
+      padding: 0 16px 16px;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-timeline {
+      gap: 12px;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-timeline-item {
+      padding: 14px 14px;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-timeline-title {
+      font-size: 1rem;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-bullet-list {
+      gap: 10px;
+      line-height: 1.7;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-head strong {
+      font-size: 1.32rem;
+      color: #f5fbff;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-meta-card strong {
+      font-size: 1rem;
+    }
+
+    .nesdz-premium-ui .tool-page .decoded-note--micro,
+    .nesdz-premium-ui .tool-page .taf-decoder-meta {
+      font-size: .94rem;
+    }
+
+    @media (max-width: 720px) {
+      .nesdz-premium-ui .tool-page {
+        padding-top: 18px !important;
+      }
+
+      .nesdz-premium-ui .tool-page > .card {
+        border-radius: 26px;
+      }
+
+      .nesdz-premium-ui .tool-page > .card > .pad {
+        padding: 20px;
+      }
+
+      .nesdz-premium-ui .tool-page h1 {
+        max-width: none;
+        font-size: clamp(2.35rem, 12vw, 4.2rem);
+      }
+
+      .nesdz-premium-ui .tool-entry-block,
+      .nesdz-premium-ui .tool-block {
+        padding: 18px;
+      }
+
+      .nesdz-premium-ui .decoded-card {
+        min-height: 116px;
+      }
+    }
+</style>
 </BaseLayout>
