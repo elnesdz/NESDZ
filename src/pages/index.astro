@@ -272,34 +272,33 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
 
     .home-hero-mark {
-      position: absolute;
-      top: 24px;
-      right: 24px;
-      width: clamp(148px, 16vw, 188px);
+      width: clamp(88px, 8vw, 108px);
       aspect-ratio: 1;
-      border-radius: 32px;
+      margin: 2px 0 18px;
+      border-radius: 26px;
       display: flex;
       align-items: center;
       justify-content: center;
       background:
-        radial-gradient(120% 120% at 30% 18%, rgba(125, 211, 252, 0.18), transparent 46%),
-        linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.05));
-      border: 1px solid rgba(255,255,255,0.12);
+        radial-gradient(120% 120% at 30% 18%, rgba(125, 211, 252, 0.16), transparent 46%),
+        linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+      border: 1px solid rgba(255,255,255,0.11);
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.16),
-        0 22px 52px rgba(5, 12, 18, 0.22),
-        0 0 40px rgba(125, 211, 252, 0.06);
+        inset 0 1px 0 rgba(255,255,255,0.15),
+        0 18px 40px rgba(5, 12, 18, 0.18),
+        0 0 28px rgba(125, 211, 252, 0.05);
       pointer-events: none;
-      z-index: 0;
+      position: relative;
+      z-index: 1;
     }
 
     .home-hero-mark img {
-      width: 72%;
-      height: 72%;
+      width: 70%;
+      height: 70%;
       object-fit: contain;
       display: block;
-      opacity: 0.74;
-      filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.24));
+      opacity: 0.8;
+      filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.22));
     }
 
     .home-hero-card > * {
@@ -691,9 +690,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       }
 
       .home-hero-mark {
-        top: 18px;
-        right: 18px;
-        width: 132px;
+        width: 96px;
+        margin-bottom: 16px;
       }
     }
 
@@ -714,29 +712,90 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       }
 
       .home-hero-mark {
-        width: 112px;
-        right: 14px;
-        top: 14px;
-        border-radius: 24px;
+        width: 84px;
+        margin-bottom: 16px;
+        border-radius: 22px;
       }
 
       .home-hero-card h1 {
         max-width: none;
-        padding-right: 116px;
+        padding-right: 0;
       }
 
-      .home-article-link--with-thumb {
-        grid-template-columns: 92px minmax(0, 1fr);
+      .home-journal-card .pad {
+        gap: 12px;
+      }
+
+      .home-article-list {
         gap: 10px;
       }
 
+      .home-article-link {
+        padding: 12px;
+      }
+
+      .home-article-link--with-thumb {
+        display: block;
+      }
+
       .home-article-thumb {
-        width: 92px;
-        height: 56px;
+        width: 100%;
+        height: 132px;
+        margin-bottom: 12px;
+        border-radius: 12px;
       }
 
       .home-article-thumb--logo {
-        padding: 10px;
+        padding: 16px;
+      }
+
+      .home-article-meta {
+        margin-bottom: 6px;
+      }
+
+      .home-article-link h3 {
+        font-size: 0.98rem;
+        line-height: 1.38;
+      }
+
+      .home-article-link p {
+        margin-top: 8px;
+        -webkit-line-clamp: 2;
+      }
+
+      .home-theme-groups {
+        gap: 10px;
+      }
+
+      .home-theme-group {
+        padding: 12px 14px;
+      }
+
+      .home-theme-group strong {
+        margin-bottom: 8px;
+        font-size: 0.94rem;
+      }
+
+      .home-theme-pills {
+        gap: 8px;
+      }
+
+      .home-themes-wrap {
+        gap: 12px;
+      }
+
+      .home-themes-section .pad {
+        padding: 18px;
+      }
+
+      .home-themes-section h2 {
+        font-size: 1.55rem;
+      }
+
+      .home-themes-section .home-section-intro.compact {
+        max-width: none;
+        font-size: 0.95rem;
+        line-height: 1.55;
       }
 
       .home-model-card-inner {
