@@ -261,26 +261,60 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           <h2>Lecture prévision</h2>
           <div class="decoded-grid decoded-grid--forecast">
             <div class="decoded-card decoded-card-wide taf-decode-card">
-              <span class="decoded-label">TAF décodé</span>
-              <strong id="tafSummaryValue">Aucune donnée</strong>
-              <p id="tafValidityValue" class="taf-validity-line" hidden></p>
+              <div class="taf-head">
+                <span class="decoded-label">TAF décodé</span>
+                <strong id="tafSummaryValue">Aucune donnée</strong>
+              </div>
+
+              <div id="tafMetaGrid" class="taf-meta-grid" hidden>
+                <div id="tafIssuedCard" class="taf-meta-card" hidden>
+                  <span class="taf-meta-label">Émission</span>
+                  <strong id="tafIssuedValue">—</strong>
+                </div>
+
+                <div id="tafValidityCard" class="taf-meta-card" hidden>
+                  <span class="taf-meta-label">Validité</span>
+                  <strong id="tafValidityValue">—</strong>
+                </div>
+
+                <div id="tafModifierCard" class="taf-meta-card taf-meta-card--compact" hidden>
+                  <span class="taf-meta-label">Statut</span>
+                  <strong id="tafModifierValue">—</strong>
+                </div>
+              </div>
+
               <p id="tafDecoderMeta" class="taf-decoder-meta" hidden></p>
 
               <div id="tafDecodeBlock" class="taf-decode-block" hidden>
-                <div class="taf-decode-section">
-                  <span class="taf-section-title">Prévision de base</span>
-                  <ul id="tafBaseList" class="taf-bullet-list"></ul>
-                </div>
+                <details id="tafBaseDisclosure" class="taf-disclosure" open>
+                  <summary>
+                    <span class="taf-disclosure-title">Prévision de base</span>
+                    <span id="tafBaseCount" class="taf-disclosure-count">0</span>
+                  </summary>
+                  <div class="taf-disclosure-content">
+                    <ul id="tafBaseList" class="taf-bullet-list"></ul>
+                  </div>
+                </details>
 
-                <div id="tafChangesSection" class="taf-decode-section" hidden>
-                  <span class="taf-section-title">Évolutions prévues</span>
-                  <div id="tafChangesList" class="taf-timeline"></div>
-                </div>
+                <details id="tafChangesSection" class="taf-disclosure" hidden>
+                  <summary>
+                    <span class="taf-disclosure-title">Évolutions prévues</span>
+                    <span id="tafChangesCount" class="taf-disclosure-count">0</span>
+                  </summary>
+                  <div class="taf-disclosure-content">
+                    <div id="tafChangesList" class="taf-timeline"></div>
+                  </div>
+                </details>
 
-                <div id="tafTempsSection" class="taf-decode-section" hidden>
-                  <span class="taf-section-title">Températures prévues</span>
-                  <ul id="tafTempList" class="taf-bullet-list"></ul>
-                </div>
+                <details id="tafTempsSection" class="taf-disclosure" hidden>
+                  <summary>
+                    <span class="taf-disclosure-title">Températures prévues</span>
+                    <span id="tafTempsCount" class="taf-disclosure-count">0</span>
+                  </summary>
+                  <div class="taf-disclosure-content">
+                    <ul id="tafTempList" class="taf-bullet-list"></ul>
+                  </div>
+                </details>
               </div>
             </div>
           </div>
@@ -443,13 +477,23 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const radioSecondaryCount = document.getElementById("radioSecondaryCount");
     const radioList = document.getElementById("radioList");
     const tafSummaryValue = document.getElementById("tafSummaryValue");
+    const tafMetaGrid = document.getElementById("tafMetaGrid");
+    const tafIssuedCard = document.getElementById("tafIssuedCard");
+    const tafIssuedValue = document.getElementById("tafIssuedValue");
+    const tafValidityCard = document.getElementById("tafValidityCard");
     const tafValidityValue = document.getElementById("tafValidityValue");
+    const tafModifierCard = document.getElementById("tafModifierCard");
+    const tafModifierValue = document.getElementById("tafModifierValue");
     const tafDecoderMeta = document.getElementById("tafDecoderMeta");
     const tafDecodeBlock = document.getElementById("tafDecodeBlock");
+    const tafBaseDisclosure = document.getElementById("tafBaseDisclosure");
+    const tafBaseCount = document.getElementById("tafBaseCount");
     const tafBaseList = document.getElementById("tafBaseList");
     const tafChangesSection = document.getElementById("tafChangesSection");
+    const tafChangesCount = document.getElementById("tafChangesCount");
     const tafChangesList = document.getElementById("tafChangesList");
     const tafTempsSection = document.getElementById("tafTempsSection");
+    const tafTempsCount = document.getElementById("tafTempsCount");
     const tafTempList = document.getElementById("tafTempList");
     const weatherFreshnessNote = document.getElementById("weatherFreshnessNote");
     const forecastFreshnessNote = document.getElementById("forecastFreshnessNote");
@@ -882,19 +926,32 @@ let ulmDetailsPromise = null;
     }
 
     function clearTafDecoded() {
-      if (tafValidityValue) {
-        tafValidityValue.hidden = true;
-        tafValidityValue.textContent = "";
-      }
+      if (tafMetaGrid) tafMetaGrid.hidden = true;
+      if (tafIssuedCard) tafIssuedCard.hidden = true;
+      if (tafIssuedValue) tafIssuedValue.textContent = "";
+      if (tafValidityCard) tafValidityCard.hidden = true;
+      if (tafValidityValue) tafValidityValue.textContent = "";
+      if (tafModifierCard) tafModifierCard.hidden = true;
+      if (tafModifierValue) tafModifierValue.textContent = "";
       if (tafDecoderMeta) {
         tafDecoderMeta.hidden = true;
         tafDecoderMeta.textContent = "";
       }
       if (tafDecodeBlock) tafDecodeBlock.hidden = true;
+      if (tafBaseDisclosure) tafBaseDisclosure.open = true;
+      if (tafBaseCount) tafBaseCount.textContent = "0";
       if (tafBaseList) tafBaseList.innerHTML = "";
-      if (tafChangesSection) tafChangesSection.hidden = true;
+      if (tafChangesSection) {
+        tafChangesSection.hidden = true;
+        tafChangesSection.open = false;
+      }
+      if (tafChangesCount) tafChangesCount.textContent = "0";
       if (tafChangesList) tafChangesList.innerHTML = "";
-      if (tafTempsSection) tafTempsSection.hidden = true;
+      if (tafTempsSection) {
+        tafTempsSection.hidden = true;
+        tafTempsSection.open = false;
+      }
+      if (tafTempsCount) tafTempsCount.textContent = "0";
       if (tafTempList) tafTempList.innerHTML = "";
     }
 
@@ -1280,22 +1337,33 @@ let ulmDetailsPromise = null;
       }
 
       tafSummaryValue.textContent = decoded.cancelled ? "TAF annulé" : (localAvailable ? "Prévision TAF décodée" : "TAF voisin décodé");
-      const validityParts = [];
-      if (decoded.issueDate) validityParts.push(`Émis à ${formatUtcAndLocal(decoded.issueDate)}`);
-      if (decoded.validity?.start && decoded.validity?.end) validityParts.push(`Valable de ${formatUtcAndLocal(decoded.validity.start)} à ${formatUtcAndLocal(decoded.validity.end)}`);
-      if (decoded.modifier && decoded.modifier !== "CNL") validityParts.push(decoded.modifier === "AMD" ? "TAF amendé" : decoded.modifier === "COR" ? "TAF corrigé" : decoded.modifier);
-      if (validityParts.length && tafValidityValue) { tafValidityValue.hidden = false; tafValidityValue.textContent = validityParts.join(" · "); }
+      if (tafMetaGrid) tafMetaGrid.hidden = false;
+      if (decoded.issueDate && tafIssuedCard && tafIssuedValue) {
+        tafIssuedCard.hidden = false;
+        tafIssuedValue.textContent = formatUtcAndLocal(decoded.issueDate);
+      }
+      if (decoded.validity?.start && decoded.validity?.end && tafValidityCard && tafValidityValue) {
+        tafValidityCard.hidden = false;
+        tafValidityValue.textContent = `${formatUtcAndLocal(decoded.validity.start)} → ${formatUtcAndLocal(decoded.validity.end)}`;
+      }
+      if (decoded.modifier && decoded.modifier !== "CNL" && tafModifierCard && tafModifierValue) {
+        tafModifierCard.hidden = false;
+        tafModifierValue.textContent = decoded.modifier === "AMD" ? "TAF amendé" : decoded.modifier === "COR" ? "TAF corrigé" : decoded.modifier;
+      }
       if (neighborMeta && tafDecoderMeta) { tafDecoderMeta.hidden = false; tafDecoderMeta.textContent = neighborMeta; }
       if (decoded.cancelled) return;
 
       const baseBullets = decoded.base.length ? decoded.base : ["Le message TAF est disponible en brut ci-dessous, mais aucun groupe standard exploitable n’a été reconnu."];
+      if (tafBaseCount) tafBaseCount.textContent = String(baseBullets.length);
       if (tafBaseList) tafBaseList.innerHTML = baseBullets.map((item) => `<li>${item}</li>`).join("");
       if (decoded.changes.length && tafChangesSection && tafChangesList) {
         tafChangesSection.hidden = false;
+        if (tafChangesCount) tafChangesCount.textContent = String(decoded.changes.length);
         tafChangesList.innerHTML = decoded.changes.map((group) => `\n            <div class="taf-timeline-item">\n              <strong class="taf-timeline-title">${group.title}</strong>\n              <ul class="taf-bullet-list taf-bullet-list--nested">\n                ${group.bullets.map((item) => `<li>${item}</li>`).join("")}\n              </ul>\n            </div>\n          `).join("");
       }
       if (decoded.temps.length && tafTempsSection && tafTempList) {
         tafTempsSection.hidden = false;
+        if (tafTempsCount) tafTempsCount.textContent = String(decoded.temps.length);
         tafTempList.innerHTML = decoded.temps.map((item) => `<li>${item}</li>`).join("");
       }
       if (tafDecodeBlock) tafDecodeBlock.hidden = false;
@@ -6807,7 +6875,44 @@ function renderUlmNearbyItem(item) {
       gap: 12px;
     }
 
-    .tool-page .taf-validity-line,
+    .tool-page .taf-head {
+      display: grid;
+      gap: 6px;
+    }
+
+    .tool-page .taf-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .tool-page .taf-meta-card {
+      display: grid;
+      gap: 5px;
+      padding: 12px 13px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .tool-page .taf-meta-card--compact {
+      align-content: start;
+    }
+
+    .tool-page .taf-meta-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(139, 220, 255, 0.92);
+    }
+
+    .tool-page .taf-meta-card strong {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #f5fbff;
+    }
+
     .tool-page .taf-decoder-meta {
       margin: 0;
       color: var(--muted);
@@ -6817,25 +6922,56 @@ function renderUlmNearbyItem(item) {
 
     .tool-page .taf-decode-block {
       display: grid;
-      gap: 14px;
+      gap: 12px;
       margin-top: 2px;
     }
 
-    .tool-page .taf-decode-section {
-      display: grid;
-      gap: 8px;
-      padding: 13px 14px;
+    .tool-page .taf-disclosure {
       border-radius: 14px;
       background: rgba(255, 255, 255, 0.025);
       border: 1px solid rgba(255,255,255,0.06);
+      overflow: hidden;
     }
 
-    .tool-page .taf-section-title {
+    .tool-page .taf-disclosure > summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 13px 14px;
+      cursor: pointer;
+      background: linear-gradient(180deg, rgba(130, 197, 235, 0.12), rgba(130, 197, 235, 0.04));
+    }
+
+    .tool-page .taf-disclosure > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .tool-page .taf-disclosure-title {
       font-size: 0.84rem;
       font-weight: 700;
       letter-spacing: 0.04em;
       text-transform: uppercase;
       color: rgba(139, 220, 255, 0.92);
+    }
+
+    .tool-page .taf-disclosure-count {
+      min-width: 30px;
+      padding: 2px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(7, 18, 31, 0.5);
+      text-align: center;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #dff4ff;
+    }
+
+    .tool-page .taf-disclosure-content {
+      display: grid;
+      gap: 10px;
+      padding: 0 14px 14px;
     }
 
     .tool-page .taf-bullet-list {
@@ -6872,14 +7008,25 @@ function renderUlmNearbyItem(item) {
       color: #f5fbff;
     }
 
+    @media (max-width: 900px) {
+      .tool-page .taf-meta-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @media (max-width: 720px) {
-      .tool-page .taf-validity-line,
       .tool-page .taf-decoder-meta {
         font-size: 0.88rem;
       }
 
-      .tool-page .taf-decode-section {
-        padding: 12px 12px;
+      .tool-page .taf-meta-card {
+        padding: 11px 12px;
+      }
+
+      .tool-page .taf-disclosure > summary,
+      .tool-page .taf-disclosure-content {
+        padding-left: 12px;
+        padding-right: 12px;
       }
 
       .tool-page .taf-timeline-item {
