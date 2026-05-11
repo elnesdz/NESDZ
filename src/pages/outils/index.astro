@@ -285,6 +285,30 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
               <p id="tafDecoderMeta" class="taf-decoder-meta" hidden></p>
 
+              <div id="tafVisualBlock" class="taf-visual-block" hidden>
+                <div class="taf-visual-head">
+                  <div>
+                    <span class="taf-visual-kicker">Graphique TAF</span>
+                    <strong>Tendance prévisionnelle</strong>
+                  </div>
+                  <span class="taf-visual-source">TAF brut décodé · UTC</span>
+                </div>
+
+                <div id="tafVisualBadges" class="taf-visual-badges" hidden></div>
+
+                <div class="taf-visual-timeline-wrap" aria-label="Frise horaire du TAF">
+                  <div id="tafVisualScale" class="taf-visual-scale"></div>
+                  <div id="tafVisualBands" class="taf-visual-bands"></div>
+                </div>
+
+                <div id="tafVisualMatrix" class="taf-visual-matrix"></div>
+                <div id="tafVisualCards" class="taf-visual-cards"></div>
+
+                <p class="taf-visual-note">
+                  Lecture graphique factuelle : les valeurs sont extraites du TAF disponible. Les catégories affichées sont indicatives et ne remplacent pas le briefing officiel.
+                </p>
+              </div>
+
               <div id="tafDecodeBlock" class="taf-decode-block" hidden>
                 <details id="tafBaseDisclosure" class="taf-disclosure" open>
                   <summary>
@@ -495,6 +519,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const tafTempsSection = document.getElementById("tafTempsSection");
     const tafTempsCount = document.getElementById("tafTempsCount");
     const tafTempList = document.getElementById("tafTempList");
+    const tafVisualBlock = document.getElementById("tafVisualBlock");
+    const tafVisualBadges = document.getElementById("tafVisualBadges");
+    const tafVisualScale = document.getElementById("tafVisualScale");
+    const tafVisualBands = document.getElementById("tafVisualBands");
+    const tafVisualMatrix = document.getElementById("tafVisualMatrix");
+    const tafVisualCards = document.getElementById("tafVisualCards");
     const weatherFreshnessNote = document.getElementById("weatherFreshnessNote");
     const forecastFreshnessNote = document.getElementById("forecastFreshnessNote");
 
@@ -953,6 +983,12 @@ let ulmDetailsPromise = null;
       }
       if (tafTempsCount) tafTempsCount.textContent = "0";
       if (tafTempList) tafTempList.innerHTML = "";
+      if (tafVisualBlock) tafVisualBlock.hidden = true;
+      if (tafVisualBadges) { tafVisualBadges.hidden = true; tafVisualBadges.innerHTML = ""; }
+      if (tafVisualScale) tafVisualScale.innerHTML = "";
+      if (tafVisualBands) tafVisualBands.innerHTML = "";
+      if (tafVisualMatrix) tafVisualMatrix.innerHTML = "";
+      if (tafVisualCards) tafVisualCards.innerHTML = "";
     }
 
     function buildClosestUtcHourDate(day, hour, now = new Date()) {
@@ -1238,6 +1274,162 @@ let ulmDetailsPromise = null;
       return /^FM\d{6}$/.test(upper) || upper === "BECMG" || upper === "TEMPO" || upper === "INTER" || /^PROB(30|40)$/.test(upper);
     }
 
+
+    function getTafGroupTypeLabel(group = {}) {
+      const type = String(group.type || "BASE").toUpperCase();
+      if (type === "BASE") return "Base";
+      if (type === "FM") return "FM";
+      if (type === "BECMG") return "BECMG";
+      if (type === "TEMPO") return "TEMPO";
+      if (type === "INTER") return "INTER";
+      if (/^PROB(30|40)$/.test(type)) return group.subType ? `${type} ${group.subType}` : type;
+      return type;
+    }
+
+    function getTafGroupTone(group = {}) {
+      const type = String(group.type || "BASE").toUpperCase();
+      if (type === "BASE") return "base";
+      if (type === "FM") return "fm";
+      if (type === "BECMG") return "becmg";
+      if (type === "TEMPO" || type === "INTER") return "tempo";
+      if (/^PROB(30|40)$/.test(type)) return "prob";
+      return "base";
+    }
+
+    function decodeTafWindCompact(token) {
+      const upper = String(token || "").trim().toUpperCase();
+      const match = upper.match(/^(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?(KT|MPS)$/);
+      if (!match) return null;
+      const [, dir, speed, gust, unit] = match;
+      const suffix = unit === "MPS" ? "m/s" : "kt";
+      if (dir === "000" && Number(speed) === 0) return { label: "Calme", gust: null };
+      const direction = dir === "VRB" ? "VRB" : `${dir}°`;
+      return { label: `${direction} ${Number(speed)} ${suffix}${gust ? ` G${Number(gust)}` : ""}`, gust: gust ? `${Number(gust)} ${suffix}` : null };
+    }
+
+    function getTafVisibilityValueMeters(token) {
+      const upper = String(token || "").trim().toUpperCase();
+      if (upper === "CAVOK" || upper === "9999") return 10000;
+      if (/^\d{4}$/.test(upper)) return Number(upper);
+      if (upper.endsWith("SM")) {
+        const raw = upper.slice(0, -2);
+        if (raw === "P6") return 10000;
+        if (/^\d+(?:\.\d+)?$/.test(raw)) return Number(raw) * 1609.34;
+        const fraction = raw.match(/^(\d+)?\s?(\d)\/(\d)$/);
+        if (fraction) {
+          const whole = fraction[1] ? Number(fraction[1]) : 0;
+          return (whole + Number(fraction[2]) / Number(fraction[3])) * 1609.34;
+        }
+      }
+      return null;
+    }
+
+    function getTafCeilingFt(tokens = []) {
+      let ceiling = null;
+      tokens.forEach((token) => {
+        const upper = String(token || "").trim().toUpperCase();
+        const match = upper.match(/^(BKN|OVC|VV)(\d{3}|\/\/\/)?(?:CB|TCU)?$/);
+        if (!match) return;
+        const baseCode = match[2];
+        if (!/^\d{3}$/.test(baseCode || "")) return;
+        const baseFt = Number(baseCode) * 100;
+        ceiling = ceiling === null ? baseFt : Math.min(ceiling, baseFt);
+      });
+      return ceiling;
+    }
+
+    function getTafVisualCategory({ visibilityMeters = null, ceilingFt = null, cavok = false } = {}) {
+      if (cavok) return { code: "VFR", label: "VFR", tone: "vfr" };
+      const visSm = typeof visibilityMeters === "number" ? visibilityMeters / 1609.34 : null;
+      if ((typeof ceilingFt === "number" && ceilingFt < 500) || (typeof visSm === "number" && visSm < 1)) return { code: "LIFR", label: "LIFR", tone: "lifr" };
+      if ((typeof ceilingFt === "number" && ceilingFt < 1000) || (typeof visSm === "number" && visSm < 3)) return { code: "IFR", label: "IFR", tone: "ifr" };
+      if ((typeof ceilingFt === "number" && ceilingFt <= 3000) || (typeof visSm === "number" && visSm <= 5)) return { code: "MVFR", label: "MVFR", tone: "mvfr" };
+      if (typeof ceilingFt === "number" || typeof visibilityMeters === "number") return { code: "VFR", label: "VFR", tone: "vfr" };
+      return { code: "—", label: "—", tone: "unknown" };
+    }
+
+    function analyzeTafVisualTokens(tokens = [], referenceDate = new Date()) {
+      const cleaned = (tokens || []).map((token) => String(token || "").trim().toUpperCase()).filter(Boolean);
+      const cavok = cleaned.includes("CAVOK");
+      const windToken = cleaned.find((token) => decodeTafWindCompact(token));
+      const wind = windToken ? decodeTafWindCompact(windToken) : null;
+      const visibilityToken = cleaned.find((token) => decodeVisibilityToken(token));
+      const visibility = visibilityToken ? decodeVisibilityToken(visibilityToken) : "—";
+      const visibilityMeters = visibilityToken ? getTafVisibilityValueMeters(visibilityToken) : null;
+      const cloudTokens = cleaned.filter((token) => decodeCloudToken(token));
+      const cloudLabels = cloudTokens.map((token) => decodeCloudToken(token)).filter(Boolean);
+      const weatherTokens = cleaned.filter((token) => decodeWeatherToken(token));
+      const weatherLabels = weatherTokens.map((token) => decodeWeatherToken(token)).filter(Boolean);
+      const tempLabels = cleaned.map((token) => decodeTemperatureToken(token, referenceDate)).filter(Boolean);
+      const ceilingFt = cavok ? null : getTafCeilingFt(cleaned);
+      const category = getTafVisualCategory({ visibilityMeters, ceilingFt, cavok });
+
+      return {
+        cavok,
+        category,
+        wind: wind?.label || "—",
+        gust: wind?.gust || "—",
+        visibility: cavok ? "10 km ou plus" : (visibility || "—").replace(/^Visibilité\s+/i, ""),
+        ceiling: cavok ? "Pas de plafond significatif" : (typeof ceilingFt === "number" ? `${ceilingFt.toLocaleString("fr-FR")} ft` : "—"),
+        clouds: cavok ? ["Pas de nuage significatif sous 5000 ft"] : cloudLabels,
+        weather: cavok ? ["Aucun phénomène significatif"] : weatherLabels,
+        temperatures: tempLabels,
+        rawTokens: cleaned,
+      };
+    }
+
+    function buildTafVisualGroups(groups = [], context = {}) {
+      const { validity, issueDate } = context;
+      const reference = issueDate || validity?.start || new Date();
+      const overallStart = validity?.start || null;
+      const overallEnd = validity?.end || null;
+
+      const getStartForGroup = (group) => {
+        if (group.type === "FM") return parseTafFmDate(group.timeToken, reference);
+        if (["TEMPO", "INTER", "BECMG"].includes(group.type) || /^PROB(30|40)$/.test(group.type || "")) {
+          return parseTafValidityRange(group.validToken, overallStart || reference)?.start || null;
+        }
+        return overallStart;
+      };
+
+      const getEndForGroup = (group, index) => {
+        if (["TEMPO", "INTER", "BECMG"].includes(group.type) || /^PROB(30|40)$/.test(group.type || "")) {
+          return parseTafValidityRange(group.validToken, overallStart || reference)?.end || null;
+        }
+        if (group.type === "FM") {
+          const nextFm = groups.slice(index + 1).find((nextGroup) => nextGroup.type === "FM");
+          return nextFm ? parseTafFmDate(nextFm.timeToken, reference) : overallEnd;
+        }
+        return overallEnd;
+      };
+
+      return groups.map((group, index) => {
+        const start = getStartForGroup(group);
+        const end = getEndForGroup(group, index);
+        const analysis = analyzeTafVisualTokens(group.tokens, reference);
+        const rawParts = [];
+        if (group.type === "FM") rawParts.push(group.timeToken);
+        else if (group.type && group.type !== "BASE") {
+          rawParts.push(group.type);
+          if (group.subType) rawParts.push(group.subType);
+          if (group.validToken) rawParts.push(group.validToken);
+        }
+        rawParts.push(...(group.tokens || []));
+        return {
+          id: `taf-group-${index}`,
+          index,
+          type: group.type || "BASE",
+          label: getTafGroupTypeLabel(group),
+          tone: getTafGroupTone(group),
+          start,
+          end,
+          rangeLabel: start && end ? formatUtcRange({ start, end }) : (start ? `À partir de ${formatUtcAndLocal(start)}` : "Période non précisée"),
+          analysis,
+          raw: rawParts.join(" ").trim(),
+        };
+      }).filter((group) => group.raw || group.analysis.rawTokens.length);
+    }
+
     function parseTaf(rawTaf, fallbackIcao = "") {
       const normalized = String(rawTaf || "").replace(/\s+/g, " ").trim();
       if (!normalized) return null;
@@ -1289,6 +1481,7 @@ let ulmDetailsPromise = null;
         index += 1;
       }
       groups.push(current);
+      const visualGroups = buildTafVisualGroups(groups, { validity, issueDate });
 
       const baseGroup = groups.shift() || { type: "BASE", tokens: [] };
       const baseDecoded = decodeTafSegment(baseGroup.tokens, issueDate || validity?.start || new Date());
@@ -1318,7 +1511,118 @@ let ulmDetailsPromise = null;
         return { title, bullets: decoded.base.filter(Boolean) };
       }).filter((group) => group.bullets.length);
 
-      return { station, modifier, issueDate, validity, base: baseDecoded.base.filter(Boolean), changes, temps, cancelled: false };
+      return { station, modifier, issueDate, validity, base: baseDecoded.base.filter(Boolean), changes, temps, cancelled: false, visualGroups };
+    }
+
+
+    function buildTafVisualTicks(start, end) {
+      if (!(start instanceof Date) || !(end instanceof Date) || end.getTime() <= start.getTime()) return [];
+      const spanHours = Math.max(1, Math.round((end.getTime() - start.getTime()) / 36e5));
+      const step = spanHours <= 12 ? 2 : spanHours <= 24 ? 4 : 6;
+      const ticks = [];
+      const first = new Date(start.getTime());
+      first.setUTCMinutes(0, 0, 0);
+      while (first.getUTCHours() % step !== 0) first.setUTCHours(first.getUTCHours() + 1);
+      for (let cursor = first; cursor.getTime() <= end.getTime(); cursor = new Date(cursor.getTime() + step * 36e5)) {
+        const pos = ((cursor.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100;
+        if (pos >= 0 && pos <= 100) ticks.push({ date: cursor, pos });
+      }
+      return ticks;
+    }
+
+    function getTafVisualPosition(group, start, end) {
+      if (!(start instanceof Date) || !(end instanceof Date) || end.getTime() <= start.getTime()) return { left: 0, width: 100 };
+      const groupStart = group.start instanceof Date ? group.start : start;
+      const groupEnd = group.end instanceof Date ? group.end : end;
+      const left = Math.max(0, Math.min(100, ((groupStart.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100));
+      const right = Math.max(0, Math.min(100, ((groupEnd.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100));
+      return { left, width: Math.max(3, right - left) };
+    }
+
+    function findLastGroupWithEnd(groups) {
+      for (let i = groups.length - 1; i >= 0; i -= 1) {
+        if (groups[i]?.end instanceof Date) return groups[i].end;
+      }
+      return null;
+    }
+
+    function renderTafVisual(decoded) {
+      if (!tafVisualBlock || !tafVisualBands || !tafVisualScale || !tafVisualMatrix || !tafVisualCards) return;
+      const groups = decoded?.visualGroups || [];
+      if (!groups.length) return;
+
+      const timelineStart = decoded.validity?.start || groups.find((group) => group.start)?.start || null;
+      const timelineEnd = decoded.validity?.end || findLastGroupWithEnd(groups);
+      const hasTimeline = timelineStart instanceof Date && timelineEnd instanceof Date && timelineEnd.getTime() > timelineStart.getTime();
+      const cols = Math.max(1, groups.length);
+
+      if (hasTimeline) {
+        const ticks = buildTafVisualTicks(timelineStart, timelineEnd);
+        tafVisualScale.innerHTML = ticks.map((tick) => `
+          <span class="taf-visual-tick" style="left:${tick.pos.toFixed(2)}%">
+            <i></i><b>${escapeHtml(formatUtcClock(tick.date).replace("Z", ""))}</b>
+          </span>
+        `).join("");
+        tafVisualBands.innerHTML = groups.map((group) => {
+          const position = getTafVisualPosition(group, timelineStart, timelineEnd);
+          return `<div class="taf-visual-band taf-visual-band--${escapeHtml(group.tone)}" style="left:${position.left.toFixed(2)}%;width:${position.width.toFixed(2)}%"><span>${escapeHtml(group.label)}</span></div>`;
+        }).join("");
+      } else {
+        tafVisualScale.innerHTML = "";
+        tafVisualBands.innerHTML = groups.map((group, index) => `<div class="taf-visual-band taf-visual-band--${escapeHtml(group.tone)}" style="left:${(index / cols * 100).toFixed(2)}%;width:${(100 / cols).toFixed(2)}%"><span>${escapeHtml(group.label)}</span></div>`).join("");
+      }
+
+      const rows = [
+        { label: "Période", value: (group) => group.label, className: (group) => `taf-cell--tone-${group.tone}` },
+        { label: "Cat.", value: (group) => group.analysis.category.label, className: (group) => `taf-cell--cat-${group.analysis.category.tone}` },
+        { label: "Visibilité", value: (group) => group.analysis.visibility },
+        { label: "Plafond", value: (group) => group.analysis.ceiling },
+        { label: "Vent", value: (group) => group.analysis.wind },
+        { label: "Rafales", value: (group) => group.analysis.gust },
+        { label: "Temps", value: (group) => group.analysis.weather.length ? group.analysis.weather.join(" · ") : "—" },
+      ];
+
+      tafVisualMatrix.innerHTML = rows.map((row) => `
+        <div class="taf-visual-row">
+          <div class="taf-visual-row-label">${escapeHtml(row.label)}</div>
+          <div class="taf-visual-row-grid" style="--taf-cols:${cols}">
+            ${groups.map((group) => `<div class="taf-visual-cell ${row.className ? row.className(group) : ""}">${escapeHtml(row.value(group) || "—")}</div>`).join("")}
+          </div>
+        </div>
+      `).join("");
+
+      tafVisualCards.innerHTML = groups.map((group) => `
+        <article class="taf-visual-card taf-visual-card--${escapeHtml(group.tone)}">
+          <div class="taf-visual-card-top">
+            <span>${escapeHtml(group.label)}</span>
+            <strong class="taf-visual-cat taf-visual-cat--${escapeHtml(group.analysis.category.tone)}">${escapeHtml(group.analysis.category.label)}</strong>
+          </div>
+          <p class="taf-visual-range">${escapeHtml(group.rangeLabel)}</p>
+          <dl class="taf-visual-facts">
+            <div><dt>Vent</dt><dd>${escapeHtml(group.analysis.wind)}</dd></div>
+            <div><dt>Visibilité</dt><dd>${escapeHtml(group.analysis.visibility)}</dd></div>
+            <div><dt>Plafond</dt><dd>${escapeHtml(group.analysis.ceiling)}</dd></div>
+            <div><dt>Nuages</dt><dd>${escapeHtml(group.analysis.clouds.length ? group.analysis.clouds.join(" · ") : "—")}</dd></div>
+            <div><dt>Temps</dt><dd>${escapeHtml(group.analysis.weather.length ? group.analysis.weather.join(" · ") : "—")}</dd></div>
+          </dl>
+          <code>${escapeHtml(group.raw)}</code>
+        </article>
+      `).join("");
+
+      const badges = [];
+      if (groups.some((group) => group.type === "TEMPO" || group.type === "INTER")) badges.push("TEMPO / INTER");
+      if (groups.some((group) => group.type === "BECMG")) badges.push("BECMG");
+      if (groups.some((group) => /^PROB(30|40)$/.test(group.type))) badges.push("PROB");
+      if (groups.some((group) => group.analysis.gust !== "—")) badges.push("Rafales");
+      if (groups.some((group) => group.analysis.rawTokens.some((token) => /CB|TCU/.test(token)))) badges.push("CB / TCU");
+      if (groups.some((group) => group.analysis.rawTokens.some((token) => /TS/.test(token)))) badges.push("Orage");
+      if (groups.some((group) => group.analysis.rawTokens.some((token) => /BR|FG/.test(token)))) badges.push("Brume / brouillard");
+      if (tafVisualBadges) {
+        tafVisualBadges.hidden = !badges.length;
+        tafVisualBadges.innerHTML = badges.map((badge) => `<span>${escapeHtml(badge)}</span>`).join("");
+      }
+
+      tafVisualBlock.hidden = false;
     }
 
     function renderTafDecoded({ rawTaf = "", icao = "", neighborMeta = "", localAvailable = true } = {}) {
@@ -1366,6 +1670,7 @@ let ulmDetailsPromise = null;
         if (tafTempsCount) tafTempsCount.textContent = String(decoded.temps.length);
         tafTempList.innerHTML = decoded.temps.map((item) => `<li>${item}</li>`).join("");
       }
+      renderTafVisual(decoded);
       if (tafDecodeBlock) tafDecodeBlock.hidden = false;
     }
 
@@ -7008,6 +7313,229 @@ function renderUlmNearbyItem(item) {
       color: #f5fbff;
     }
 
+
+
+    .tool-page .taf-visual-block {
+      margin-top: 1rem;
+      border: 1px solid rgba(125, 211, 252, 0.22);
+      border-radius: 24px;
+      background:
+        linear-gradient(135deg, rgba(8, 19, 31, 0.96), rgba(12, 28, 42, 0.9)),
+        radial-gradient(circle at top right, rgba(34, 211, 238, 0.16), transparent 34%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 40px rgba(0, 0, 0, 0.24);
+      padding: clamp(1rem, 2vw, 1.35rem);
+      overflow: hidden;
+    }
+
+    .tool-page .taf-visual-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .tool-page .taf-visual-head strong {
+      display: block;
+      color: rgba(241, 247, 252, 0.98);
+      font-size: clamp(1.05rem, 2vw, 1.28rem);
+      letter-spacing: -0.02em;
+    }
+
+    .tool-page .taf-visual-kicker,
+    .tool-page .taf-visual-source {
+      color: rgba(148, 163, 184, 0.95);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .tool-page .taf-visual-source {
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 999px;
+      padding: 0.4rem 0.7rem;
+      white-space: nowrap;
+    }
+
+    .tool-page .taf-visual-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .tool-page .taf-visual-badges span {
+      border: 1px solid rgba(250, 204, 21, 0.28);
+      border-radius: 999px;
+      background: rgba(250, 204, 21, 0.08);
+      color: rgba(254, 240, 138, 0.96);
+      font-size: 0.76rem;
+      font-weight: 800;
+      padding: 0.36rem 0.62rem;
+    }
+
+    .tool-page .taf-visual-timeline-wrap {
+      position: relative;
+      min-height: 92px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 20px;
+      background: rgba(2, 8, 23, 0.42);
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .tool-page .taf-visual-scale { position: absolute; inset: 0; pointer-events: none; }
+
+    .tool-page .taf-visual-tick {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      transform: translateX(-50%);
+      color: rgba(148, 163, 184, 0.76);
+      font-size: 0.68rem;
+      font-weight: 800;
+    }
+
+    .tool-page .taf-visual-tick i {
+      display: block;
+      width: 1px;
+      height: 100%;
+      background: linear-gradient(to bottom, rgba(148, 163, 184, 0.28), rgba(148, 163, 184, 0.06));
+      margin: 0 auto;
+    }
+
+    .tool-page .taf-visual-tick b {
+      position: absolute;
+      top: 0.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-weight: 800;
+    }
+
+    .tool-page .taf-visual-bands { position: absolute; left: 0.75rem; right: 0.75rem; bottom: 0.78rem; height: 42px; }
+
+    .tool-page .taf-visual-band {
+      position: absolute;
+      top: 0;
+      height: 42px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 58px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+    }
+
+    .tool-page .taf-visual-band span {
+      color: rgba(241, 247, 252, 0.96);
+      font-size: 0.72rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      padding: 0 0.45rem;
+    }
+
+    .tool-page .taf-visual-band--base { background: linear-gradient(135deg, rgba(14, 165, 233, 0.34), rgba(6, 182, 212, 0.18)); }
+    .tool-page .taf-visual-band--fm { background: linear-gradient(135deg, rgba(59, 130, 246, 0.42), rgba(14, 165, 233, 0.22)); }
+    .tool-page .taf-visual-band--tempo { background: linear-gradient(135deg, rgba(249, 115, 22, 0.42), rgba(234, 179, 8, 0.22)); }
+    .tool-page .taf-visual-band--becmg { background: linear-gradient(135deg, rgba(168, 85, 247, 0.4), rgba(14, 165, 233, 0.18)); }
+    .tool-page .taf-visual-band--prob { background: linear-gradient(135deg, rgba(236, 72, 153, 0.38), rgba(249, 115, 22, 0.18)); }
+
+    .tool-page .taf-visual-matrix { display: grid; gap: 0.46rem; min-width: 0; overflow-x: auto; padding-bottom: 0.25rem; }
+    .tool-page .taf-visual-row { display: grid; grid-template-columns: 104px minmax(560px, 1fr); gap: 0.55rem; align-items: stretch; }
+
+    .tool-page .taf-visual-row-label {
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.74);
+      color: rgba(226, 232, 240, 0.9);
+      display: flex;
+      align-items: center;
+      padding: 0.55rem 0.65rem;
+      font-size: 0.78rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tool-page .taf-visual-row-grid { display: grid; grid-template-columns: repeat(var(--taf-cols), minmax(118px, 1fr)); gap: 0.42rem; }
+
+    .tool-page .taf-visual-cell {
+      min-height: 42px;
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.64);
+      color: rgba(241, 247, 252, 0.94);
+      padding: 0.55rem 0.62rem;
+      font-size: 0.82rem;
+      font-weight: 750;
+      line-height: 1.25;
+      display: flex;
+      align-items: center;
+      overflow-wrap: anywhere;
+    }
+
+    .tool-page .taf-cell--tone-base { border-color: rgba(34, 211, 238, 0.26); color: rgba(186, 230, 253, 0.98); }
+    .tool-page .taf-cell--tone-fm { border-color: rgba(96, 165, 250, 0.3); color: rgba(191, 219, 254, 0.98); }
+    .tool-page .taf-cell--tone-tempo { border-color: rgba(251, 191, 36, 0.35); color: rgba(254, 240, 138, 0.98); }
+    .tool-page .taf-cell--tone-becmg { border-color: rgba(192, 132, 252, 0.32); color: rgba(233, 213, 255, 0.98); }
+    .tool-page .taf-cell--tone-prob { border-color: rgba(244, 114, 182, 0.32); color: rgba(251, 207, 232, 0.98); }
+    .tool-page .taf-cell--cat-vfr { background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.36); color: rgba(187, 247, 208, 0.98); }
+    .tool-page .taf-cell--cat-mvfr { background: rgba(59, 130, 246, 0.12); border-color: rgba(96, 165, 250, 0.36); color: rgba(191, 219, 254, 0.98); }
+    .tool-page .taf-cell--cat-ifr { background: rgba(239, 68, 68, 0.13); border-color: rgba(248, 113, 113, 0.38); color: rgba(254, 202, 202, 0.98); }
+    .tool-page .taf-cell--cat-lifr { background: rgba(168, 85, 247, 0.16); border-color: rgba(192, 132, 252, 0.38); color: rgba(233, 213, 255, 0.98); }
+
+    .tool-page .taf-visual-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0.8rem; margin-top: 1rem; }
+
+    .tool-page .taf-visual-card {
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 20px;
+      background: rgba(15, 23, 42, 0.68);
+      padding: 0.9rem;
+      min-width: 0;
+    }
+
+    .tool-page .taf-visual-card--base { border-color: rgba(34, 211, 238, 0.22); }
+    .tool-page .taf-visual-card--fm { border-color: rgba(96, 165, 250, 0.24); }
+    .tool-page .taf-visual-card--tempo { border-color: rgba(251, 191, 36, 0.28); }
+    .tool-page .taf-visual-card--becmg { border-color: rgba(192, 132, 252, 0.26); }
+    .tool-page .taf-visual-card--prob { border-color: rgba(244, 114, 182, 0.26); }
+
+    .tool-page .taf-visual-card-top { display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; color: rgba(241, 247, 252, 0.96); font-size: 0.88rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    .tool-page .taf-visual-cat { border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 999px; padding: 0.28rem 0.5rem; font-size: 0.74rem; }
+    .tool-page .taf-visual-cat--vfr { border-color: rgba(34, 197, 94, 0.38); color: rgba(187, 247, 208, 0.98); }
+    .tool-page .taf-visual-cat--mvfr { border-color: rgba(96, 165, 250, 0.38); color: rgba(191, 219, 254, 0.98); }
+    .tool-page .taf-visual-cat--ifr { border-color: rgba(248, 113, 113, 0.42); color: rgba(254, 202, 202, 0.98); }
+    .tool-page .taf-visual-cat--lifr { border-color: rgba(192, 132, 252, 0.42); color: rgba(233, 213, 255, 0.98); }
+
+    .tool-page .taf-visual-range { color: rgba(148, 163, 184, 0.96); font-size: 0.8rem; line-height: 1.45; margin: 0.55rem 0 0.75rem; }
+    .tool-page .taf-visual-facts { display: grid; gap: 0.44rem; margin: 0; }
+    .tool-page .taf-visual-facts div { display: grid; grid-template-columns: 76px 1fr; gap: 0.5rem; align-items: baseline; }
+    .tool-page .taf-visual-facts dt { color: rgba(148, 163, 184, 0.86); font-size: 0.72rem; font-weight: 850; text-transform: uppercase; letter-spacing: 0.05em; }
+    .tool-page .taf-visual-facts dd { margin: 0; color: rgba(226, 232, 240, 0.94); font-size: 0.82rem; line-height: 1.35; }
+
+    .tool-page .taf-visual-card code {
+      display: block;
+      margin-top: 0.78rem;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(2, 8, 23, 0.58);
+      color: rgba(203, 213, 225, 0.94);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.72rem;
+      line-height: 1.45;
+      padding: 0.58rem;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .tool-page .taf-visual-note { margin: 0.85rem 0 0; color: rgba(148, 163, 184, 0.94); font-size: 0.78rem; line-height: 1.45; }
+
+
     @media (max-width: 900px) {
       .tool-page .taf-meta-grid {
         grid-template-columns: 1fr;
@@ -7015,6 +7543,19 @@ function renderUlmNearbyItem(item) {
     }
 
     @media (max-width: 720px) {
+
+      .tool-page .taf-visual-block { border-radius: 20px; padding: 0.9rem; }
+      .tool-page .taf-visual-head { flex-direction: column; gap: 0.5rem; }
+      .tool-page .taf-visual-source { white-space: normal; }
+      .tool-page .taf-visual-timeline-wrap { min-height: 84px; overflow-x: auto; }
+      .tool-page .taf-visual-scale,
+      .tool-page .taf-visual-bands { min-width: 620px; }
+      .tool-page .taf-visual-matrix { margin-inline: -0.2rem; padding-inline: 0.2rem; }
+      .tool-page .taf-visual-row { grid-template-columns: 86px minmax(520px, 1fr); gap: 0.42rem; }
+      .tool-page .taf-visual-row-label { font-size: 0.7rem; padding: 0.48rem 0.5rem; }
+      .tool-page .taf-visual-cell { min-height: 38px; font-size: 0.76rem; padding: 0.48rem 0.52rem; }
+      .tool-page .taf-visual-cards { grid-template-columns: 1fr; }
+
       .tool-page .taf-decoder-meta {
         font-size: 0.88rem;
       }
