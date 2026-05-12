@@ -4,7 +4,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
 <BaseLayout
   title="Accueil · NESDZ"
-  description="NESDZ : briefing vol, journal utile et annuaire ULM pour préparer, comparer et voler plus juste."
+  description="NESDZ : météo, terrains proches, documents officiels et lecture pilote pour préparer un vol plus lucidement."
 >
   <section class="hero home-top-section">
     <div class="container home-top-grid">
@@ -13,18 +13,17 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <img src="/logo.png" alt="" loading="eager" />
         </div>
 
-        <div class="home-kicker">Briefing vol · Journal · Annuaire ULM</div>
+        <div class="home-kicker">Météo · Terrains · Lecture pilote</div>
 
-        <h1>Briefing vol, journal pilote et annuaire ULM.</h1>
+        <h1>Lire le terrain avant le départ.</h1>
 
         <p class="home-lead">
-          NESDZ rassemble l’essentiel pour le pilote ULM : un briefing vol rapide
-          pour préparer un départ, un journal pour mieux lire le terrain et la météo,
-          et un annuaire pour comparer les machines avec des critères concrets.
+          Météo, terrains proches, documents officiels et lecture pilote pour
+          préparer un vol plus lucidement, sans remplacer les sources officielles.
         </p>
 
         <div class="home-hero-actions">
-          <a class="btn home-primary-btn" href="/outils/">Ouvrir le briefing vol</a>
+          <a class="btn home-primary-btn" href="/outils/">Préparer un vol</a>
         </div>
 
         <div class="home-hero-links" aria-label="Accès secondaires NESDZ">
@@ -843,8 +842,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     .nesdz-premium-ui .home-hero-card {
       position: relative;
       overflow: hidden;
-      padding: 28px 28px 30px;
-      min-height: 610px;
+      padding: 30px 30px 32px;
+      min-height: 520px;
       background:
         linear-gradient(180deg, rgba(4,9,23,.28), rgba(4,9,23,.84)),
         linear-gradient(90deg, rgba(4,9,23,.90) 8%, rgba(4,9,23,.56) 54%, rgba(4,9,23,.88) 100%),
@@ -856,10 +855,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       position: absolute;
       inset: 0;
       background-image:
-        linear-gradient(rgba(160,200,240,.045) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(160,200,240,.045) 1px, transparent 1px);
+        linear-gradient(rgba(160,200,240,.032) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(160,200,240,.032) 1px, transparent 1px);
       background-size: 56px 56px;
-      opacity: .44;
+      opacity: .32;
       pointer-events: none;
     }
 
@@ -879,9 +878,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     }
 
     .nesdz-premium-ui .home-hero-mark {
-      width: 92px;
-      height: 92px;
-      margin-bottom: 26px;
+      width: 82px;
+      height: 82px;
+      margin-bottom: 22px;
       border-radius: 24px;
       background:
         linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)),
@@ -903,41 +902,42 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     .nesdz-premium-ui .home-kicker {
       display: inline-flex;
       align-items: center;
-      padding: 10px 18px;
+      padding: 9px 16px;
       border-radius: 999px;
-      background: rgba(7, 29, 60, .62);
-      border: 1px solid rgba(72, 194, 255, .22);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+      background: rgba(7, 29, 60, .54);
+      border: 1px solid rgba(72, 194, 255, .18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.045);
       color: #7fdcff;
-      font-size: .94rem;
-      font-weight: 600;
-      letter-spacing: .01em;
-      margin-bottom: 20px;
+      font-size: .88rem;
+      font-weight: 650;
+      letter-spacing: .02em;
+      margin-bottom: 18px;
     }
 
     .nesdz-premium-ui .home-hero-card h1 {
-      max-width: 8.8ch;
-      font-size: clamp(3.1rem, 6vw, 5.7rem);
-      line-height: .97;
-      margin-bottom: 18px;
+      max-width: 11.6ch;
+      font-size: clamp(2.55rem, 4.45vw, 4.35rem);
+      line-height: 1.02;
+      letter-spacing: -.047em;
+      margin-bottom: 16px;
       text-wrap: balance;
     }
 
     .nesdz-premium-ui .home-lead {
-      max-width: 19ch;
-      font-size: clamp(1.08rem, 2vw, 1.42rem);
-      line-height: 1.64;
-      color: rgba(237,244,255,.86);
-      margin-bottom: 22px;
+      max-width: 34ch;
+      font-size: clamp(1.02rem, 1.45vw, 1.18rem);
+      line-height: 1.66;
+      color: rgba(237,244,255,.84);
+      margin-bottom: 20px;
     }
 
     .nesdz-premium-ui .home-primary-btn {
-      min-height: 64px;
-      padding-inline: 28px;
-      border-radius: 22px;
-      background: linear-gradient(180deg, rgba(72,194,255,.96), rgba(27,173,240,.94));
-      border-color: rgba(231,248,255,.84);
-      box-shadow: 0 22px 56px rgba(12,86,130,.32), 0 0 0 1px rgba(72,194,255,.16);
+      min-height: 58px;
+      padding-inline: 24px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(72,194,255,.88), rgba(27,173,240,.82));
+      border-color: rgba(231,248,255,.62);
+      box-shadow: 0 16px 38px rgba(12,86,130,.24), 0 0 0 1px rgba(72,194,255,.12);
       color: #fff;
     }
 
@@ -1192,15 +1192,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       }
 
       .nesdz-premium-ui .home-hero-card h1 {
-        max-width: 10ch;
-        font-size: clamp(2.5rem, 13vw, 4.5rem);
-        margin-bottom: 16px;
+        max-width: 11ch;
+        font-size: clamp(2.35rem, 11.2vw, 3.65rem);
+        line-height: 1.03;
+        margin-bottom: 15px;
       }
 
       .nesdz-premium-ui .home-lead {
         max-width: none;
-        font-size: 1.06rem;
-        line-height: 1.68;
+        font-size: 1.01rem;
+        line-height: 1.66;
       }
 
       .nesdz-premium-ui .home-primary-btn {
