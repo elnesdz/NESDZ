@@ -11,7 +11,7 @@
   --accent:#21b7ff;
   --accent-strong:#12a9ff;
   --accent-soft:#7fdcff;
-  --accent-glow:rgba(33,183,255,.28);
+  --accent-glow:rgba(33,183,255,.20);
   --ok:#3ddc97;
   --warn:#f2b94b;
   --bad:#ff7c8d;
@@ -19,7 +19,7 @@
   --line: rgba(183, 220, 255, .08);
   --line-strong: rgba(208, 234, 255, .18);
   --shadow: 0 18px 54px rgba(0,0,0,.34);
-  --shadow-soft: 0 24px 70px rgba(0,0,0,.28);
+  --shadow-soft: 0 22px 58px rgba(0,0,0,.26);
   --radius: 26px;
   --radius-sm: 18px;
   --max: 1180px;
@@ -37,9 +37,9 @@ body{
   color: var(--text);
   line-height:1.6;
   background:
-    radial-gradient(1200px 700px at 18% -10%, rgba(31,118,205,.16), transparent 56%),
-    radial-gradient(900px 640px at 88% 10%, rgba(28,145,220,.11), transparent 58%),
-    radial-gradient(900px 620px at 50% 120%, rgba(20,113,200,.10), transparent 62%),
+    radial-gradient(1200px 700px at 18% -10%, rgba(31,118,205,.12), transparent 56%),
+    radial-gradient(900px 640px at 88% 10%, rgba(28,145,220,.08), transparent 58%),
+    radial-gradient(900px 620px at 50% 120%, rgba(20,113,200,.07), transparent 62%),
     linear-gradient(180deg, #020611 0%, #030916 42%, #020713 100%);
   position:relative;
   overflow-x:hidden;
@@ -51,11 +51,11 @@ body::before{
   inset:0;
   pointer-events:none;
   background-image:
-    linear-gradient(rgba(130,170,220,.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(130,170,220,.045) 1px, transparent 1px);
+    linear-gradient(rgba(130,170,220,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(130,170,220,.035) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: linear-gradient(180deg, rgba(0,0,0,.62), rgba(0,0,0,.18));
-  opacity:.46;
+  opacity:.34;
   z-index:-2;
 }
 
@@ -65,9 +65,9 @@ body::after{
   inset:0;
   pointer-events:none;
   background:
-    radial-gradient(520px 220px at 50% 0%, rgba(33,183,255,.16), transparent 72%),
-    radial-gradient(420px 300px at 12% 100%, rgba(0,112,255,.08), transparent 75%),
-    radial-gradient(420px 280px at 100% 100%, rgba(0,112,255,.08), transparent 75%);
+    radial-gradient(520px 220px at 50% 0%, rgba(33,183,255,.10), transparent 72%),
+    radial-gradient(420px 300px at 12% 100%, rgba(0,112,255,.05), transparent 75%),
+    radial-gradient(420px 280px at 100% 100%, rgba(0,112,255,.05), transparent 75%);
   z-index:-1;
 }
 
@@ -106,8 +106,8 @@ code, pre { font-family: var(--mono); }
   inset:0;
   pointer-events:none;
   background:
-    radial-gradient(600px 240px at 15% 0%, rgba(127,220,255,.08), transparent 62%),
-    radial-gradient(480px 240px at 100% 0%, rgba(116,125,255,.07), transparent 60%);
+    radial-gradient(600px 240px at 15% 0%, rgba(127,220,255,.055), transparent 62%),
+    radial-gradient(480px 240px at 100% 0%, rgba(116,125,255,.045), transparent 60%);
 }
 
 .card .pad{
@@ -145,9 +145,9 @@ code, pre { font-family: var(--mono); }
   align-items:center;
   justify-content:center;
   gap:10px;
-  min-height:56px;
-  padding: 14px 22px;
-  border-radius: 20px;
+  min-height:52px;
+  padding: 12px 20px;
+  border-radius: 18px;
   border:1px solid rgba(220, 244, 255, .16);
   background:
     linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
@@ -167,7 +167,7 @@ code, pre { font-family: var(--mono); }
 .btn:hover,
 .btn:focus-visible{
   border-color: rgba(127,220,255,.34);
-  box-shadow: 0 0 0 6px var(--ring), 0 12px 34px rgba(6,16,34,.34);
+  box-shadow: 0 0 0 4px rgba(33,183,255,.12), 0 10px 28px rgba(6,16,34,.30);
   background:
     linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)),
     rgba(10, 27, 54, .90);
@@ -195,15 +195,15 @@ hr.sep{
 }
 
 h1{
-  font-size: clamp(2.7rem, 5.6vw, 5.3rem);
-  line-height:1.02;
+  font-size: clamp(2.45rem, 4.9vw, 4.65rem);
+  line-height:1.04;
   margin: 0 0 14px;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.045em;
   text-wrap: balance;
 }
 
-h2{ font-size: clamp(1.9rem, 3vw, 2.6rem); line-height:1.08; margin: 0 0 10px; letter-spacing:-.03em; }
-h3{ font-size: 1.24rem; line-height:1.22; margin: 0 0 8px; letter-spacing:-.02em; }
+h2{ font-size: clamp(1.7rem, 2.55vw, 2.25rem); line-height:1.1; margin: 0 0 10px; letter-spacing:-.028em; }
+h3{ font-size: 1.18rem; line-height:1.24; margin: 0 0 8px; letter-spacing:-.018em; }
 
 p{ margin: 0 0 14px; color: var(--muted); }
 p.lead{ font-size: clamp(1.02rem, 2vw, 1.28rem); color: rgba(240,246,255,.88); }
@@ -249,11 +249,11 @@ textarea:focus{
   backdrop-filter: blur(16px);
   background: linear-gradient(180deg, rgba(3,10,24,.90), rgba(3,10,24,.78));
   border-bottom: 1px solid rgba(171,214,255,.08);
-  box-shadow: 0 12px 30px rgba(0,0,0,.22);
+  box-shadow: 0 10px 24px rgba(0,0,0,.18);
 }
 
 .nav-inner{
-  padding: 16px 0;
+  padding: 14px 0;
 }
 
 .brand{
@@ -264,8 +264,8 @@ textarea:focus{
 }
 
 .logo{
-  width: 54px;
-  height: 54px;
+  width: 50px;
+  height: 50px;
   object-fit: contain;
   border-radius: 18px;
   background:
@@ -273,14 +273,14 @@ textarea:focus{
     linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)),
     rgba(6,18,39,.85);
   border: 1px solid rgba(171,214,255,.10);
-  box-shadow: 0 14px 32px rgba(0,0,0,.28);
+  box-shadow: 0 12px 26px rgba(0,0,0,.24);
   padding: 8px;
 }
 
-.brand strong{ letter-spacing:.2px; font-size:1.28rem; }
+.brand strong{ letter-spacing:.2px; font-size:1.2rem; }
 .navlinks{ display:flex; gap: 14px; flex-wrap:wrap; }
 .navlinks a{
-  padding: 10px 12px;
+  padding: 9px 11px;
   border-radius: 14px;
   color: rgba(231,238,245,.80);
   transition: background .18s ease, color .18s ease;
@@ -367,10 +367,10 @@ textarea:focus{
 .prose img{ width: 100%; border-radius: 18px; margin: 20px 0; }
 
 @media (max-width: 720px){
-  h1{ font-size: clamp(2.3rem, 12vw, 4rem); }
-  h2{ font-size: 1.85rem; }
-  .nav-inner{ padding: 14px 0; }
-  .logo{ width: 48px; height: 48px; border-radius:16px; }
-  .btn{ min-height:58px; width:100%; }
+  h1{ font-size: clamp(2.15rem, 10.5vw, 3.45rem); line-height:1.05; }
+  h2{ font-size: 1.65rem; line-height:1.12; }
+  .nav-inner{ padding: 12px 0; }
+  .logo{ width: 46px; height: 46px; border-radius:16px; }
+  .btn{ min-height:54px; width:100%; }
   .card .pad{ padding: 20px; }
 }
