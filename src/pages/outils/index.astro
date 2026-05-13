@@ -2879,8 +2879,8 @@ const prefEndDot = isPreferredEnd
           <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round" />
           ${prefStartDot}
           ${prefEndDot}
-          <text x="${startLabelPos.x}" y="${startLabelPos.y}" text-anchor="middle" dominant-baseline="middle" fill="rgba(241,247,252,0.96)" font-size="13" font-weight="700">${escapeHtml(runway.startLabel)}</text>
-          <text x="${endLabelPos.x}" y="${endLabelPos.y}" text-anchor="middle" dominant-baseline="middle" fill="rgba(241,247,252,0.96)" font-size="13" font-weight="700">${escapeHtml(runway.endLabel)}</text>
+          <text x="${startLabelPos.x}" y="${startLabelPos.y}" text-anchor="middle" dominant-baseline="middle" fill="rgba(241,247,252,0.96)" font-size="11.5" font-weight="700">${escapeHtml(runway.startLabel)}</text>
+          <text x="${endLabelPos.x}" y="${endLabelPos.y}" text-anchor="middle" dominant-baseline="middle" fill="rgba(241,247,252,0.96)" font-size="11.5" font-weight="700">${escapeHtml(runway.endLabel)}</text>
         `;
       }).join("");
 
@@ -7783,6 +7783,142 @@ function renderUlmNearbyItem(item) {
     .nesdz-premium-ui .tool-page .decoded-note--micro,
     .nesdz-premium-ui .tool-page .taf-decoder-meta {
       font-size: .94rem;
+    }
+
+
+    @media (min-width: 1180px) {
+      .tool-page {
+        width: min(calc(100% - 44px), 1220px);
+        max-width: 1220px;
+      }
+
+      .tool-page > .card > .pad {
+        padding: 18px 18px 20px;
+      }
+
+      .tool-page h1 {
+        font-size: clamp(1.5rem, 2.05vw, 1.92rem);
+        line-height: 0.99;
+        margin-bottom: 4px;
+      }
+
+      .tool-page h2 {
+        font-size: clamp(1.08rem, 1.38vw, 1.34rem);
+        margin-bottom: 7px;
+      }
+
+      .tool-page .tool-block {
+        margin-top: 16px;
+      }
+
+      .tool-page .tool-entry-block {
+        padding: 10px 12px 12px;
+      }
+
+      .tool-page .tool-search-col {
+        flex-basis: 420px;
+        min-width: min(100%, 420px);
+      }
+
+      .tool-page .tool-entry-actions {
+        flex-basis: 192px;
+        min-width: min(100%, 192px);
+      }
+
+      .tool-page .tool-block input {
+        min-height: 42px;
+        padding: 9px 12px;
+        font-size: 0.94rem;
+      }
+
+      .tool-page .tool-entry-actions .tool-action-btn {
+        min-height: 36px;
+        padding: 7px 12px;
+        font-size: 0.86rem;
+      }
+
+      .tool-page .decoded-grid {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .tool-page .decoded-card {
+        padding: 11px 12px;
+        border-radius: 11px;
+      }
+
+      .tool-page .decoded-label {
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card-status strong,
+      .tool-page .decoded-grid--summary .decoded-card-terrain strong {
+        font-size: 0.98rem;
+        line-height: 1.28;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card-metric strong,
+      .tool-page .decoded-context-card strong,
+      .tool-page .radio-primary-main,
+      .tool-page .radio-support-main {
+        font-size: 0.95rem;
+        line-height: 1.28;
+      }
+
+      .tool-page .decoded-micro-note,
+      .tool-page .decoded-context-meta,
+      .tool-page .radio-primary-label,
+      .tool-page .radio-support-label {
+        font-size: 0.82rem;
+      }
+
+      .tool-page .radio-primary {
+        padding: 12px;
+      }
+
+      .tool-page .radio-support-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 8px;
+      }
+
+      .tool-page .radio-support-card {
+        padding: 10px 11px;
+      }
+
+      .tool-page .radio-secondary-summary {
+        min-height: 40px;
+        padding: 10px 12px;
+      }
+
+      .tool-page .terrain-visual-card {
+        gap: 10px;
+        padding: 12px;
+      }
+
+      .tool-page .terrain-visual-canvas {
+        max-width: 420px;
+        min-height: 0;
+        margin-inline: auto;
+      }
+
+      .tool-page .platform-doc-link {
+        min-width: 118px;
+        padding: 10px 12px;
+      }
+
+      .tool-page .taf-meta-card strong {
+        font-size: 0.9rem;
+      }
+
+      .tool-page .taf-disclosure > summary {
+        padding: 11px 12px;
+      }
+
+      .tool-page .taf-disclosure-content {
+        padding: 0 12px 12px;
+      }
     }
 
     @media (max-width: 720px) {
