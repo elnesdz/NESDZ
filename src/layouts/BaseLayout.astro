@@ -112,9 +112,9 @@ const ogType = isArticlePage ? "article" : "website";
         <style>
       .nav-inner {
         display: grid;
-        grid-template-columns: auto minmax(280px, 1fr) auto;
+        grid-template-columns: auto minmax(250px, 1fr) auto;
         align-items: center;
-        gap: 24px;
+        gap: 20px;
       }
 
       .brand-subtitle {
@@ -134,7 +134,7 @@ const ogType = isArticlePage ? "article" : "website";
       .nav-spotlight::before {
         content: "";
         position: absolute;
-        inset: -14px -28px;
+        inset: -12px -22px;
         border-radius: 999px;
         background: radial-gradient(circle, rgba(33,183,255,.16), transparent 72%);
         pointer-events: none;
@@ -158,9 +158,9 @@ const ogType = isArticlePage ? "article" : "website";
       .navlinks a {
         color: rgba(244, 248, 255, 0.78);
         text-decoration: none;
-        font-size: 0.97rem;
+        font-size: 0.92rem;
         line-height: 1.2;
-        padding: 10px 12px;
+        padding: 8px 10px;
         border-radius: 14px;
         border: 1px solid transparent;
         transition: color 0.18s ease, opacity 0.18s ease, background 0.18s ease, border-color .18s ease;
@@ -181,11 +181,11 @@ const ogType = isArticlePage ? "article" : "website";
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 58px;
-        padding: 14px 24px;
+        min-height: 52px;
+        padding: 12px 22px;
         border-radius: 999px;
         text-decoration: none;
-        font-size: 1rem;
+        font-size: 0.95rem;
         font-weight: 800;
         line-height: 1;
         letter-spacing: 0.012em;
@@ -195,7 +195,7 @@ const ogType = isArticlePage ? "article" : "website";
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.28),
           0 0 0 1px rgba(133, 208, 245, 0.22),
-          0 18px 42px rgba(12, 86, 130, 0.34),
+          0 14px 34px rgba(12, 86, 130, 0.30),
           0 0 56px rgba(72, 194, 255, 0.22);
         text-shadow: 0 1px 0 rgba(6, 12, 18, 0.26);
         white-space: nowrap;
@@ -203,7 +203,7 @@ const ogType = isArticlePage ? "article" : "website";
       }
 
       .service-cta--spotlight {
-        min-height: 58px;
+        min-height: 52px;
         padding: 16px 34px;
         min-width: min(316px, 100%);
         font-size: 1.05rem;
@@ -219,7 +219,7 @@ const ogType = isArticlePage ? "article" : "website";
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.24),
           0 0 0 1px rgba(133, 208, 245, 0.22),
-          0 18px 42px rgba(12, 86, 130, 0.38),
+          0 14px 36px rgba(12, 86, 130, 0.32),
           0 0 60px rgba(72, 194, 255, 0.26);
         filter: saturate(1.04);
       }
@@ -289,7 +289,7 @@ const ogType = isArticlePage ? "article" : "website";
         }
 
         .navlinks a {
-          font-size: 1rem;
+          font-size: 0.95rem;
           line-height: 1.2;
           white-space: nowrap;
         }
