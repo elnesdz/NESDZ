@@ -288,21 +288,35 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               <div id="tafVisualBlock" class="taf-visual-block" hidden>
                 <div class="taf-visual-head">
                   <div>
-                    <span class="taf-visual-kicker">Graphique TAF</span>
-                    <strong>Tendance prévisionnelle</strong>
+                    <span class="taf-visual-kicker">Lecture TAF</span>
+                    <strong>Chronologie décodée</strong>
                   </div>
-                  <span class="taf-visual-source">TAF brut décodé · UTC</span>
+                  <span class="taf-visual-source">Codes TAF conservés · lecture guidée</span>
                 </div>
 
-                <div id="tafVisualBadges" class="taf-visual-badges" hidden></div>
+                <p class="taf-visual-intro">
+                  Les codes aéronautiques restent visibles. Chaque phase est accompagnée d’une lecture courte pour garder un langage pilote, sans perdre un élève ou un novice.
+                </p>
 
-                <div class="taf-visual-timeline-wrap" aria-label="Frise horaire du TAF">
-                  <div id="tafVisualScale" class="taf-visual-scale"></div>
-                  <div id="tafVisualBands" class="taf-visual-bands"></div>
-                </div>
-
-                <div id="tafVisualMatrix" class="taf-visual-matrix"></div>
                 <div id="tafVisualCards" class="taf-visual-cards"></div>
+
+                <details class="taf-visual-disclosure">
+                  <summary>
+                    <span class="taf-visual-disclosure-title">Vue technique TAF</span>
+                    <span class="taf-visual-disclosure-note">Frise horaire et tableau par phase</span>
+                  </summary>
+
+                  <div class="taf-visual-disclosure-content">
+                    <div id="tafVisualBadges" class="taf-visual-badges" hidden></div>
+
+                    <div class="taf-visual-timeline-wrap" aria-label="Frise horaire du TAF">
+                      <div id="tafVisualScale" class="taf-visual-scale"></div>
+                      <div id="tafVisualBands" class="taf-visual-bands"></div>
+                    </div>
+
+                    <div id="tafVisualMatrix" class="taf-visual-matrix"></div>
+                  </div>
+                </details>
 
                 <p class="taf-visual-note">
                   Lecture graphique factuelle : les valeurs sont extraites du TAF disponible. Les catégories affichées sont indicatives et ne remplacent pas le briefing officiel.
@@ -1277,13 +1291,29 @@ let ulmDetailsPromise = null;
 
     function getTafGroupTypeLabel(group = {}) {
       const type = String(group.type || "BASE").toUpperCase();
-      if (type === "BASE") return "Base";
+      if (type === "BASE") return "BASE";
       if (type === "FM") return "FM";
       if (type === "BECMG") return "BECMG";
       if (type === "TEMPO") return "TEMPO";
       if (type === "INTER") return "INTER";
       if (/^PROB(30|40)$/.test(type)) return group.subType ? `${type} ${group.subType}` : type;
       return type;
+    }
+
+    function getTafGroupExplainLabel(group = {}) {
+      const type = String(group.type || "BASE").toUpperCase();
+      if (type === "BASE") return "Prévision principale sur la période publiée";
+      if (type === "FM") return "Changement net à partir de l’heure indiquée";
+      if (type === "BECMG") return "Évolution progressive sur la plage indiquée";
+      if (type === "TEMPO") return "Conditions temporaires possibles sur la plage";
+      if (type === "INTER") return "Conditions intermittentes possibles sur la plage";
+      if (/^PROB(30|40)$/.test(type)) {
+        const probability = type.replace("PROB", "Probabilité ") + " %";
+        if (group.subType === "TEMPO") return `${probability} de conditions temporaires`;
+        if (group.subType === "INTER") return `${probability} de conditions intermittentes`;
+        return `${probability} que les conditions indiquées se produisent`;
+      }
+      return "Phase issue du TAF brut";
     }
 
     function getTafGroupTone(group = {}) {
@@ -1594,7 +1624,10 @@ let ulmDetailsPromise = null;
       tafVisualCards.innerHTML = groups.map((group) => `
         <article class="taf-visual-card taf-visual-card--${escapeHtml(group.tone)}">
           <div class="taf-visual-card-top">
-            <span>${escapeHtml(group.label)}</span>
+            <div class="taf-visual-card-heading">
+              <span class="taf-visual-card-code">${escapeHtml(group.label)}</span>
+              <p class="taf-visual-card-explain">${escapeHtml(getTafGroupExplainLabel(group))}</p>
+            </div>
             <strong class="taf-visual-cat taf-visual-cat--${escapeHtml(group.analysis.category.tone)}">${escapeHtml(group.analysis.category.label)}</strong>
           </div>
           <p class="taf-visual-range">${escapeHtml(group.rangeLabel)}</p>
@@ -7173,6 +7206,571 @@ function renderUlmNearbyItem(item) {
 
     .tool-page .decoded-grid--forecast {
       grid-template-columns: 1fr;
+    }
+
+    .tool-page .taf-decode-card {
+      display: grid;
+      gap: 12px;
+    }
+
+    .tool-page .taf-head {
+      display: grid;
+      gap: 6px;
+    }
+
+    .tool-page .taf-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .tool-page .taf-meta-card {
+      display: grid;
+      gap: 5px;
+      padding: 12px 13px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .tool-page .taf-meta-card--compact {
+      align-content: start;
+    }
+
+    .tool-page .taf-meta-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(139, 220, 255, 0.92);
+    }
+
+    .tool-page .taf-meta-card strong {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #f5fbff;
+    }
+
+    .tool-page .taf-decoder-meta {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.58;
+      font-size: 0.93rem;
+    }
+
+    .tool-page .taf-decode-block {
+      display: grid;
+      gap: 12px;
+      margin-top: 2px;
+    }
+
+    .tool-page .taf-disclosure {
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255,255,255,0.06);
+      overflow: hidden;
+    }
+
+    .tool-page .taf-disclosure > summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 13px 14px;
+      cursor: pointer;
+      background: linear-gradient(180deg, rgba(130, 197, 235, 0.12), rgba(130, 197, 235, 0.04));
+    }
+
+    .tool-page .taf-disclosure > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .tool-page .taf-disclosure-title {
+      font-size: 0.84rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(139, 220, 255, 0.92);
+    }
+
+    .tool-page .taf-disclosure-count {
+      min-width: 30px;
+      padding: 2px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(7, 18, 31, 0.5);
+      text-align: center;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #dff4ff;
+    }
+
+    .tool-page .taf-disclosure-content {
+      display: grid;
+      gap: 10px;
+      padding: 0 14px 14px;
+    }
+
+    .tool-page .taf-bullet-list {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 7px;
+      color: rgba(231, 238, 247, 0.94);
+      line-height: 1.6;
+    }
+
+    .tool-page .taf-bullet-list--nested {
+      padding-left: 18px;
+      gap: 6px;
+    }
+
+    .tool-page .taf-timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .tool-page .taf-timeline-item {
+      display: grid;
+      gap: 7px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .tool-page .taf-timeline-title {
+      font-size: 0.95rem;
+      line-height: 1.45;
+      color: #f5fbff;
+    }
+
+
+
+    .tool-page .taf-visual-block {
+      margin-top: 1rem;
+      border: 1px solid rgba(125, 211, 252, 0.22);
+      border-radius: 24px;
+      background:
+        linear-gradient(135deg, rgba(8, 19, 31, 0.96), rgba(12, 28, 42, 0.9)),
+        radial-gradient(circle at top right, rgba(34, 211, 238, 0.16), transparent 34%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 40px rgba(0, 0, 0, 0.24);
+      padding: clamp(1rem, 2vw, 1.35rem);
+      overflow: hidden;
+      display: grid;
+      gap: 0.95rem;
+    }
+
+    .tool-page .taf-visual-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .tool-page .taf-visual-head strong {
+      display: block;
+      color: rgba(241, 247, 252, 0.98);
+      font-size: clamp(1.05rem, 2vw, 1.22rem);
+      letter-spacing: -0.02em;
+    }
+
+    .tool-page .taf-visual-kicker,
+    .tool-page .taf-visual-source {
+      color: rgba(148, 163, 184, 0.95);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .tool-page .taf-visual-source {
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 999px;
+      padding: 0.4rem 0.7rem;
+      white-space: nowrap;
+    }
+
+    .tool-page .taf-visual-intro {
+      margin: -0.1rem 0 0;
+      color: rgba(214, 229, 246, 0.9);
+      font-size: 0.9rem;
+      line-height: 1.55;
+      max-width: 76ch;
+    }
+
+    .tool-page .taf-visual-disclosure {
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 20px;
+      background: rgba(2, 8, 23, 0.36);
+      overflow: hidden;
+    }
+
+    .tool-page .taf-visual-disclosure > summary {
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.95rem 1rem;
+      cursor: pointer;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    }
+
+    .tool-page .taf-visual-disclosure > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .tool-page .taf-visual-disclosure-title {
+      color: rgba(241, 247, 252, 0.96);
+      font-size: 0.86rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .tool-page .taf-visual-disclosure-note {
+      color: rgba(148, 163, 184, 0.9);
+      font-size: 0.8rem;
+      line-height: 1.35;
+      text-align: right;
+    }
+
+    .tool-page .taf-visual-disclosure-content {
+      display: grid;
+      gap: 0.95rem;
+      padding: 0 1rem 1rem;
+    }
+
+    .tool-page .taf-visual-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .tool-page .taf-visual-badges span {
+      border: 1px solid rgba(250, 204, 21, 0.28);
+      border-radius: 999px;
+      background: rgba(250, 204, 21, 0.08);
+      color: rgba(254, 240, 138, 0.96);
+      font-size: 0.76rem;
+      font-weight: 800;
+      padding: 0.36rem 0.62rem;
+    }
+
+    .tool-page .taf-visual-timeline-wrap {
+      position: relative;
+      min-height: 92px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 20px;
+      background: rgba(2, 8, 23, 0.42);
+      overflow: hidden;
+    }
+
+    .tool-page .taf-visual-scale { position: absolute; inset: 0; pointer-events: none; }
+
+    .tool-page .taf-visual-tick {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      transform: translateX(-50%);
+      color: rgba(148, 163, 184, 0.76);
+      font-size: 0.68rem;
+      font-weight: 800;
+    }
+
+    .tool-page .taf-visual-tick i {
+      display: block;
+      width: 1px;
+      height: 100%;
+      background: linear-gradient(to bottom, rgba(148, 163, 184, 0.28), rgba(148, 163, 184, 0.06));
+      margin: 0 auto;
+    }
+
+    .tool-page .taf-visual-tick b {
+      position: absolute;
+      top: 0.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-weight: 800;
+    }
+
+    .tool-page .taf-visual-bands { position: absolute; left: 0.75rem; right: 0.75rem; bottom: 0.78rem; height: 42px; }
+
+    .tool-page .taf-visual-band {
+      position: absolute;
+      top: 0;
+      height: 42px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 58px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+    }
+
+    .tool-page .taf-visual-band span {
+      color: rgba(241, 247, 252, 0.96);
+      font-size: 0.72rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      padding: 0 0.45rem;
+    }
+
+    .tool-page .taf-visual-band--base { background: linear-gradient(135deg, rgba(14, 165, 233, 0.34), rgba(6, 182, 212, 0.18)); }
+    .tool-page .taf-visual-band--fm { background: linear-gradient(135deg, rgba(59, 130, 246, 0.42), rgba(14, 165, 233, 0.22)); }
+    .tool-page .taf-visual-band--tempo { background: linear-gradient(135deg, rgba(249, 115, 22, 0.42), rgba(234, 179, 8, 0.22)); }
+    .tool-page .taf-visual-band--becmg { background: linear-gradient(135deg, rgba(168, 85, 247, 0.4), rgba(14, 165, 233, 0.18)); }
+    .tool-page .taf-visual-band--prob { background: linear-gradient(135deg, rgba(236, 72, 153, 0.38), rgba(249, 115, 22, 0.18)); }
+
+    .tool-page .taf-visual-matrix {
+      display: grid;
+      gap: 0.46rem;
+      min-width: 0;
+      overflow-x: auto;
+      padding-bottom: 0.25rem;
+    }
+
+    .tool-page .taf-visual-row {
+      display: grid;
+      grid-template-columns: 104px minmax(560px, 1fr);
+      gap: 0.55rem;
+      align-items: stretch;
+    }
+
+    .tool-page .taf-visual-row-label {
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.74);
+      color: rgba(226, 232, 240, 0.9);
+      display: flex;
+      align-items: center;
+      padding: 0.55rem 0.65rem;
+      font-size: 0.78rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tool-page .taf-visual-row-grid { display: grid; grid-template-columns: repeat(var(--taf-cols), minmax(118px, 1fr)); gap: 0.42rem; }
+
+    .tool-page .taf-visual-cell {
+      min-height: 42px;
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.64);
+      color: rgba(241, 247, 252, 0.94);
+      padding: 0.55rem 0.62rem;
+      font-size: 0.82rem;
+      font-weight: 750;
+      line-height: 1.25;
+      display: flex;
+      align-items: center;
+      overflow-wrap: anywhere;
+    }
+
+    .tool-page .taf-cell--tone-base { border-color: rgba(34, 211, 238, 0.26); color: rgba(186, 230, 253, 0.98); }
+    .tool-page .taf-cell--tone-fm { border-color: rgba(96, 165, 250, 0.3); color: rgba(191, 219, 254, 0.98); }
+    .tool-page .taf-cell--tone-tempo { border-color: rgba(251, 191, 36, 0.35); color: rgba(254, 240, 138, 0.98); }
+    .tool-page .taf-cell--tone-becmg { border-color: rgba(192, 132, 252, 0.32); color: rgba(233, 213, 255, 0.98); }
+    .tool-page .taf-cell--tone-prob { border-color: rgba(244, 114, 182, 0.32); color: rgba(251, 207, 232, 0.98); }
+    .tool-page .taf-cell--cat-vfr { background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.36); color: rgba(187, 247, 208, 0.98); }
+    .tool-page .taf-cell--cat-mvfr { background: rgba(59, 130, 246, 0.12); border-color: rgba(96, 165, 250, 0.36); color: rgba(191, 219, 254, 0.98); }
+    .tool-page .taf-cell--cat-ifr { background: rgba(239, 68, 68, 0.13); border-color: rgba(248, 113, 113, 0.38); color: rgba(254, 202, 202, 0.98); }
+    .tool-page .taf-cell--cat-lifr { background: rgba(168, 85, 247, 0.16); border-color: rgba(192, 132, 252, 0.38); color: rgba(233, 213, 255, 0.98); }
+
+    .tool-page .taf-visual-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 0.8rem;
+    }
+
+    .tool-page .taf-visual-card {
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 20px;
+      background: rgba(15, 23, 42, 0.68);
+      padding: 0.95rem;
+      min-width: 0;
+    }
+
+    .tool-page .taf-visual-card--base { border-color: rgba(34, 211, 238, 0.22); }
+    .tool-page .taf-visual-card--fm { border-color: rgba(96, 165, 250, 0.24); }
+    .tool-page .taf-visual-card--tempo { border-color: rgba(251, 191, 36, 0.28); }
+    .tool-page .taf-visual-card--becmg { border-color: rgba(192, 132, 252, 0.26); }
+    .tool-page .taf-visual-card--prob { border-color: rgba(244, 114, 182, 0.26); }
+
+    .tool-page .taf-visual-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.7rem;
+    }
+
+    .tool-page .taf-visual-card-heading {
+      display: grid;
+      gap: 0.22rem;
+      min-width: 0;
+    }
+
+    .tool-page .taf-visual-card-code {
+      color: rgba(241, 247, 252, 0.98);
+      font-size: 0.9rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tool-page .taf-visual-card-explain {
+      margin: 0;
+      color: rgba(191, 219, 254, 0.86);
+      font-size: 0.8rem;
+      line-height: 1.4;
+    }
+
+    .tool-page .taf-visual-cat {
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 999px;
+      padding: 0.28rem 0.5rem;
+      font-size: 0.74rem;
+      flex-shrink: 0;
+    }
+
+    .tool-page .taf-visual-cat--vfr { border-color: rgba(34, 197, 94, 0.38); color: rgba(187, 247, 208, 0.98); }
+    .tool-page .taf-visual-cat--mvfr { border-color: rgba(96, 165, 250, 0.38); color: rgba(191, 219, 254, 0.98); }
+    .tool-page .taf-visual-cat--ifr { border-color: rgba(248, 113, 113, 0.42); color: rgba(254, 202, 202, 0.98); }
+    .tool-page .taf-visual-cat--lifr { border-color: rgba(192, 132, 252, 0.42); color: rgba(233, 213, 255, 0.98); }
+
+    .tool-page .taf-visual-range {
+      color: rgba(148, 163, 184, 0.96);
+      font-size: 0.8rem;
+      line-height: 1.45;
+      margin: 0.6rem 0 0.78rem;
+    }
+
+    .tool-page .taf-visual-facts {
+      display: grid;
+      gap: 0.44rem;
+      margin: 0;
+    }
+
+    .tool-page .taf-visual-facts div {
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 0.5rem;
+      align-items: baseline;
+    }
+
+    .tool-page .taf-visual-facts dt {
+      color: rgba(148, 163, 184, 0.86);
+      font-size: 0.72rem;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tool-page .taf-visual-facts dd {
+      margin: 0;
+      color: rgba(226, 232, 240, 0.94);
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+
+    .tool-page .taf-visual-card code {
+      display: block;
+      margin-top: 0.78rem;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(2, 8, 23, 0.58);
+      color: rgba(203, 213, 225, 0.94);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.72rem;
+      line-height: 1.45;
+      padding: 0.58rem;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .tool-page .taf-visual-note {
+      margin: 0;
+      color: rgba(148, 163, 184, 0.94);
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 900px) {
+      .tool-page .taf-meta-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .tool-page .taf-visual-card-top {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .tool-page .taf-visual-block {
+        border-radius: 20px;
+        padding: 0.9rem;
+      }
+
+      .tool-page .taf-visual-head {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .tool-page .taf-visual-source {
+        white-space: normal;
+      }
+
+      .tool-page .taf-visual-intro {
+        font-size: 0.84rem;
+        line-height: 1.5;
+      }
+
+      .tool-page .taf-visual-disclosure > summary {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .tool-page .taf-visual-disclosure-note {
+        text-align: left;
+      }
+
+      .tool-page .taf-visual-disclosure-content {
+        padding: 0 0.85rem 0.85rem;
+      }
+
+      .tool-page .taf-visual-timeline-wrap {
+        min-height: 84px;
+        overflow-x: auto;
+      }
+
+      .tool-page .taf-visual-scale,
+      .tool-page .taf-visual-bands {
+        min-width: 620px;
+      }
+
+      .tool-page .taf-visual-matrix {
+        display: none;
+      }
+
+      .tool-page .taf-visual-cards {
+        grid-template-columns: 1fr;
+        gap: 0.72rem;
+      }
+
+      .tool-page .taf-visual-card {
+        padding: 0.85rem;
+      }
+
+      .tool-page .taf-visual-card code {
+        font-size: 0.68rem;
+      }
     }
 
     .tool-page .taf-decode-card {
