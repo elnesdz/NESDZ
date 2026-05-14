@@ -309,6 +309,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                   <div class="taf-visual-disclosure-content">
                     <div id="tafVisualBadges" class="taf-visual-badges" hidden></div>
 
+                    <div id="tafVisualMobileList" class="taf-visual-mobile-list" hidden></div>
+
                     <div class="taf-visual-timeline-wrap" aria-label="Frise horaire du TAF">
                       <div id="tafVisualScale" class="taf-visual-scale"></div>
                       <div id="tafVisualBands" class="taf-visual-bands"></div>
@@ -535,6 +537,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const tafTempList = document.getElementById("tafTempList");
     const tafVisualBlock = document.getElementById("tafVisualBlock");
     const tafVisualBadges = document.getElementById("tafVisualBadges");
+    const tafVisualMobileList = document.getElementById("tafVisualMobileList");
     const tafVisualScale = document.getElementById("tafVisualScale");
     const tafVisualBands = document.getElementById("tafVisualBands");
     const tafVisualMatrix = document.getElementById("tafVisualMatrix");
@@ -999,6 +1002,7 @@ let ulmDetailsPromise = null;
       if (tafTempList) tafTempList.innerHTML = "";
       if (tafVisualBlock) tafVisualBlock.hidden = true;
       if (tafVisualBadges) { tafVisualBadges.hidden = true; tafVisualBadges.innerHTML = ""; }
+      if (tafVisualMobileList) { tafVisualMobileList.hidden = true; tafVisualMobileList.innerHTML = ""; }
       if (tafVisualScale) tafVisualScale.innerHTML = "";
       if (tafVisualBands) tafVisualBands.innerHTML = "";
       if (tafVisualMatrix) tafVisualMatrix.innerHTML = "";
@@ -1316,6 +1320,29 @@ let ulmDetailsPromise = null;
       return "Phase issue du TAF brut";
     }
 
+    function getTafBandLabel(group = {}) {
+      const type = String(group.type || "BASE").toUpperCase();
+      if (type === "BASE") return "BASE";
+      if (type === "FM") return "FM";
+      if (type === "BECMG") return "BECMG";
+      if (type === "TEMPO") return "TEMPO";
+      if (type === "INTER") return "INTER";
+      if (/^PROB(30|40)$/.test(type)) return type;
+      return type;
+    }
+
+    function getTafMobilePhaseHint(group = {}) {
+      const type = String(group.type || "BASE").toUpperCase();
+      if (type === "BASE") return "Prévision principale";
+      if (type === "FM") return "Changement net";
+      if (type === "BECMG") return "Évolution progressive";
+      if (type === "TEMPO") return "Temporairement";
+      if (type === "INTER") return "Par intermittence";
+      if (type === "PROB30") return "Probabilité 30 %";
+      if (type === "PROB40") return "Probabilité 40 %";
+      return "Phase TAF";
+    }
+
     function getTafGroupTone(group = {}) {
       const type = String(group.type || "BASE").toUpperCase();
       if (type === "BASE") return "base";
@@ -1595,11 +1622,11 @@ let ulmDetailsPromise = null;
         `).join("");
         tafVisualBands.innerHTML = groups.map((group) => {
           const position = getTafVisualPosition(group, timelineStart, timelineEnd);
-          return `<div class="taf-visual-band taf-visual-band--${escapeHtml(group.tone)}" style="left:${position.left.toFixed(2)}%;width:${position.width.toFixed(2)}%"><span>${escapeHtml(group.label)}</span></div>`;
+          return `<div class="taf-visual-band taf-visual-band--${escapeHtml(group.tone)}" style="left:${position.left.toFixed(2)}%;width:${position.width.toFixed(2)}%"><span>${escapeHtml(getTafBandLabel(group))}</span></div>`;
         }).join("");
       } else {
         tafVisualScale.innerHTML = "";
-        tafVisualBands.innerHTML = groups.map((group, index) => `<div class="taf-visual-band taf-visual-band--${escapeHtml(group.tone)}" style="left:${(index / cols * 100).toFixed(2)}%;width:${(100 / cols).toFixed(2)}%"><span>${escapeHtml(group.label)}</span></div>`).join("");
+        tafVisualBands.innerHTML = groups.map((group, index) => `<div class="taf-visual-band taf-visual-band--${escapeHtml(group.tone)}" style="left:${(index / cols * 100).toFixed(2)}%;width:${(100 / cols).toFixed(2)}%"><span>${escapeHtml(getTafBandLabel(group))}</span></div>`).join("");
       }
 
       const rows = [
@@ -1631,7 +1658,7 @@ let ulmDetailsPromise = null;
                 <p class="taf-visual-card-explain">${escapeHtml(getTafGroupExplainLabel(group))}</p>
                 <p class="taf-visual-range">${escapeHtml(group.rangeLabel)}</p>
               </div>
-              <strong class="taf-visual-cat taf-visual-cat--${escapeHtml(group.analysis.category.tone)}"><span class="taf-visual-cat-dot" aria-hidden="true"></span>${escapeHtml(group.analysis.category.label)}</strong>
+              <strong class="taf-visual-cat taf-visual-cat--${escapeHtml(group.analysis.category.tone)}">${escapeHtml(group.analysis.category.label)}</strong>
             </div>
           </summary>
           <div class="taf-phase-body">
@@ -1646,6 +1673,25 @@ let ulmDetailsPromise = null;
           </div>
         </details>
       `).join("");
+
+      if (tafVisualMobileList) {
+        tafVisualMobileList.hidden = false;
+        tafVisualMobileList.innerHTML = groups.map((group) => `
+          <div class="taf-visual-mobile-item taf-visual-mobile-item--${escapeHtml(group.tone)}">
+            <div class="taf-visual-mobile-top">
+              <span class="taf-visual-mobile-code">${escapeHtml(group.label)}</span>
+              <strong class="taf-visual-cat taf-visual-cat--${escapeHtml(group.analysis.category.tone)}">${escapeHtml(group.analysis.category.label)}</strong>
+            </div>
+            <p class="taf-visual-mobile-hint">${escapeHtml(getTafMobilePhaseHint(group))}</p>
+            <p class="taf-visual-mobile-range">${escapeHtml(group.rangeLabel)}</p>
+            <div class="taf-visual-mobile-facts">
+              <span>${escapeHtml(group.analysis.visibility)}</span>
+              <span>${escapeHtml(group.analysis.ceiling)}</span>
+              <span>${escapeHtml(group.analysis.wind)}</span>
+            </div>
+          </div>
+        `).join("");
+      }
 
       const badges = [];
       if (groups.some((group) => group.type === "TEMPO" || group.type === "INTER")) badges.push("TEMPO / INTER");
@@ -2871,15 +2917,26 @@ function normalizeUlmDetailsRecord(item) {
       platformWindMeta.textContent = getWindMetaLabel();
 
       const cx = 160;
-      const cy = 110;
-      const radius = 78;
-      const runLength = 72;
+      const cy = 112;
+      const outerRadius = 86;
+      const innerRadius = 58;
+      const runLength = 74;
       const bestWind = getBestWindAlignedHeading(runways);
 
+      const cardinalLabels = [
+        { label: "N", heading: 360 },
+        { label: "E", heading: 90 },
+        { label: "S", heading: 180 },
+        { label: "W", heading: 270 },
+      ].map((cardinal) => {
+        const pos = headingToPoint(cx, cy, outerRadius + 16, cardinal.heading);
+        return `<text x="${pos.x}" y="${pos.y}" text-anchor="middle" dominant-baseline="middle" fill="rgba(159, 189, 214, 0.78)" font-size="9.5" font-weight="700">${cardinal.label}</text>`;
+      }).join("");
+
       const ringMarkup = `
-        <circle cx="${cx}" cy="${cy}" r="88" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1" />
-        <circle cx="${cx}" cy="${cy}" r="70" fill="none" stroke="rgba(103,183,224,0.10)" stroke-width="1" stroke-dasharray="4 6" />
-        <circle cx="${cx}" cy="${cy}" r="44" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="3 6" />
+        <circle cx="${cx}" cy="${cy}" r="${outerRadius}" fill="none" stroke="rgba(143, 198, 237, 0.12)" stroke-width="1.4" />
+        <circle cx="${cx}" cy="${cy}" r="${innerRadius}" fill="none" stroke="rgba(143, 198, 237, 0.08)" stroke-width="1" stroke-dasharray="5 7" />
+        <circle cx="${cx}" cy="${cy}" r="28" fill="none" stroke="rgba(143, 198, 237, 0.06)" stroke-width="1" stroke-dasharray="4 7" />
       `;
 
       const runwayMarkup = runways.map((runway) => {
@@ -2892,71 +2949,109 @@ function normalizeUlmDetailsRecord(item) {
         const startLabelPos = headingToPoint(cx, cy, runLength + 18, runway.angleDeg);
         const endLabelPos = headingToPoint(cx, cy, runLength + 18, runway.reciprocalDeg);
 
-        const stroke = isBestAxis ? "rgba(136, 225, 255, 0.96)" : "rgba(216, 232, 244, 0.84)";
-        const strokeWidth = isBestAxis ? 5.5 : 4;
-        const glow = isBestAxis ? `
-          <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="rgba(90, 203, 255, 0.18)" stroke-width="11" stroke-linecap="round" />
-        ` : "";
+        const glowStroke = isBestAxis ? "rgba(121, 223, 255, 0.36)" : "rgba(170, 188, 208, 0.12)";
+        const stroke = isBestAxis ? "rgba(126, 226, 255, 0.98)" : "rgba(218, 231, 242, 0.82)";
+        const coreStroke = isBestAxis ? "rgba(231, 248, 255, 0.98)" : "rgba(192, 208, 221, 0.72)";
 
-const prefStartDot = isPreferredStart
-  ? `
-    <circle cx="${start.x}" cy="${start.y}" r="11" fill="rgba(246, 178, 107, 0.14)" />
-    <circle cx="${start.x}" cy="${start.y}" r="7.5" fill="none" stroke="rgba(246, 178, 107, 0.90)" stroke-width="2.2" />
-    <circle cx="${start.x}" cy="${start.y}" r="3.2" fill="#f6b26b" stroke="rgba(255,255,255,0.55)" stroke-width="0.9" />
-  `
-  : "";
+        const prefStartDot = isPreferredStart
+          ? `<circle cx="${start.x}" cy="${start.y}" r="5.6" fill="rgba(246, 178, 107, 0.92)" stroke="rgba(255,255,255,0.55)" stroke-width="1" />`
+          : "";
 
-const prefEndDot = isPreferredEnd
-  ? `
-    <circle cx="${end.x}" cy="${end.y}" r="11" fill="rgba(246, 178, 107, 0.14)" />
-    <circle cx="${end.x}" cy="${end.y}" r="7.5" fill="none" stroke="rgba(246, 178, 107, 0.90)" stroke-width="2.2" />
-    <circle cx="${end.x}" cy="${end.y}" r="3.2" fill="#f6b26b" stroke="rgba(255,255,255,0.55)" stroke-width="0.9" />
-  `
-  : "";
+        const prefEndDot = isPreferredEnd
+          ? `<circle cx="${end.x}" cy="${end.y}" r="5.6" fill="rgba(246, 178, 107, 0.92)" stroke="rgba(255,255,255,0.55)" stroke-width="1" />`
+          : "";
 
         return `
-          ${glow}
-          <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round" />
+          <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${glowStroke}" stroke-width="${isBestAxis ? 14 : 10}" stroke-linecap="round" />
+          <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${stroke}" stroke-width="${isBestAxis ? 6.2 : 4.8}" stroke-linecap="round" />
+          <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${coreStroke}" stroke-width="${isBestAxis ? 1.6 : 1.1}" stroke-linecap="round" opacity="0.85" />
           ${prefStartDot}
           ${prefEndDot}
-          <text x="${startLabelPos.x}" y="${startLabelPos.y}" text-anchor="middle" dominant-baseline="middle" fill="rgba(241,247,252,0.96)" font-size="11.5" font-weight="700">${escapeHtml(runway.startLabel)}</text>
-          <text x="${endLabelPos.x}" y="${endLabelPos.y}" text-anchor="middle" dominant-baseline="middle" fill="rgba(241,247,252,0.96)" font-size="11.5" font-weight="700">${escapeHtml(runway.endLabel)}</text>
+          <text x="${startLabelPos.x}" y="${startLabelPos.y}" text-anchor="middle" dominant-baseline="middle" fill="rgba(241,247,252,0.98)" font-size="12.5" font-weight="800">${escapeHtml(runway.startLabel)}</text>
+          <text x="${endLabelPos.x}" y="${endLabelPos.y}" text-anchor="middle" dominant-baseline="middle" fill="rgba(241,247,252,0.98)" font-size="12.5" font-weight="800">${escapeHtml(runway.endLabel)}</text>
         `;
       }).join("");
 
-      const windMarkup = isCalmWind(currentWindSpeed)
-        ? `<circle cx="${cx}" cy="${cy}" r="12" fill="none" stroke="#ffb36b" stroke-width="3" stroke-dasharray="4 5" />`
-        : Number.isFinite(currentWindDirection)
-          ? (() => {
-              const start = headingToPoint(cx, cy, radius, currentWindDirection);
-              const end = headingToPoint(cx, cy, 18, currentWindDirection);
-              return `
-                <defs>
-                  <marker id="terrainWindArrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto" markerUnits="strokeWidth">
-                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#ffb36b" />
-                  </marker>
-                </defs>
-                <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="#ffb36b" stroke-width="4" stroke-linecap="round" marker-end="url(#terrainWindArrow)" />
-                <circle cx="${start.x}" cy="${start.y}" r="3.5" fill="#ffb36b" fill-opacity="0.85" />
-              `;
-            })()
-          : currentWindVariable
-            ? `<circle cx="${cx}" cy="${cy}" r="12" fill="none" stroke="#ffb36b" stroke-width="3" stroke-dasharray="5 5" />`
-            : "";
+      let windMarkup = '';
+      let infoMarkup = '';
+      if (isCalmWind(currentWindSpeed)) {
+        windMarkup = `
+          <circle cx="${cx}" cy="${cy}" r="14" fill="none" stroke="rgba(255, 183, 107, 0.92)" stroke-width="2.6" stroke-dasharray="4 5" />
+          <circle cx="${cx}" cy="${cy}" r="5" fill="rgba(255, 183, 107, 0.88)" />
+        `;
+        infoMarkup = `
+          <g transform="translate(18 18)">
+            <rect x="0" y="0" width="88" height="30" rx="15" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.08)" />
+            <text x="44" y="19" text-anchor="middle" fill="rgba(255, 226, 182, 0.95)" font-size="11" font-weight="800">Vent calme</text>
+          </g>
+        `;
+      } else if (Number.isFinite(currentWindDirection)) {
+        const fromPoint = headingToPoint(cx, cy, outerRadius - 8, currentWindDirection);
+        const toPoint = headingToPoint(cx, cy, 20, currentWindDirection);
+        const relative = bestWind ? smallestAngularDiff(bestWind.headingDeg, currentWindDirection) : null;
+        const headwind = (bestWind && Number.isFinite(currentWindSpeed)) ? Math.round(Math.cos((relative * Math.PI) / 180) * currentWindSpeed) : null
+        const crosswind = (bestWind && Number.isFinite(currentWindSpeed)) ? Math.round(Math.sin((relative * Math.PI) / 180) * currentWindSpeed) : null
+        const bestText = bestWind ? `Axe ${String(Math.round(bestWind.headingDeg / 10)).padStart(2, "0")} privilégié` : "Vent";
+        const compText = (headwind !== null && crosswind !== null)
+          ? `${Math.abs(headwind)} kt face/arrière · ${Math.abs(crosswind)} kt travers`
+          : `${currentWindDirection}° · ${currentWindSpeed} kt`;
+
+        windMarkup = `
+          <defs>
+            <filter id="windGlow">
+              <feGaussianBlur stdDeviation="2.4" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <marker id="terrainWindArrowPremium" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto" markerUnits="userSpaceOnUse">
+              <path d="M0,0 L14,7 L0,14 L4.8,7 z" fill="#ffb36b" />
+            </marker>
+          </defs>
+          <line x1="${fromPoint.x}" y1="${fromPoint.y}" x2="${toPoint.x}" y2="${toPoint.y}" stroke="rgba(255, 179, 107, 0.24)" stroke-width="10" stroke-linecap="round" filter="url(#windGlow)" />
+          <line x1="${fromPoint.x}" y1="${fromPoint.y}" x2="${toPoint.x}" y2="${toPoint.y}" stroke="#ffb36b" stroke-width="4.6" stroke-linecap="round" marker-end="url(#terrainWindArrowPremium)" />
+          <circle cx="${fromPoint.x}" cy="${fromPoint.y}" r="4.2" fill="#ffb36b" fill-opacity="0.94" />
+        `;
+        infoMarkup = `
+          <g transform="translate(16 16)">
+            <rect x="0" y="0" width="148" height="42" rx="16" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.09)" />
+            <text x="14" y="16" fill="rgba(255, 215, 167, 0.96)" font-size="10.5" font-weight="900">${escapeHtml(bestText)}</text>
+            <text x="14" y="30.5" fill="rgba(219, 232, 244, 0.9)" font-size="10.5" font-weight="700">${escapeHtml(compText)}</text>
+          </g>
+        `;
+      } else if (currentWindVariable) {
+        windMarkup = `<circle cx="${cx}" cy="${cy}" r="14" fill="none" stroke="rgba(255, 183, 107, 0.92)" stroke-width="2.6" stroke-dasharray="5 5" />`;
+        infoMarkup = `
+          <g transform="translate(18 18)">
+            <rect x="0" y="0" width="98" height="30" rx="15" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.08)" />
+            <text x="49" y="19" text-anchor="middle" fill="rgba(255, 226, 182, 0.95)" font-size="11" font-weight="800">Vent variable</text>
+          </g>
+        `;
+      }
 
       platformWindVisual.innerHTML = `
         <svg viewBox="0 0 320 220" role="img" aria-label="Vent et pistes" class="terrain-visual-svg">
           <defs>
-            <linearGradient id="terrainVisualGlow" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="rgba(103,183,224,0.16)" />
-              <stop offset="100%" stop-color="rgba(103,183,224,0.04)" />
+            <radialGradient id="terrainPanelBg" cx="50%" cy="50%" r="70%">
+              <stop offset="0%" stop-color="rgba(44, 95, 138, 0.18)" />
+              <stop offset="68%" stop-color="rgba(10, 20, 35, 0.08)" />
+              <stop offset="100%" stop-color="rgba(7, 13, 24, 0)" />
+            </radialGradient>
+            <linearGradient id="terrainGlass" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="rgba(255,255,255,0.06)" />
+              <stop offset="100%" stop-color="rgba(255,255,255,0.01)" />
             </linearGradient>
           </defs>
-          <rect x="0" y="0" width="320" height="220" rx="18" fill="url(#terrainVisualGlow)" />
+          <rect x="0" y="0" width="320" height="220" rx="18" fill="url(#terrainGlass)" />
+          <rect x="0" y="0" width="320" height="220" rx="18" fill="url(#terrainPanelBg)" />
           ${ringMarkup}
+          ${cardinalLabels}
           ${runwayMarkup}
           ${windMarkup}
-          <circle cx="${cx}" cy="${cy}" r="3.5" fill="rgba(255,255,255,0.72)" />
+          ${infoMarkup}
+          <circle cx="${cx}" cy="${cy}" r="7" fill="rgba(255,255,255,0.08)" stroke="rgba(214, 232, 247, 0.18)" />
+          <circle cx="${cx}" cy="${cy}" r="3.8" fill="rgba(244, 248, 252, 0.88)" />
         </svg>
       `;
     }
@@ -8697,5 +8792,290 @@ function renderUlmNearbyItem(item) {
         margin-top: 0.68rem;
       }
     }
+
+
+    /* --- TAF cockpit / mobile refinement pass --- */
+    .tool-page .terrain-visual-canvas {
+      min-height: 244px;
+      border-radius: 22px;
+      border: 1px solid rgba(125, 211, 252, 0.16);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(65, 126, 173, 0.18), transparent 48%),
+        linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.008)),
+        rgba(4, 12, 24, 0.88);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    .tool-page .terrain-visual-meta {
+      border: 1px solid rgba(255, 183, 107, 0.24);
+      background: rgba(51, 30, 15, 0.38);
+      color: rgba(255, 216, 166, 0.96);
+    }
+
+    .tool-page .taf-visual-source {
+      background: rgba(9, 18, 34, 0.58);
+    }
+
+    .tool-page .taf-visual-disclosure {
+      background: rgba(3, 10, 20, 0.44);
+    }
+
+    .tool-page .taf-visual-disclosure > summary {
+      padding: 1rem 1.05rem;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+    }
+
+    .tool-page .taf-visual-mobile-list {
+      display: none;
+      gap: 0.58rem;
+    }
+
+    .tool-page .taf-visual-mobile-item {
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 16px;
+      background: rgba(6, 14, 28, 0.62);
+      padding: 0.78rem 0.84rem;
+      display: grid;
+      gap: 0.3rem;
+    }
+
+    .tool-page .taf-visual-mobile-item--base { border-color: rgba(34, 211, 238, 0.24); }
+    .tool-page .taf-visual-mobile-item--tempo { border-color: rgba(251, 191, 36, 0.26); }
+    .tool-page .taf-visual-mobile-item--prob { border-color: rgba(244, 114, 182, 0.24); }
+    .tool-page .taf-visual-mobile-item--becmg { border-color: rgba(192, 132, 252, 0.24); }
+    .tool-page .taf-visual-mobile-item--fm { border-color: rgba(96, 165, 250, 0.24); }
+
+    .tool-page .taf-visual-mobile-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.7rem;
+    }
+
+    .tool-page .taf-visual-mobile-code {
+      color: rgba(246, 250, 255, 0.98);
+      font-size: 0.84rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .tool-page .taf-visual-mobile-hint,
+    .tool-page .taf-visual-mobile-range {
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    .tool-page .taf-visual-mobile-hint {
+      color: rgba(201, 221, 242, 0.92);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .tool-page .taf-visual-mobile-range {
+      color: rgba(148, 163, 184, 0.96);
+      font-size: 0.74rem;
+    }
+
+    .tool-page .taf-visual-mobile-facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.36rem;
+      margin-top: 0.12rem;
+    }
+
+    .tool-page .taf-visual-mobile-facts span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0.22rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(15, 23, 42, 0.72);
+      color: rgba(229, 237, 247, 0.94);
+      font-size: 0.7rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .tool-page .taf-visual-band span {
+      font-size: 0.68rem;
+      letter-spacing: 0.03em;
+      padding: 0 0.35rem;
+    }
+
+    .tool-page .taf-visual-timeline-wrap {
+      min-height: 104px;
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0.008)),
+        rgba(2, 8, 23, 0.52);
+    }
+
+    .tool-page .taf-visual-bands {
+      left: 0.95rem;
+      right: 0.95rem;
+      bottom: 0.92rem;
+      height: 34px;
+    }
+
+    .tool-page .taf-visual-band {
+      height: 34px;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+    }
+
+    .tool-page .taf-visual-row-label {
+      background: rgba(10, 18, 34, 0.82);
+    }
+
+    .tool-page .taf-visual-card {
+      padding: 0.88rem 0.92rem;
+      background: rgba(10, 18, 34, 0.72);
+    }
+
+    .tool-page .taf-visual-card-summary {
+      position: relative;
+    }
+
+    .tool-page .taf-visual-card-code {
+      font-size: 0.96rem;
+    }
+
+    .tool-page .taf-visual-card-explain {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: rgba(198, 218, 240, 0.92);
+      max-width: 32ch;
+    }
+
+    .tool-page .taf-visual-cat {
+      min-height: 30px;
+      padding: 0.34rem 0.68rem;
+      border-width: 1px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    .tool-page .taf-visual-cat-dot {
+      display: none;
+    }
+
+    .tool-page .taf-visual-cat--vfr {
+      background: linear-gradient(180deg, rgba(20, 83, 45, 0.96), rgba(15, 62, 35, 0.96));
+      border-color: rgba(74, 222, 128, 0.34);
+      color: rgba(220, 252, 231, 0.98);
+    }
+
+    .tool-page .taf-visual-cat--mvfr {
+      background: linear-gradient(180deg, rgba(96, 63, 14, 0.96), rgba(77, 48, 10, 0.96));
+      border-color: rgba(251, 191, 36, 0.34);
+      color: rgba(254, 243, 199, 0.98);
+    }
+
+    .tool-page .taf-visual-cat--ifr {
+      background: linear-gradient(180deg, rgba(112, 26, 26, 0.96), rgba(84, 19, 19, 0.96));
+      border-color: rgba(248, 113, 113, 0.36);
+      color: rgba(254, 226, 226, 0.98);
+    }
+
+    .tool-page .taf-visual-cat--lifr {
+      background: linear-gradient(180deg, rgba(88, 28, 135, 0.96), rgba(67, 20, 105, 0.96));
+      border-color: rgba(192, 132, 252, 0.36);
+      color: rgba(243, 232, 255, 0.98);
+    }
+
+    .tool-page .taf-visual-cat--neutral,
+    .tool-page .taf-visual-cat--unknown {
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.96), rgba(15, 23, 42, 0.96));
+      border-color: rgba(148, 163, 184, 0.26);
+      color: rgba(226, 232, 240, 0.98);
+    }
+
+    .tool-page .taf-cell--cat-vfr {
+      background: rgba(20, 83, 45, 0.5);
+      border-color: rgba(74, 222, 128, 0.34);
+      color: rgba(220, 252, 231, 0.98);
+    }
+
+    .tool-page .taf-cell--cat-mvfr {
+      background: rgba(96, 63, 14, 0.42);
+      border-color: rgba(251, 191, 36, 0.32);
+      color: rgba(254, 243, 199, 0.98);
+    }
+
+    .tool-page .taf-cell--cat-ifr {
+      background: rgba(112, 26, 26, 0.42);
+      border-color: rgba(248, 113, 113, 0.34);
+      color: rgba(254, 226, 226, 0.98);
+    }
+
+    .tool-page .taf-cell--cat-lifr {
+      background: rgba(88, 28, 135, 0.42);
+      border-color: rgba(192, 132, 252, 0.34);
+      color: rgba(243, 232, 255, 0.98);
+    }
+
+    .tool-page .taf-cell--cat-unknown {
+      background: rgba(30, 41, 59, 0.42);
+      border-color: rgba(148, 163, 184, 0.26);
+      color: rgba(226, 232, 240, 0.98);
+    }
+
+    @media (max-width: 720px) {
+      .tool-page .terrain-visual-canvas {
+        min-height: 220px;
+      }
+
+      .tool-page .taf-visual-cards {
+        gap: 0.58rem;
+      }
+
+      .tool-page .taf-visual-card {
+        padding: 0.74rem 0.82rem;
+      }
+
+      .tool-page .taf-visual-card-summary {
+        cursor: pointer;
+      }
+
+      .tool-page .taf-phase:not([open]) .taf-visual-card-explain {
+        display: none;
+      }
+
+      .tool-page .taf-phase:not([open]) .taf-visual-range {
+        margin-top: 0.18rem;
+      }
+
+      .tool-page .taf-visual-card-top {
+        align-items: center;
+      }
+
+      .tool-page .taf-visual-card-code {
+        font-size: 0.88rem;
+      }
+
+      .tool-page .taf-visual-range {
+        font-size: 0.72rem;
+      }
+
+      .tool-page .taf-visual-cat {
+        min-height: 28px;
+        padding: 0.28rem 0.54rem;
+        font-size: 0.7rem;
+      }
+
+      .tool-page .taf-visual-mobile-list {
+        display: grid;
+      }
+
+      .tool-page .taf-visual-timeline-wrap,
+      .tool-page .taf-visual-matrix {
+        display: none;
+      }
+
+      .tool-page .taf-visual-disclosure-note {
+        display: none;
+      }
+    }
+
 </style>
 </BaseLayout>
