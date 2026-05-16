@@ -2890,11 +2890,11 @@ function normalizeUlmDetailsRecord(item) {
       platformWindCard.hidden = false;
       platformWindMeta.textContent = getWindMetaLabel();
 
-      const cx = 230;
-      const cy = 150;
-      const outerRadius = 116;
-      const innerRadius = 82;
-      const runLength = 102;
+      const cx = 310;
+      const cy = 200;
+      const outerRadius = 150;
+      const innerRadius = 106;
+      const runLength = 132;
       const bestWind = getBestWindAlignedHeading(runways);
 
       const cardinalLabels = [
@@ -2903,14 +2903,14 @@ function normalizeUlmDetailsRecord(item) {
         { label: "S", heading: 180 },
         { label: "W", heading: 270 },
       ].map((cardinal) => {
-        const pos = headingToPoint(cx, cy, outerRadius + 24, cardinal.heading);
-        return `<text x="${pos.x}" y="${pos.y}" text-anchor="middle" dominant-baseline="middle" fill="rgba(159, 189, 214, 0.78)" font-size="9.5" font-weight="700">${cardinal.label}</text>`;
+        const pos = headingToPoint(cx, cy, outerRadius + 30, cardinal.heading);
+        return `<text x="${pos.x}" y="${pos.y}" text-anchor="middle" dominant-baseline="middle" fill="rgba(159, 189, 214, 0.78)" font-size="11" font-weight="700">${cardinal.label}</text>`;
       }).join("");
 
       const ringMarkup = `
-        <circle cx="${cx}" cy="${cy}" r="${outerRadius}" fill="none" stroke="rgba(143, 198, 237, 0.12)" stroke-width="1.4" />
-        <circle cx="${cx}" cy="${cy}" r="${innerRadius}" fill="none" stroke="rgba(143, 198, 237, 0.08)" stroke-width="1" stroke-dasharray="5 7" />
-        <circle cx="${cx}" cy="${cy}" r="28" fill="none" stroke="rgba(143, 198, 237, 0.06)" stroke-width="1" stroke-dasharray="4 7" />
+        <circle cx="${cx}" cy="${cy}" r="${outerRadius}" fill="none" stroke="rgba(143, 198, 237, 0.12)" stroke-width="1.8" />
+        <circle cx="${cx}" cy="${cy}" r="${innerRadius}" fill="none" stroke="rgba(143, 198, 237, 0.08)" stroke-width="1.2" stroke-dasharray="6 8" />
+        <circle cx="${cx}" cy="${cy}" r="28" fill="none" stroke="rgba(143, 198, 237, 0.06)" stroke-width="1.1" stroke-dasharray="5 8" />
       `;
 
       const runwayMarkup = runways.map((runway) => {
@@ -2920,29 +2920,29 @@ function normalizeUlmDetailsRecord(item) {
 
         const start = headingToPoint(cx, cy, runLength, runway.angleDeg);
         const end = headingToPoint(cx, cy, runLength, runway.reciprocalDeg);
-        const startLabelPos = headingToPoint(cx, cy, runLength + 24, runway.angleDeg);
-        const endLabelPos = headingToPoint(cx, cy, runLength + 24, runway.reciprocalDeg);
+        const startLabelPos = headingToPoint(cx, cy, runLength + 30, runway.angleDeg);
+        const endLabelPos = headingToPoint(cx, cy, runLength + 30, runway.reciprocalDeg);
 
         const glowStroke = isBestAxis ? "rgba(121, 223, 255, 0.36)" : "rgba(170, 188, 208, 0.12)";
         const stroke = isBestAxis ? "rgba(126, 226, 255, 0.98)" : "rgba(218, 231, 242, 0.82)";
         const coreStroke = isBestAxis ? "rgba(231, 248, 255, 0.98)" : "rgba(192, 208, 221, 0.72)";
 
         const prefStartDot = isPreferredStart
-          ? `<circle cx="${start.x}" cy="${start.y}" r="5.6" fill="rgba(246, 178, 107, 0.92)" stroke="rgba(255,255,255,0.55)" stroke-width="1" />`
+          ? `<circle cx="${start.x}" cy="${start.y}" r="6.8" fill="rgba(246, 178, 107, 0.92)" stroke="rgba(255,255,255,0.55)" stroke-width="1" />`
           : "";
 
         const prefEndDot = isPreferredEnd
-          ? `<circle cx="${end.x}" cy="${end.y}" r="5.6" fill="rgba(246, 178, 107, 0.92)" stroke="rgba(255,255,255,0.55)" stroke-width="1" />`
+          ? `<circle cx="${end.x}" cy="${end.y}" r="6.8" fill="rgba(246, 178, 107, 0.92)" stroke="rgba(255,255,255,0.55)" stroke-width="1" />`
           : "";
 
         return `
-          <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${glowStroke}" stroke-width="${isBestAxis ? 14 : 10}" stroke-linecap="round" />
-          <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${stroke}" stroke-width="${isBestAxis ? 6.2 : 4.8}" stroke-linecap="round" />
-          <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${coreStroke}" stroke-width="${isBestAxis ? 1.6 : 1.1}" stroke-linecap="round" opacity="0.85" />
+          <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${glowStroke}" stroke-width="${isBestAxis ? 18 : 12}" stroke-linecap="round" />
+          <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${stroke}" stroke-width="${isBestAxis ? 7.6 : 5.6}" stroke-linecap="round" />
+          <line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${coreStroke}" stroke-width="${isBestAxis ? 1.9 : 1.3}" stroke-linecap="round" opacity="0.85" />
           ${prefStartDot}
           ${prefEndDot}
-          <text x="${startLabelPos.x}" y="${startLabelPos.y}" text-anchor="middle" dominant-baseline="middle" fill="rgba(241,247,252,0.98)" font-size="12.5" font-weight="800">${escapeHtml(runway.startLabel)}</text>
-          <text x="${endLabelPos.x}" y="${endLabelPos.y}" text-anchor="middle" dominant-baseline="middle" fill="rgba(241,247,252,0.98)" font-size="12.5" font-weight="800">${escapeHtml(runway.endLabel)}</text>
+          <text x="${startLabelPos.x}" y="${startLabelPos.y}" text-anchor="middle" dominant-baseline="middle" fill="rgba(241,247,252,0.98)" font-size="15" font-weight="800">${escapeHtml(runway.startLabel)}</text>
+          <text x="${endLabelPos.x}" y="${endLabelPos.y}" text-anchor="middle" dominant-baseline="middle" fill="rgba(241,247,252,0.98)" font-size="15" font-weight="800">${escapeHtml(runway.endLabel)}</text>
         `;
       }).join("");
 
@@ -2954,14 +2954,14 @@ function normalizeUlmDetailsRecord(item) {
           <circle cx="${cx}" cy="${cy}" r="5" fill="rgba(255, 183, 107, 0.88)" />
         `;
         infoMarkup = `
-          <g transform="translate(22 20)">
+          <g transform="translate(24 24)">
             <rect x="0" y="0" width="108" height="34" rx="17" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.08)" />
-            <text x="54" y="21" text-anchor="middle" fill="rgba(255, 226, 182, 0.96)" font-size="12" font-weight="800">Vent calme</text>
+            <text x="54" y="21" text-anchor="middle" fill="rgba(255, 226, 182, 0.96)" font-size="13" font-weight="800">Vent calme</text>
           </g>
         `;
       } else if (Number.isFinite(currentWindDirection)) {
-        const fromPoint = headingToPoint(cx, cy, outerRadius - 8, currentWindDirection);
-        const toPoint = headingToPoint(cx, cy, 20, currentWindDirection);
+        const fromPoint = headingToPoint(cx, cy, outerRadius - 12, currentWindDirection);
+        const toPoint = headingToPoint(cx, cy, 26, currentWindDirection);
         const relative = bestWind ? smallestAngularDiff(bestWind.headingDeg, currentWindDirection) : null;
         const headwind = (bestWind && Number.isFinite(currentWindSpeed)) ? Math.round(Math.cos((relative * Math.PI) / 180) * currentWindSpeed) : null
         const crosswind = (bestWind && Number.isFinite(currentWindSpeed)) ? Math.round(Math.sin((relative * Math.PI) / 180) * currentWindSpeed) : null
@@ -2973,39 +2973,39 @@ function normalizeUlmDetailsRecord(item) {
         windMarkup = `
           <defs>
             <filter id="windGlow">
-              <feGaussianBlur stdDeviation="2.4" result="blur" />
+              <feGaussianBlur stdDeviation="3.1" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
-            <marker id="terrainWindArrowPremium" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto" markerUnits="userSpaceOnUse">
-              <path d="M0,0 L14,7 L0,14 L4.8,7 z" fill="#ffb36b" />
+            <marker id="terrainWindArrowPremium" markerWidth="16" markerHeight="16" refX="12.5" refY="8" orient="auto" markerUnits="userSpaceOnUse">
+              <path d="M0,0 L16,8 L0,16 L5.2,8 z" fill="#ffb36b" />
             </marker>
           </defs>
-          <line x1="${fromPoint.x}" y1="${fromPoint.y}" x2="${toPoint.x}" y2="${toPoint.y}" stroke="rgba(255, 179, 107, 0.24)" stroke-width="10" stroke-linecap="round" filter="url(#windGlow)" />
-          <line x1="${fromPoint.x}" y1="${fromPoint.y}" x2="${toPoint.x}" y2="${toPoint.y}" stroke="#ffb36b" stroke-width="4.6" stroke-linecap="round" marker-end="url(#terrainWindArrowPremium)" />
-          <circle cx="${fromPoint.x}" cy="${fromPoint.y}" r="4.2" fill="#ffb36b" fill-opacity="0.94" />
+          <line x1="${fromPoint.x}" y1="${fromPoint.y}" x2="${toPoint.x}" y2="${toPoint.y}" stroke="rgba(255, 179, 107, 0.24)" stroke-width="13" stroke-linecap="round" filter="url(#windGlow)" />
+          <line x1="${fromPoint.x}" y1="${fromPoint.y}" x2="${toPoint.x}" y2="${toPoint.y}" stroke="#ffb36b" stroke-width="5.8" stroke-linecap="round" marker-end="url(#terrainWindArrowPremium)" />
+          <circle cx="${fromPoint.x}" cy="${fromPoint.y}" r="5.2" fill="#ffb36b" fill-opacity="0.94" />
         `;
         infoMarkup = `
-          <g transform="translate(22 20)">
-            <rect x="0" y="0" width="182" height="48" rx="18" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.09)" />
-            <text x="16" y="19" fill="rgba(255, 220, 184, 0.98)" font-size="12.5" font-weight="900">${escapeHtml(bestText)}</text>
-            <text x="16" y="36" fill="rgba(224, 236, 248, 0.92)" font-size="11.8" font-weight="700">${escapeHtml(compText)}</text>
+          <g transform="translate(24 24)">
+            <rect x="0" y="0" width="212" height="56" rx="20" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.09)" />
+            <text x="18" y="22" fill="rgba(255, 220, 184, 0.98)" font-size="14" font-weight="900">${escapeHtml(bestText)}</text>
+            <text x="18" y="41" fill="rgba(224, 236, 248, 0.92)" font-size="12.5" font-weight="700">${escapeHtml(compText)}</text>
           </g>
         `;
       } else if (currentWindVariable) {
         windMarkup = `<circle cx="${cx}" cy="${cy}" r="14" fill="none" stroke="rgba(255, 183, 107, 0.92)" stroke-width="2.6" stroke-dasharray="5 5" />`;
         infoMarkup = `
-          <g transform="translate(22 20)">
-            <rect x="0" y="0" width="118" height="34" rx="17" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.08)" />
-            <text x="59" y="21" text-anchor="middle" fill="rgba(255, 226, 182, 0.96)" font-size="12" font-weight="800">Vent variable</text>
+          <g transform="translate(24 24)">
+            <rect x="0" y="0" width="146" height="40" rx="20" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.08)" />
+            <text x="73" y="25" text-anchor="middle" fill="rgba(255, 226, 182, 0.96)" font-size="12" font-weight="800">Vent variable</text>
           </g>
         `;
       }
 
       platformWindVisual.innerHTML = `
-        <svg viewBox="0 0 460 300" role="img" aria-label="Vent et pistes" class="terrain-visual-svg">
+        <svg viewBox="0 0 620 400" role="img" aria-label="Vent et pistes" class="terrain-visual-svg">
           <defs>
             <radialGradient id="terrainPanelBg" cx="50%" cy="50%" r="70%">
               <stop offset="0%" stop-color="rgba(44, 95, 138, 0.18)" />
@@ -3017,8 +3017,8 @@ function normalizeUlmDetailsRecord(item) {
               <stop offset="100%" stop-color="rgba(255,255,255,0.01)" />
             </linearGradient>
           </defs>
-          <rect x="0" y="0" width="460" height="300" rx="26" fill="url(#terrainGlass)" />
-          <rect x="0" y="0" width="460" height="300" rx="26" fill="url(#terrainPanelBg)" />
+          <rect x="0" y="0" width="620" height="400" rx="34" fill="url(#terrainGlass)" />
+          <rect x="0" y="0" width="620" height="400" rx="34" fill="url(#terrainPanelBg)" />
           ${ringMarkup}
           ${cardinalLabels}
           ${runwayMarkup}
@@ -9923,6 +9923,144 @@ function renderUlmNearbyItem(item) {
         min-height: 34px;
         font-size: 0.74rem;
       }
+    }
+
+
+
+    /* --- v12 refinement from prod: larger desktop wind graph + clearer clickable TAF cards --- */
+    .tool-page .terrain-visual-card {
+      padding: clamp(1.15rem, 1.9vw, 1.6rem);
+    }
+
+    .tool-page .terrain-visual-canvas {
+      min-height: 540px;
+      padding: clamp(1rem, 2.2vw, 1.7rem);
+      border-color: rgba(132, 201, 238, 0.2);
+      background:
+        radial-gradient(circle at 50% 48%, rgba(89, 158, 212, 0.34), transparent 56%),
+        radial-gradient(circle at 50% 52%, rgba(22, 66, 108, 0.34), transparent 70%),
+        linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.012)),
+        rgba(3, 10, 21, 0.97);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 18px 36px rgba(0,0,0,0.22);
+    }
+
+    .tool-page .terrain-visual-svg {
+      width: min(100%, 1120px);
+      max-width: 1120px;
+      margin-inline: auto;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 26px 36px rgba(0,0,0,0.24));
+    }
+
+    .tool-page .taf-overview-phase {
+      position: relative;
+      border-width: 1px;
+      border-color: rgba(148, 196, 230, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 16px 32px rgba(1, 8, 20, 0.24);
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .tool-page .taf-overview-phase::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      box-shadow: inset 0 0 0 1px rgba(187, 221, 244, 0.05);
+    }
+
+    .tool-page .taf-visual-overview-summary {
+      cursor: pointer;
+      padding: 1.08rem 1.08rem 1rem;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.016)),
+        rgba(7, 15, 30, 0.54);
+    }
+
+    .tool-page .taf-visual-overview-summary::after {
+      right: 1rem;
+      top: 1rem;
+      font-size: 1.05rem;
+      color: rgba(241, 247, 253, 0.96);
+    }
+
+    .tool-page .taf-visual-overview-main {
+      gap: 0.48rem;
+      padding-right: 1.6rem;
+    }
+
+    .tool-page .taf-visual-overview-side {
+      min-width: 150px;
+      gap: 0.88rem;
+    }
+
+    .tool-page .taf-visual-overview-explain {
+      color: rgba(228, 238, 248, 0.94);
+    }
+
+    .tool-page .taf-visual-overview-range {
+      color: rgba(216, 230, 243, 0.9);
+    }
+
+    .tool-page .taf-visual-open-hint {
+      min-height: 40px;
+      padding: 0.5rem 0.9rem;
+      border-color: rgba(154, 222, 255, 0.48);
+      background: linear-gradient(180deg, rgba(59, 103, 153, 0.96), rgba(19, 46, 80, 0.99));
+      color: rgba(248, 251, 255, 0.99);
+      font-size: 0.78rem;
+      font-weight: 900;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 10px 20px rgba(0,0,0,0.2);
+      text-transform: none;
+      letter-spacing: 0.01em;
+    }
+
+    .tool-page .taf-visual-open-hint::before {
+      content: "▸";
+      font-size: 0.8rem;
+      line-height: 1;
+      opacity: 0.96;
+    }
+
+    .tool-page .taf-overview-phase:hover,
+    .tool-page .taf-overview-phase:focus-within {
+      transform: translateY(-3px);
+      border-color: rgba(156, 228, 255, 0.58);
+      box-shadow: 0 0 0 1px rgba(156, 228, 255, 0.18), 0 22px 42px rgba(1, 8, 20, 0.38), inset 0 1px 0 rgba(255,255,255,0.08);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.016)),
+        rgba(6, 16, 30, 0.96);
+    }
+
+    .tool-page .taf-visual-overview-item--base:hover,
+    .tool-page .taf-visual-overview-item--base:focus-within { border-color: rgba(34, 211, 238, 0.62); }
+    .tool-page .taf-visual-overview-item--tempo:hover,
+    .tool-page .taf-visual-overview-item--tempo:focus-within { border-color: rgba(251, 191, 36, 0.62); }
+    .tool-page .taf-visual-overview-item--prob:hover,
+    .tool-page .taf-visual-overview-item--prob:focus-within { border-color: rgba(244, 114, 182, 0.58); }
+    .tool-page .taf-visual-overview-item--becmg:hover,
+    .tool-page .taf-visual-overview-item--becmg:focus-within { border-color: rgba(192, 132, 252, 0.58); }
+    .tool-page .taf-visual-overview-item--fm:hover,
+    .tool-page .taf-visual-overview-item--fm:focus-within { border-color: rgba(96, 165, 250, 0.6); }
+
+    .tool-page .taf-visual-overview-glance span {
+      border-color: rgba(182, 212, 236, 0.28);
+      background: rgba(7, 21, 40, 0.88);
+      color: rgba(239, 246, 252, 0.95);
+    }
+
+    @media (max-width: 1100px) {
+      .tool-page .terrain-visual-canvas { min-height: 420px; }
+      .tool-page .terrain-visual-svg { width: min(100%, 900px); max-width: 900px; }
+    }
+
+    @media (max-width: 720px) {
+      .tool-page .terrain-visual-canvas { min-height: 252px; padding: 0.65rem; }
+      .tool-page .terrain-visual-svg { width: min(100%, 440px); max-width: 440px; }
+      .tool-page .taf-overview-phase:hover,
+      .tool-page .taf-overview-phase:focus-within { transform: none; }
+      .tool-page .taf-visual-open-hint { min-height: 35px; font-size: 0.74rem; }
     }
 
 
