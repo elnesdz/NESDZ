@@ -295,19 +295,19 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                 </div>
 
                 <p class="taf-visual-intro">
-                  Les codes aéronautiques restent visibles. Chaque phase garde son langage pilote et sa catégorie météo, avec une lecture d’ensemble avant le détail.
+                  Les codes aéronautiques restent visibles. Chaque phase donne une lecture immédiate, puis un détail au clic ou au toucher.
                 </p>
 
                 <div id="tafVisualOverview" class="taf-visual-overview"></div>
 
-                <div class="taf-visual-detail-head">
+                <div class="taf-visual-detail-head" hidden>
                   <span class="taf-visual-detail-title">Détail par phase</span>
                   <span class="taf-visual-detail-note">Cliquez ou touchez une phase pour afficher son détail.</span>
                 </div>
 
                 <div id="tafVisualCards" class="taf-visual-cards"></div>
 
-                <details class="taf-visual-disclosure">
+                <details class="taf-visual-disclosure" hidden>
                   <summary>
                     <span class="taf-visual-disclosure-title">Vue technique TAF</span>
                     <span class="taf-visual-disclosure-note">Cliquez pour ouvrir la vue experte.</span>
@@ -327,7 +327,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                   </div>
                 </details>
 
-                <p class="taf-visual-note">
+                <p class="taf-visual-note" hidden>
                   Lecture graphique factuelle : les valeurs sont extraites du TAF disponible. Les catégories affichées sont indicatives et ne remplacent pas le briefing officiel.
                 </p>
               </div>
@@ -425,7 +425,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               aria-expanded="false"
               aria-controls="nearbyPanel"
             >
-              Voir les alternatives
+              Voir la liste des terrains
             </button>
           </div>
           <p id="nearbySummary" class="nearby-summary" hidden></p>
@@ -1613,122 +1613,71 @@ let ulmDetailsPromise = null;
     }
 
     function renderTafVisual(decoded) {
-      if (!tafVisualBlock || !tafVisualBands || !tafVisualScale || !tafVisualMatrix || !tafVisualCards) return;
+      if (!tafVisualBlock || !tafVisualOverview) return;
       const groups = decoded?.visualGroups || [];
       if (!groups.length) return;
 
-      const timelineStart = decoded.validity?.start || groups.find((group) => group.start)?.start || null;
-      const timelineEnd = decoded.validity?.end || findLastGroupWithEnd(groups);
-      const hasTimeline = timelineStart instanceof Date && timelineEnd instanceof Date && timelineEnd.getTime() > timelineStart.getTime();
-      const cols = Math.max(1, groups.length);
-
-      if (hasTimeline) {
-        const ticks = buildTafVisualTicks(timelineStart, timelineEnd);
-        tafVisualScale.innerHTML = ticks.map((tick) => `
-          <span class="taf-visual-tick" style="left:${tick.pos.toFixed(2)}%">
-            <i></i><b>${escapeHtml(formatUtcClock(tick.date).replace("Z", ""))}</b>
-          </span>
-        `).join("");
-        tafVisualBands.innerHTML = groups.map((group) => {
-          const position = getTafVisualPosition(group, timelineStart, timelineEnd);
-          return `<div class="taf-visual-band taf-visual-band--${escapeHtml(group.tone)}" style="left:${position.left.toFixed(2)}%;width:${position.width.toFixed(2)}%"><span>${escapeHtml(getTafBandLabel(group))}</span></div>`;
-        }).join("");
-      } else {
-        tafVisualScale.innerHTML = "";
-        tafVisualBands.innerHTML = groups.map((group, index) => `<div class="taf-visual-band taf-visual-band--${escapeHtml(group.tone)}" style="left:${(index / cols * 100).toFixed(2)}%;width:${(100 / cols).toFixed(2)}%"><span>${escapeHtml(getTafBandLabel(group))}</span></div>`).join("");
+      if (tafVisualBadges) {
+        tafVisualBadges.hidden = true;
+        tafVisualBadges.innerHTML = "";
+      }
+      if (tafVisualMobileList) {
+        tafVisualMobileList.hidden = true;
+        tafVisualMobileList.innerHTML = "";
+      }
+      if (tafVisualScale) tafVisualScale.innerHTML = "";
+      if (tafVisualBands) tafVisualBands.innerHTML = "";
+      if (tafVisualMatrix) tafVisualMatrix.innerHTML = "";
+      if (tafVisualCards) {
+        tafVisualCards.hidden = true;
+        tafVisualCards.innerHTML = "";
       }
 
-      const rows = [
-        { label: "Période", value: (group) => group.label, className: (group) => `taf-cell--tone-${group.tone}` },
-        { label: "Cat.", value: (group) => group.analysis.category.label, className: (group) => `taf-cell--cat-${group.analysis.category.tone}` },
-        { label: "Visibilité", value: (group) => group.analysis.visibility },
-        { label: "Plafond", value: (group) => group.analysis.ceiling },
-        { label: "Vent", value: (group) => group.analysis.wind },
-        { label: "Rafales", value: (group) => group.analysis.gust },
-        { label: "Temps", value: (group) => group.analysis.weather.length ? group.analysis.weather.join(" · ") : "—" },
-      ];
-
-      tafVisualMatrix.innerHTML = rows.map((row) => `
-        <div class="taf-visual-row">
-          <div class="taf-visual-row-label">${escapeHtml(row.label)}</div>
-          <div class="taf-visual-row-grid" style="--taf-cols:${cols}">
-            ${groups.map((group) => `<div class="taf-visual-cell ${row.className ? row.className(group) : ""}">${escapeHtml(row.value(group) || "—")}</div>`).join("")}
-          </div>
-        </div>
-      `).join("");
-
-      if (tafVisualOverview) {
-        tafVisualOverview.innerHTML = groups.map((group) => `
-          <div class="taf-visual-overview-item taf-visual-overview-item--${escapeHtml(group.tone)}">
-            <div class="taf-visual-overview-top">
-              <span class="taf-visual-overview-code">${escapeHtml(group.label)}</span>
-              <strong class="taf-visual-cat taf-visual-cat--${escapeHtml(group.analysis.category.tone)}">${escapeHtml(group.analysis.category.label)}</strong>
-            </div>
-            <p class="taf-visual-overview-hint">${escapeHtml(getTafMobilePhaseHint(group))}</p>
-            <p class="taf-visual-overview-range">${escapeHtml(group.rangeLabel)}</p>
-          </div>
-        `).join("");
-      }
-
-      tafVisualCards.innerHTML = groups.map((group) => `
-        <details class="taf-visual-card taf-visual-card--${escapeHtml(group.tone)} taf-phase">
-          <summary class="taf-visual-card-summary">
-            <div class="taf-visual-card-top">
-              <div class="taf-visual-card-heading">
-                <span class="taf-visual-card-code">${escapeHtml(group.label)}</span>
-                <p class="taf-visual-card-explain">${escapeHtml(getTafGroupExplainLabel(group))}</p>
-                <p class="taf-visual-range">${escapeHtml(group.rangeLabel)}</p>
+      tafVisualOverview.innerHTML = groups.map((group) => {
+        const categoryTone = escapeHtml(group.analysis.category.tone || "none");
+        const categoryLabel = escapeHtml(group.analysis.category.label || "—");
+        const explain = escapeHtml(getTafGroupExplainLabel(group));
+        const rangeLabel = escapeHtml(group.rangeLabel || "Plage non précisée");
+        const visibility = escapeHtml(group.analysis.visibility || "—");
+        const ceiling = escapeHtml(group.analysis.ceiling || "—");
+        const wind = escapeHtml(group.analysis.wind || "—");
+        const weather = escapeHtml(group.analysis.weather.length ? group.analysis.weather.join(" · ") : "—");
+        const clouds = escapeHtml(group.analysis.clouds.length ? group.analysis.clouds.join(" · ") : "—");
+        const raw = escapeHtml(group.raw || "—");
+        return `
+          <details class="taf-visual-overview-item taf-visual-overview-item--${escapeHtml(group.tone)} taf-overview-phase">
+            <summary class="taf-visual-overview-summary">
+              <div class="taf-visual-overview-main">
+                <div class="taf-visual-overview-top">
+                  <span class="taf-visual-overview-code">${escapeHtml(group.label)}</span>
+                  <strong class="taf-visual-cat taf-visual-cat--${categoryTone}">${categoryLabel}</strong>
+                </div>
+                <p class="taf-visual-overview-hint">${escapeHtml(getTafMobilePhaseHint(group))}</p>
+                <p class="taf-visual-overview-explain">${explain}</p>
+                <p class="taf-visual-overview-range">${rangeLabel}</p>
+                <div class="taf-visual-overview-glance">
+                  <span>${visibility}</span>
+                  <span>${ceiling}</span>
+                  <span>${wind}</span>
+                </div>
               </div>
-              <div class="taf-visual-card-side">
-                <strong class="taf-visual-cat taf-visual-cat--${escapeHtml(group.analysis.category.tone)}">${escapeHtml(group.analysis.category.label)}</strong>
+              <div class="taf-visual-overview-side">
                 <span class="taf-visual-open-hint">Voir le détail</span>
               </div>
+            </summary>
+            <div class="taf-phase-body">
+              <dl class="taf-visual-facts">
+                <div><dt>Vent</dt><dd>${wind}</dd></div>
+                <div><dt>Visibilité</dt><dd>${visibility}</dd></div>
+                <div><dt>Plafond</dt><dd>${ceiling}</dd></div>
+                <div><dt>Nuages</dt><dd>${clouds}</dd></div>
+                <div><dt>Temps</dt><dd>${weather}</dd></div>
+              </dl>
+              <code>${raw}</code>
             </div>
-          </summary>
-          <div class="taf-phase-body">
-            <dl class="taf-visual-facts">
-              <div><dt>Vent</dt><dd>${escapeHtml(group.analysis.wind)}</dd></div>
-              <div><dt>Visibilité</dt><dd>${escapeHtml(group.analysis.visibility)}</dd></div>
-              <div><dt>Plafond</dt><dd>${escapeHtml(group.analysis.ceiling)}</dd></div>
-              <div><dt>Nuages</dt><dd>${escapeHtml(group.analysis.clouds.length ? group.analysis.clouds.join(" · ") : "—")}</dd></div>
-              <div><dt>Temps</dt><dd>${escapeHtml(group.analysis.weather.length ? group.analysis.weather.join(" · ") : "—")}</dd></div>
-            </dl>
-            <code>${escapeHtml(group.raw)}</code>
-          </div>
-        </details>
-      `).join("");
-
-      if (tafVisualMobileList) {
-        tafVisualMobileList.hidden = false;
-        tafVisualMobileList.innerHTML = groups.map((group) => `
-          <div class="taf-visual-mobile-item taf-visual-mobile-item--${escapeHtml(group.tone)}">
-            <div class="taf-visual-mobile-top">
-              <span class="taf-visual-mobile-code">${escapeHtml(group.label)}</span>
-              <strong class="taf-visual-cat taf-visual-cat--${escapeHtml(group.analysis.category.tone)}">${escapeHtml(group.analysis.category.label)}</strong>
-            </div>
-            <p class="taf-visual-mobile-hint">${escapeHtml(getTafMobilePhaseHint(group))}</p>
-            <p class="taf-visual-mobile-range">${escapeHtml(group.rangeLabel)}</p>
-            <div class="taf-visual-mobile-facts">
-              <span>${escapeHtml(group.analysis.visibility)}</span>
-              <span>${escapeHtml(group.analysis.ceiling)}</span>
-              <span>${escapeHtml(group.analysis.wind)}</span>
-            </div>
-          </div>
-        `).join("");
-      }
-
-      const badges = [];
-      if (groups.some((group) => group.type === "TEMPO" || group.type === "INTER")) badges.push("TEMPO / INTER");
-      if (groups.some((group) => group.type === "BECMG")) badges.push("BECMG");
-      if (groups.some((group) => /^PROB(30|40)$/.test(group.type))) badges.push("PROB");
-      if (groups.some((group) => group.analysis.gust !== "—")) badges.push("Rafales");
-      if (groups.some((group) => group.analysis.rawTokens.some((token) => /CB|TCU/.test(token)))) badges.push("CB / TCU");
-      if (groups.some((group) => group.analysis.rawTokens.some((token) => /TS/.test(token)))) badges.push("Orage");
-      if (groups.some((group) => group.analysis.rawTokens.some((token) => /BR|FG/.test(token)))) badges.push("Brume / brouillard");
-      if (tafVisualBadges) {
-        tafVisualBadges.hidden = !badges.length;
-        tafVisualBadges.innerHTML = badges.map((badge) => `<span>${escapeHtml(badge)}</span>`).join("");
-      }
+          </details>
+        `;
+      }).join("");
 
       tafVisualBlock.hidden = false;
     }
@@ -2941,11 +2890,11 @@ function normalizeUlmDetailsRecord(item) {
       platformWindCard.hidden = false;
       platformWindMeta.textContent = getWindMetaLabel();
 
-      const cx = 160;
-      const cy = 112;
-      const outerRadius = 86;
-      const innerRadius = 58;
-      const runLength = 74;
+      const cx = 230;
+      const cy = 150;
+      const outerRadius = 116;
+      const innerRadius = 82;
+      const runLength = 102;
       const bestWind = getBestWindAlignedHeading(runways);
 
       const cardinalLabels = [
@@ -2954,7 +2903,7 @@ function normalizeUlmDetailsRecord(item) {
         { label: "S", heading: 180 },
         { label: "W", heading: 270 },
       ].map((cardinal) => {
-        const pos = headingToPoint(cx, cy, outerRadius + 16, cardinal.heading);
+        const pos = headingToPoint(cx, cy, outerRadius + 24, cardinal.heading);
         return `<text x="${pos.x}" y="${pos.y}" text-anchor="middle" dominant-baseline="middle" fill="rgba(159, 189, 214, 0.78)" font-size="9.5" font-weight="700">${cardinal.label}</text>`;
       }).join("");
 
@@ -2971,8 +2920,8 @@ function normalizeUlmDetailsRecord(item) {
 
         const start = headingToPoint(cx, cy, runLength, runway.angleDeg);
         const end = headingToPoint(cx, cy, runLength, runway.reciprocalDeg);
-        const startLabelPos = headingToPoint(cx, cy, runLength + 18, runway.angleDeg);
-        const endLabelPos = headingToPoint(cx, cy, runLength + 18, runway.reciprocalDeg);
+        const startLabelPos = headingToPoint(cx, cy, runLength + 24, runway.angleDeg);
+        const endLabelPos = headingToPoint(cx, cy, runLength + 24, runway.reciprocalDeg);
 
         const glowStroke = isBestAxis ? "rgba(121, 223, 255, 0.36)" : "rgba(170, 188, 208, 0.12)";
         const stroke = isBestAxis ? "rgba(126, 226, 255, 0.98)" : "rgba(218, 231, 242, 0.82)";
@@ -3005,9 +2954,9 @@ function normalizeUlmDetailsRecord(item) {
           <circle cx="${cx}" cy="${cy}" r="5" fill="rgba(255, 183, 107, 0.88)" />
         `;
         infoMarkup = `
-          <g transform="translate(18 18)">
-            <rect x="0" y="0" width="88" height="30" rx="15" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.08)" />
-            <text x="44" y="19" text-anchor="middle" fill="rgba(255, 226, 182, 0.95)" font-size="11" font-weight="800">Vent calme</text>
+          <g transform="translate(22 20)">
+            <rect x="0" y="0" width="108" height="34" rx="17" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.08)" />
+            <text x="54" y="21" text-anchor="middle" fill="rgba(255, 226, 182, 0.96)" font-size="12" font-weight="800">Vent calme</text>
           </g>
         `;
       } else if (Number.isFinite(currentWindDirection)) {
@@ -3039,24 +2988,24 @@ function normalizeUlmDetailsRecord(item) {
           <circle cx="${fromPoint.x}" cy="${fromPoint.y}" r="4.2" fill="#ffb36b" fill-opacity="0.94" />
         `;
         infoMarkup = `
-          <g transform="translate(16 16)">
-            <rect x="0" y="0" width="148" height="42" rx="16" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.09)" />
-            <text x="14" y="16" fill="rgba(255, 215, 167, 0.96)" font-size="10.5" font-weight="900">${escapeHtml(bestText)}</text>
-            <text x="14" y="30.5" fill="rgba(219, 232, 244, 0.9)" font-size="10.5" font-weight="700">${escapeHtml(compText)}</text>
+          <g transform="translate(22 20)">
+            <rect x="0" y="0" width="182" height="48" rx="18" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.09)" />
+            <text x="16" y="19" fill="rgba(255, 220, 184, 0.98)" font-size="12.5" font-weight="900">${escapeHtml(bestText)}</text>
+            <text x="16" y="36" fill="rgba(224, 236, 248, 0.92)" font-size="11.8" font-weight="700">${escapeHtml(compText)}</text>
           </g>
         `;
       } else if (currentWindVariable) {
         windMarkup = `<circle cx="${cx}" cy="${cy}" r="14" fill="none" stroke="rgba(255, 183, 107, 0.92)" stroke-width="2.6" stroke-dasharray="5 5" />`;
         infoMarkup = `
-          <g transform="translate(18 18)">
-            <rect x="0" y="0" width="98" height="30" rx="15" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.08)" />
-            <text x="49" y="19" text-anchor="middle" fill="rgba(255, 226, 182, 0.95)" font-size="11" font-weight="800">Vent variable</text>
+          <g transform="translate(22 20)">
+            <rect x="0" y="0" width="118" height="34" rx="17" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.08)" />
+            <text x="59" y="21" text-anchor="middle" fill="rgba(255, 226, 182, 0.96)" font-size="12" font-weight="800">Vent variable</text>
           </g>
         `;
       }
 
       platformWindVisual.innerHTML = `
-        <svg viewBox="0 0 320 220" role="img" aria-label="Vent et pistes" class="terrain-visual-svg">
+        <svg viewBox="0 0 460 300" role="img" aria-label="Vent et pistes" class="terrain-visual-svg">
           <defs>
             <radialGradient id="terrainPanelBg" cx="50%" cy="50%" r="70%">
               <stop offset="0%" stop-color="rgba(44, 95, 138, 0.18)" />
@@ -3068,8 +3017,8 @@ function normalizeUlmDetailsRecord(item) {
               <stop offset="100%" stop-color="rgba(255,255,255,0.01)" />
             </linearGradient>
           </defs>
-          <rect x="0" y="0" width="320" height="220" rx="18" fill="url(#terrainGlass)" />
-          <rect x="0" y="0" width="320" height="220" rx="18" fill="url(#terrainPanelBg)" />
+          <rect x="0" y="0" width="460" height="300" rx="26" fill="url(#terrainGlass)" />
+          <rect x="0" y="0" width="460" height="300" rx="26" fill="url(#terrainPanelBg)" />
           ${ringMarkup}
           ${cardinalLabels}
           ${runwayMarkup}
@@ -9391,6 +9340,410 @@ function renderUlmNearbyItem(item) {
 
       .tool-page .taf-visual-mobile-item {
         background: rgba(4, 12, 24, 0.7);
+      }
+    }
+
+    /* --- TAF single-layer interactive refinement --- */
+    .tool-page .taf-visual-detail-head,
+    .tool-page .taf-visual-cards,
+    .tool-page .taf-visual-disclosure,
+    .tool-page .taf-visual-note {
+      display: none !important;
+    }
+
+    .tool-page .taf-visual-intro {
+      max-width: 70ch;
+    }
+
+    .tool-page .taf-visual-overview {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 0.88rem;
+      margin-top: 0.3rem;
+    }
+
+    .tool-page .taf-overview-phase {
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.008)),
+        rgba(4, 12, 24, 0.78);
+      overflow: hidden;
+      transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        background 0.18s ease;
+    }
+
+    .tool-page .taf-overview-phase:hover,
+    .tool-page .taf-overview-phase:focus-within {
+      transform: translateY(-1px);
+      border-color: rgba(140, 219, 251, 0.42);
+      box-shadow:
+        0 0 0 1px rgba(140, 219, 251, 0.1),
+        0 16px 34px rgba(1, 8, 20, 0.34);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.012)),
+        rgba(5, 15, 28, 0.9);
+    }
+
+    .tool-page .taf-visual-overview-item--base { border-color: rgba(34, 211, 238, 0.28); }
+    .tool-page .taf-visual-overview-item--tempo { border-color: rgba(251, 191, 36, 0.34); }
+    .tool-page .taf-visual-overview-item--prob { border-color: rgba(244, 114, 182, 0.3); }
+    .tool-page .taf-visual-overview-item--becmg { border-color: rgba(192, 132, 252, 0.28); }
+    .tool-page .taf-visual-overview-item--fm { border-color: rgba(96, 165, 250, 0.28); }
+
+    .tool-page .taf-visual-overview-summary {
+      list-style: none;
+      cursor: pointer;
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1rem;
+      padding: 1rem 1.04rem 0.96rem;
+      min-height: 100%;
+    }
+
+    .tool-page .taf-visual-overview-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .tool-page .taf-visual-overview-summary::after {
+      content: "▾";
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+      color: rgba(219, 234, 254, 0.86);
+      font-size: 0.98rem;
+      transition: transform 0.18s ease, color 0.18s ease;
+    }
+
+    .tool-page .taf-overview-phase[open] > .taf-visual-overview-summary::after {
+      transform: rotate(180deg);
+      color: rgba(240, 249, 255, 0.98);
+    }
+
+    .tool-page .taf-visual-overview-main {
+      display: grid;
+      gap: 0.4rem;
+      min-width: 0;
+      padding-right: 1.3rem;
+    }
+
+    .tool-page .taf-visual-overview-top {
+      align-items: flex-start;
+    }
+
+    .tool-page .taf-visual-overview-code {
+      font-size: 1rem;
+      letter-spacing: 0.035em;
+    }
+
+    .tool-page .taf-visual-overview-hint {
+      font-size: 0.86rem;
+      color: rgba(239, 246, 255, 0.96);
+    }
+
+    .tool-page .taf-visual-overview-explain {
+      margin: 0;
+      color: rgba(161, 182, 205, 0.88);
+      font-size: 0.77rem;
+      line-height: 1.42;
+      max-width: 32ch;
+    }
+
+    .tool-page .taf-visual-overview-range {
+      font-size: 0.82rem;
+      color: rgba(186, 203, 221, 0.95);
+      margin-top: 0.05rem;
+    }
+
+    .tool-page .taf-visual-overview-glance {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.38rem;
+      margin-top: 0.08rem;
+    }
+
+    .tool-page .taf-visual-overview-glance span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0.34rem 0.58rem;
+      border-radius: 999px;
+      border: 1px solid rgba(168, 193, 218, 0.16);
+      background: rgba(8, 19, 36, 0.72);
+      color: rgba(222, 235, 248, 0.88);
+      font-size: 0.72rem;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .tool-page .taf-visual-overview-side {
+      display: grid;
+      align-content: space-between;
+      justify-items: end;
+      gap: 0.8rem;
+      min-width: 112px;
+    }
+
+    .tool-page .taf-visual-open-hint {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 0.38rem 0.72rem;
+      border-radius: 999px;
+      border: 1px solid rgba(125, 211, 252, 0.22);
+      background: linear-gradient(180deg, rgba(25, 43, 70, 0.8), rgba(10, 24, 45, 0.9));
+      color: rgba(237, 246, 255, 0.96);
+      font-size: 0.76rem;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    .tool-page .taf-overview-phase[open] .taf-visual-open-hint {
+      border-color: rgba(160, 227, 255, 0.34);
+      background: linear-gradient(180deg, rgba(41, 72, 112, 0.92), rgba(15, 35, 62, 0.96));
+    }
+
+    .tool-page .taf-visual-cat {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0.42rem 0.86rem;
+      border-width: 1px;
+      font-size: 0.88rem;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      background: rgba(7, 18, 31, 0.62);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    .tool-page .taf-visual-cat--vfr {
+      border-color: rgba(52, 211, 153, 0.56);
+      background: linear-gradient(180deg, rgba(17, 94, 72, 0.94), rgba(5, 58, 48, 0.94));
+      color: rgba(232, 255, 245, 0.98);
+    }
+
+    .tool-page .taf-visual-cat--mvfr {
+      border-color: rgba(245, 158, 11, 0.56);
+      background: linear-gradient(180deg, rgba(127, 67, 10, 0.94), rgba(92, 43, 7, 0.94));
+      color: rgba(255, 245, 214, 0.98);
+    }
+
+    .tool-page .taf-visual-cat--ifr {
+      border-color: rgba(248, 113, 113, 0.6);
+      background: linear-gradient(180deg, rgba(127, 29, 29, 0.96), rgba(97, 18, 24, 0.96));
+      color: rgba(255, 236, 238, 0.99);
+    }
+
+    .tool-page .taf-visual-cat--lifr {
+      border-color: rgba(192, 132, 252, 0.62);
+      background: linear-gradient(180deg, rgba(88, 28, 135, 0.96), rgba(67, 18, 105, 0.96));
+      color: rgba(247, 237, 255, 0.99);
+    }
+
+    .tool-page .taf-visual-cat--none {
+      border-color: rgba(148, 163, 184, 0.34);
+      background: linear-gradient(180deg, rgba(31, 41, 55, 0.9), rgba(17, 24, 39, 0.92));
+      color: rgba(226, 232, 240, 0.94);
+    }
+
+    .tool-page .taf-phase-body {
+      padding: 0 1.04rem 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      background: linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0));
+    }
+
+    .tool-page .taf-overview-phase[open] .taf-phase-body {
+      display: grid;
+    }
+
+    .tool-page .taf-visual-facts {
+      margin-top: 0.92rem;
+    }
+
+    .tool-page .taf-visual-card code,
+    .tool-page .taf-overview-phase code {
+      display: block;
+      margin-top: 0.85rem;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(2, 8, 23, 0.68);
+      color: rgba(218, 227, 239, 0.94);
+      font-size: 0.73rem;
+      line-height: 1.48;
+      padding: 0.6rem 0.7rem;
+    }
+
+    .tool-page .terrain-visual-canvas {
+      min-height: 320px;
+      display: grid;
+      place-items: center;
+      border-radius: 24px;
+      border: 1px solid rgba(138, 208, 246, 0.18);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(53, 111, 154, 0.20), transparent 52%),
+        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.008)),
+        rgba(3, 10, 21, 0.92);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.06),
+        0 14px 30px rgba(0,0,0,0.18);
+    }
+
+    .tool-page .terrain-visual-svg {
+      width: min(100%, 620px);
+      max-width: 100%;
+      height: auto;
+      filter: drop-shadow(0 18px 32px rgba(0,0,0,0.18));
+    }
+
+    .tool-page .terrain-disclosure {
+      margin-top: 14px;
+    }
+
+    .tool-page .terrain-disclosure > summary,
+    .tool-page .nearby-btn {
+      position: relative;
+      border-color: rgba(148, 211, 236, 0.54);
+      background:
+        linear-gradient(180deg, rgba(128, 197, 230, 0.22), rgba(128, 197, 230, 0.08)),
+        rgba(10, 22, 40, 0.92);
+      color: rgba(245, 250, 255, 0.98);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.07),
+        0 12px 28px rgba(0,0,0,0.18),
+        0 0 0 1px rgba(111, 184, 214, 0.08);
+    }
+
+    .tool-page .terrain-disclosure > summary:hover,
+    .tool-page .terrain-disclosure > summary:focus-visible,
+    .tool-page .nearby-btn:hover,
+    .tool-page .nearby-btn:focus-visible {
+      border-color: rgba(182, 228, 248, 0.82);
+      background:
+        linear-gradient(180deg, rgba(143, 209, 241, 0.28), rgba(143, 209, 241, 0.12)),
+        rgba(12, 27, 48, 0.96);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        0 16px 32px rgba(0,0,0,0.22),
+        0 0 0 4px rgba(33,183,255,0.08);
+    }
+
+    .tool-page .tool-entry-help--reference {
+      position: relative;
+      margin-top: 10px;
+      padding-left: 0.95rem;
+      max-width: 72ch;
+      color: rgba(208, 224, 239, 0.72);
+      font-size: 0.69rem;
+      line-height: 1.42;
+    }
+
+    .tool-page .tool-entry-help--reference::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.18rem;
+      bottom: 0.18rem;
+      width: 2px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(119, 202, 240, 0.82), rgba(119, 202, 240, 0.2));
+      box-shadow: 0 0 0 1px rgba(119, 202, 240, 0.05);
+    }
+
+    .tool-page .tool-source-line {
+      color: rgba(188, 202, 214, 0.44);
+      font-size: 0.68rem;
+      line-height: 1.32;
+      transform: none;
+      letter-spacing: 0.004em;
+    }
+
+    .tool-page .tool-source-line + .tool-source-line {
+      margin-top: 2px;
+    }
+
+    @media (max-width: 900px) {
+      .tool-page .terrain-visual-canvas {
+        min-height: 270px;
+      }
+
+      .tool-page .taf-visual-overview {
+        grid-template-columns: 1fr;
+      }
+
+      .tool-page .taf-visual-overview-summary {
+        grid-template-columns: 1fr;
+      }
+
+      .tool-page .taf-visual-overview-main {
+        padding-right: 1.4rem;
+      }
+
+      .tool-page .taf-visual-overview-side {
+        justify-items: start;
+        grid-template-columns: auto auto;
+        align-items: center;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .tool-page .taf-visual-overview-item {
+        border-radius: 20px;
+      }
+
+      .tool-page .taf-visual-overview-summary {
+        padding: 0.9rem 0.9rem 0.86rem;
+      }
+
+      .tool-page .taf-visual-overview-code {
+        font-size: 0.98rem;
+      }
+
+      .tool-page .taf-visual-overview-hint {
+        font-size: 0.82rem;
+      }
+
+      .tool-page .taf-visual-overview-explain {
+        font-size: 0.75rem;
+      }
+
+      .tool-page .taf-visual-overview-range {
+        font-size: 0.78rem;
+      }
+
+      .tool-page .taf-visual-overview-glance span {
+        font-size: 0.7rem;
+      }
+
+      .tool-page .taf-visual-cat {
+        min-height: 38px;
+        font-size: 0.84rem;
+        padding: 0.36rem 0.72rem;
+      }
+
+      .tool-page .taf-visual-open-hint {
+        min-height: 32px;
+        font-size: 0.74rem;
+      }
+
+      .tool-page .taf-phase-body {
+        padding: 0 0.9rem 0.9rem;
+      }
+
+      .tool-page .terrain-visual-canvas {
+        min-height: 236px;
+      }
+
+      .tool-page .terrain-visual-svg {
+        width: min(100%, 420px);
       }
     }
 
