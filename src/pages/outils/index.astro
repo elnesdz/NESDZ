@@ -2890,11 +2890,11 @@ function normalizeUlmDetailsRecord(item) {
       platformWindCard.hidden = false;
       platformWindMeta.textContent = getWindMetaLabel();
 
-      const cx = 310;
-      const cy = 200;
-      const outerRadius = 150;
-      const innerRadius = 106;
-      const runLength = 132;
+      const cx = 420;
+      const cy = 230;
+      const outerRadius = 186;
+      const innerRadius = 132;
+      const runLength = 166;
       const bestWind = getBestWindAlignedHeading(runways);
 
       const cardinalLabels = [
@@ -2955,7 +2955,7 @@ function normalizeUlmDetailsRecord(item) {
         `;
         infoMarkup = `
           <g transform="translate(24 24)">
-            <rect x="0" y="0" width="108" height="34" rx="17" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.08)" />
+            <rect x="0" y="0" width="118" height="36" rx="18" fill="rgba(6, 18, 31, 0.84)" stroke="rgba(255,255,255,0.10)" />
             <text x="54" y="21" text-anchor="middle" fill="rgba(255, 226, 182, 0.96)" font-size="13" font-weight="800">Vent calme</text>
           </g>
         `;
@@ -2989,7 +2989,7 @@ function normalizeUlmDetailsRecord(item) {
         `;
         infoMarkup = `
           <g transform="translate(24 24)">
-            <rect x="0" y="0" width="212" height="56" rx="20" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.09)" />
+            <rect x="0" y="0" width="232" height="58" rx="20" fill="rgba(6, 18, 31, 0.84)" stroke="rgba(255,255,255,0.10)" />
             <text x="18" y="22" fill="rgba(255, 220, 184, 0.98)" font-size="14" font-weight="900">${escapeHtml(bestText)}</text>
             <text x="18" y="41" fill="rgba(224, 236, 248, 0.92)" font-size="12.5" font-weight="700">${escapeHtml(compText)}</text>
           </g>
@@ -2998,14 +2998,14 @@ function normalizeUlmDetailsRecord(item) {
         windMarkup = `<circle cx="${cx}" cy="${cy}" r="14" fill="none" stroke="rgba(255, 183, 107, 0.92)" stroke-width="2.6" stroke-dasharray="5 5" />`;
         infoMarkup = `
           <g transform="translate(24 24)">
-            <rect x="0" y="0" width="146" height="40" rx="20" fill="rgba(6, 18, 31, 0.82)" stroke="rgba(255,255,255,0.08)" />
+            <rect x="0" y="0" width="162" height="42" rx="21" fill="rgba(6, 18, 31, 0.84)" stroke="rgba(255,255,255,0.10)" />
             <text x="73" y="25" text-anchor="middle" fill="rgba(255, 226, 182, 0.96)" font-size="12" font-weight="800">Vent variable</text>
           </g>
         `;
       }
 
       platformWindVisual.innerHTML = `
-        <svg viewBox="0 0 620 400" role="img" aria-label="Vent et pistes" class="terrain-visual-svg">
+        <svg viewBox="0 0 840 460" role="img" aria-label="Vent et pistes" class="terrain-visual-svg">
           <defs>
             <radialGradient id="terrainPanelBg" cx="50%" cy="50%" r="70%">
               <stop offset="0%" stop-color="rgba(44, 95, 138, 0.18)" />
@@ -3017,8 +3017,8 @@ function normalizeUlmDetailsRecord(item) {
               <stop offset="100%" stop-color="rgba(255,255,255,0.01)" />
             </linearGradient>
           </defs>
-          <rect x="0" y="0" width="620" height="400" rx="34" fill="url(#terrainGlass)" />
-          <rect x="0" y="0" width="620" height="400" rx="34" fill="url(#terrainPanelBg)" />
+          <rect x="0" y="0" width="840" height="460" rx="36" fill="url(#terrainGlass)" />
+          <rect x="0" y="0" width="840" height="460" rx="36" fill="url(#terrainPanelBg)" />
           ${ringMarkup}
           ${cardinalLabels}
           ${runwayMarkup}
@@ -10061,6 +10061,215 @@ function renderUlmNearbyItem(item) {
       .tool-page .taf-overview-phase:hover,
       .tool-page .taf-overview-phase:focus-within { transform: none; }
       .tool-page .taf-visual-open-hint { min-height: 35px; font-size: 0.74rem; }
+    }
+
+
+    /* --- v13 desktop refinement: larger wind panel + clearer interactive cards --- */
+    .tool-page .terrain-visual-card {
+      padding: clamp(1.15rem, 1.8vw, 1.6rem);
+    }
+
+    .tool-page .terrain-visual-head {
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.95rem;
+    }
+
+    .tool-page .terrain-visual-meta {
+      border-color: rgba(255, 197, 123, 0.38);
+      background: linear-gradient(180deg, rgba(62, 37, 17, 0.92), rgba(33, 21, 12, 0.96));
+      color: rgba(255, 227, 192, 0.99);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 20px rgba(0,0,0,0.15);
+    }
+
+    .tool-page .terrain-visual-canvas {
+      min-height: 520px;
+      padding: clamp(0.95rem, 2vw, 1.55rem);
+      background:
+        radial-gradient(circle at 50% 48%, rgba(77, 145, 193, 0.34), transparent 34%),
+        radial-gradient(circle at 50% 50%, rgba(22, 60, 96, 0.42), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)),
+        rgba(3, 10, 21, 0.97);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 18px 34px rgba(0,0,0,0.18);
+    }
+
+    .tool-page .terrain-visual-svg {
+      width: min(100%, 840px);
+      max-width: 100%;
+      height: auto;
+      filter: drop-shadow(0 22px 34px rgba(0,0,0,0.22));
+    }
+
+    .tool-page .taf-visual-overview {
+      gap: 0.9rem;
+    }
+
+    .tool-page .taf-visual-overview-item {
+      position: relative;
+      border-width: 1px;
+      border-color: rgba(171, 206, 231, 0.22);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.012)),
+        rgba(5, 14, 28, 0.82);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 14px 26px rgba(1, 8, 20, 0.24);
+      overflow: hidden;
+    }
+
+    .tool-page .taf-visual-overview-item::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(135deg, rgba(150, 220, 255, 0.08), transparent 36%);
+      opacity: 0.75;
+    }
+
+    .tool-page .taf-visual-overview-item::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow: inset 0 0 0 1px rgba(195, 225, 247, 0.04);
+      pointer-events: none;
+    }
+
+    .tool-page .taf-visual-overview-summary {
+      cursor: pointer;
+      padding: 1rem 1.02rem 1.02rem;
+      background: rgba(8, 19, 35, 0.34);
+    }
+
+    .tool-page .taf-visual-overview-main {
+      gap: 0.5rem;
+      padding-right: 1.8rem;
+    }
+
+    .tool-page .taf-visual-overview-hint {
+      color: rgba(238, 244, 250, 0.9);
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+
+    .tool-page .taf-visual-open-hint {
+      min-height: 40px;
+      padding: 0.52rem 0.92rem;
+      border: 1px solid rgba(146, 221, 255, 0.56);
+      background: linear-gradient(180deg, rgba(69, 115, 168, 0.98), rgba(21, 51, 88, 1));
+      color: rgba(248, 251, 255, 0.995);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 12px 20px rgba(0,0,0,0.2);
+    }
+
+    .tool-page .taf-visual-open-hint::before {
+      content: "▸";
+      font-size: 0.82rem;
+      opacity: 0.98;
+    }
+
+    .tool-page .taf-overview-phase:hover,
+    .tool-page .taf-overview-phase:focus-within {
+      transform: translateY(-4px);
+      border-color: rgba(159, 230, 255, 0.72);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.016)),
+        rgba(6, 16, 30, 0.97);
+      box-shadow:
+        0 0 0 1px rgba(159, 230, 255, 0.18),
+        0 24px 42px rgba(1, 8, 20, 0.4),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .tool-page .taf-overview-phase:hover .taf-visual-open-hint,
+    .tool-page .taf-overview-phase:focus-within .taf-visual-open-hint {
+      border-color: rgba(180, 231, 255, 0.72);
+      background: linear-gradient(180deg, rgba(84, 132, 187, 1), rgba(28, 62, 104, 1));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 14px 22px rgba(0,0,0,0.24);
+    }
+
+    .tool-page .taf-overview-phase[open] .taf-visual-open-hint::before {
+      content: "▾";
+    }
+
+    .tool-page .taf-visual-overview-glance span {
+      border-color: rgba(183, 212, 236, 0.32);
+      background: rgba(7, 21, 40, 0.9);
+      color: rgba(240, 246, 252, 0.95);
+    }
+
+    .tool-page .nearby-btn,
+    .tool-page .terrain-disclosure > summary {
+      border-color: rgba(164, 223, 248, 0.72);
+      background:
+        linear-gradient(180deg, rgba(146, 211, 241, 0.3), rgba(146, 211, 241, 0.11)),
+        rgba(11, 24, 43, 0.95);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        0 16px 30px rgba(0,0,0,0.18),
+        0 0 0 1px rgba(116, 190, 226, 0.12);
+    }
+
+    .tool-page .nearby-btn:hover,
+    .tool-page .nearby-btn:focus-visible,
+    .tool-page .terrain-disclosure > summary:hover,
+    .tool-page .terrain-disclosure > summary:focus-visible {
+      border-color: rgba(192, 235, 251, 0.92);
+      background:
+        linear-gradient(180deg, rgba(163, 223, 248, 0.36), rgba(163, 223, 248, 0.16)),
+        rgba(14, 29, 52, 0.98);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.1),
+        0 18px 34px rgba(0,0,0,0.22),
+        0 0 0 4px rgba(33,183,255,0.08);
+    }
+
+    .tool-page .tool-entry-help--reference {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.55rem 0.85rem 0.55rem 0.9rem;
+      border-radius: 14px;
+      border: 1px solid rgba(135, 207, 236, 0.16);
+      background: rgba(7, 16, 31, 0.46);
+      color: rgba(216, 230, 243, 0.82);
+      font-size: 0.72rem;
+      line-height: 1.45;
+      max-width: fit-content;
+      padding-left: 0.9rem;
+    }
+
+    .tool-page .tool-entry-help--reference::before {
+      content: "i";
+      position: static;
+      display: inline-grid;
+      place-items: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(33, 183, 255, 0.16);
+      border: 1px solid rgba(115, 211, 255, 0.24);
+      color: rgba(202, 235, 255, 0.95);
+      font-size: 0.7rem;
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 1180px) {
+      .tool-page .terrain-visual-canvas { min-height: 460px; }
+      .tool-page .terrain-visual-svg { width: min(100%, 760px); }
+    }
+
+    @media (max-width: 720px) {
+      .tool-page .terrain-visual-canvas { min-height: 252px; padding: 0.65rem; }
+      .tool-page .terrain-visual-svg { width: min(100%, 420px); }
+      .tool-page .taf-overview-phase:hover,
+      .tool-page .taf-overview-phase:focus-within { transform: none; }
+      .tool-page .tool-entry-help--reference {
+        display: block;
+        max-width: none;
+      }
+      .tool-page .tool-entry-help--reference::before {
+        display: inline-grid;
+        margin-right: 0.45rem;
+      }
     }
 
 
