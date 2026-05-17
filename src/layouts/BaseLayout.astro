@@ -60,7 +60,7 @@ const ogType = isArticlePage ? "article" : "website";
     <meta name="twitter:image" content={ogImageUrl} />
   </head>
 
-  <body class="nesdz-premium-ui">
+  <body class={`nesdz-premium-ui ${pathname.startsWith("/outils/") || pathname === "/outils" ? "nesdz-route-outils" : ""}`}>
     <header class="nav">
       <div class="container nav-inner">
         <a class="brand" href="/" aria-label="Accueil NESDZ">
@@ -299,6 +299,104 @@ const ogType = isArticlePage ? "article" : "website";
           width: 100%;
           min-width: 0;
           min-height: 56px;
+        }
+      }
+
+
+      /* NESDZ v15 — header mobile compact pour la page outils / mobile-first */
+      @media (max-width: 720px) {
+        .nav-inner {
+          gap: 9px;
+          padding: 9px 0 10px;
+        }
+
+        .brand {
+          gap: 10px;
+        }
+
+        .brand .logo {
+          width: 52px;
+          height: 52px;
+          border-radius: 16px;
+          padding: 7px;
+        }
+
+        .brand-text strong {
+          font-size: 1.12rem;
+          line-height: 1;
+          letter-spacing: 0.01em;
+        }
+
+        .brand-subtitle {
+          font-size: 0.78rem;
+          line-height: 1.15;
+          color: rgba(184, 197, 219, 0.78);
+        }
+
+        .nav-spotlight::before {
+          inset: -8px -14px;
+          filter: blur(8px);
+          opacity: 0.78;
+        }
+
+        .service-cta,
+        .service-cta--spotlight {
+          min-height: 46px;
+          padding: 12px 20px;
+          font-size: 0.98rem;
+          border-radius: 999px;
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.24),
+            0 0 0 1px rgba(133, 208, 245, 0.16),
+            0 10px 26px rgba(12, 86, 130, 0.24),
+            0 0 38px rgba(72, 194, 255, 0.16);
+        }
+
+        .nav-right {
+          display: block;
+          min-width: 0;
+        }
+
+        .navlinks {
+          flex-wrap: nowrap;
+          justify-content: flex-start;
+          gap: 8px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          padding: 1px 2px 4px;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+          mask-image: linear-gradient(90deg, #000 0%, #000 calc(100% - 26px), transparent 100%);
+        }
+
+        .navlinks::-webkit-scrollbar {
+          display: none;
+        }
+
+        .navlinks a {
+          flex: 0 0 auto;
+          padding: 7px 9px;
+          font-size: 0.88rem;
+          line-height: 1.1;
+          color: rgba(231, 238, 245, 0.74);
+        }
+      }
+
+      @media (max-width: 390px) {
+        .brand .logo {
+          width: 48px;
+          height: 48px;
+        }
+
+        .service-cta,
+        .service-cta--spotlight {
+          min-height: 44px;
+          font-size: 0.94rem;
+        }
+
+        .navlinks a {
+          font-size: 0.84rem;
+          padding-inline: 8px;
         }
       }
     </style>
