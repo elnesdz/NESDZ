@@ -11342,5 +11342,114 @@ function renderUlmNearbyItem(item) {
     }
 
 
+
+    /* NESDZ v16 — desktop cockpit layout correction
+       Mobile stays unchanged. Desktop now uses the available width instead of behaving like a tall mobile stack. */
+    @media (min-width: 981px) {
+      .nesdz-premium-ui .terrain-visual-card--briefing {
+        width: 100%;
+        max-width: none;
+        overflow: hidden;
+      }
+
+      .nesdz-premium-ui .terrain-visual-card--briefing .terrain-visual-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+      }
+
+      .nesdz-premium-ui .terrain-visual-card--briefing .terrain-visual-canvas {
+        width: 100%;
+        max-width: none;
+        overflow: visible;
+      }
+
+      .nesdz-premium-ui .terrain-wind-pro {
+        width: 100%;
+        max-width: none;
+      }
+
+      .nesdz-premium-ui .terrain-wind-main {
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(430px, 0.95fr) minmax(460px, 1.05fr);
+        gap: clamp(18px, 2vw, 30px);
+        align-items: center;
+        padding: clamp(18px, 2.1vw, 28px);
+      }
+
+      .nesdz-premium-ui .terrain-wind-rose-wrap {
+        min-height: clamp(430px, 36vw, 560px);
+        align-self: stretch;
+      }
+
+      .nesdz-premium-ui .terrain-wind-rose {
+        width: min(100%, 560px);
+        max-height: 560px;
+      }
+
+      .nesdz-premium-ui .terrain-wind-readout {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-content: center;
+        gap: 12px;
+      }
+
+      .nesdz-premium-ui .terrain-wind-status,
+      .nesdz-premium-ui .terrain-wind-primary,
+      .nesdz-premium-ui .terrain-runway-list,
+      .nesdz-premium-ui .terrain-wind-footnote {
+        grid-column: 1 / -1;
+      }
+
+      .nesdz-premium-ui .terrain-wind-primary {
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+
+      .nesdz-premium-ui .terrain-wind-primary strong {
+        white-space: nowrap;
+        font-size: clamp(1.45rem, 2vw, 2.05rem);
+      }
+
+      .nesdz-premium-ui .terrain-wind-metrics {
+        grid-column: 1 / -1;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .nesdz-premium-ui .terrain-wind-metric {
+        min-height: 106px;
+      }
+
+      .nesdz-premium-ui .terrain-wind-metric strong {
+        font-size: clamp(1.18rem, 1.55vw, 1.62rem);
+      }
+
+      .nesdz-premium-ui .terrain-runway-list li {
+        grid-template-columns: minmax(74px, 0.75fr) minmax(44px, 0.38fr) minmax(112px, 0.95fr) minmax(116px, 1fr);
+      }
+    }
+
+    @media (min-width: 1280px) {
+      .nesdz-premium-ui .terrain-wind-main {
+        grid-template-columns: minmax(500px, 0.92fr) minmax(520px, 1.08fr);
+      }
+
+      .nesdz-premium-ui .terrain-wind-rose {
+        width: min(100%, 600px);
+        max-height: 600px;
+      }
+    }
+
+    @media (min-width: 981px) and (max-width: 1160px) {
+      .nesdz-premium-ui .terrain-wind-main {
+        grid-template-columns: minmax(360px, 0.9fr) minmax(400px, 1.1fr);
+      }
+
+      .nesdz-premium-ui .terrain-wind-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
 </style>
 </BaseLayout>
