@@ -3039,8 +3039,8 @@ function normalizeUlmDetailsRecord(item) {
             <line x1="${start.x.toFixed(1)}" y1="${start.y.toFixed(1)}" x2="${end.x.toFixed(1)}" y2="${end.y.toFixed(1)}" stroke="${isBest ? "rgba(78,220,255,.32)" : "rgba(146,173,202,.13)"}" stroke-width="${glowWidth}" stroke-linecap="round" />
             <line x1="${start.x.toFixed(1)}" y1="${start.y.toFixed(1)}" x2="${end.x.toFixed(1)}" y2="${end.y.toFixed(1)}" stroke="${isBest ? "#09111d" : "rgba(205,220,238,.58)"}" stroke-width="${strokeWidth}" stroke-linecap="round" />
             ${isBest ? `<line x1="${start.x.toFixed(1)}" y1="${start.y.toFixed(1)}" x2="${end.x.toFixed(1)}" y2="${end.y.toFixed(1)}" stroke="rgba(255,255,255,.88)" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="14 13" />` : ""}
-            <text x="${labelStart.x.toFixed(1)}" y="${labelStart.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="${isBest ? "rgba(255,255,255,.98)" : "rgba(205,220,238,.58)"}" font-size="${isBest ? 19 : 14}" font-weight="950">${svgText(runway.startLabel)}</text>
-            <text x="${labelEnd.x.toFixed(1)}" y="${labelEnd.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="${isBest ? "rgba(255,255,255,.98)" : "rgba(205,220,238,.58)"}" font-size="${isBest ? 19 : 14}" font-weight="950">${svgText(runway.endLabel)}</text>
+            <text x="${labelStart.x.toFixed(1)}" y="${labelStart.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="${isBest ? "rgba(255,255,255,.98)" : "rgba(205,220,238,.58)"}" font-size="${isBest ? 19 : 14}" font-weight="950">${svgText(runway.endLabel)}</text>
+            <text x="${labelEnd.x.toFixed(1)}" y="${labelEnd.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="${isBest ? "rgba(255,255,255,.98)" : "rgba(205,220,238,.58)"}" font-size="${isBest ? 19 : 14}" font-weight="950">${svgText(runway.startLabel)}</text>
           </g>
         `;
       }).join("");
