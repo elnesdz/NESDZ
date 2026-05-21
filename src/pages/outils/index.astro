@@ -204,7 +204,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
           <div class="notam-cockpit-grid" aria-label="Simulation NOTAM compacte">
             <article class="notam-item notam-item--important" data-notam-card="rwy-lighting">
-              <button class="notam-item-trigger" type="button" aria-expanded="false" aria-controls="notamDetailRwy">
+              <button class="notam-item-trigger" type="button" aria-expanded="false" aria-controls="notamDetailRwy" data-notam-target="notamDetailRwy">
                 <span class="notam-item-icon notam-item-icon--runway" aria-hidden="true">⌁</span>
                 <span class="notam-item-main">
                   <span class="notam-item-topline">
@@ -214,36 +214,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                   <strong>RWY 08/26 — Travaux de balisage</strong>
                   <span class="notam-item-period">Jusqu’au 14 MAY 18:00 UTC</span>
                 </span>
-                <span class="notam-item-action" aria-hidden="true">›</span>
+                <span class="notam-item-action" aria-hidden="true">Voir détails ›</span>
               </button>
-
-              <div id="notamDetailRwy" class="notam-detail" hidden>
-                <div class="notam-detail-grid">
-                  <div class="notam-detail-panel notam-detail-panel--summary">
-                    <span class="notam-detail-label">Résumé NESDZ</span>
-                    <p>Travaux de balisage signalés sur la piste 08/26. Vérifier la disponibilité réelle et les consignes publiées via les services officiels.</p>
-                  </div>
-                  <div class="notam-detail-panel">
-                    <span class="notam-detail-label">Impact concerné</span>
-                    <strong>Piste / balisage</strong>
-                  </div>
-                  <div class="notam-detail-panel">
-                    <span class="notam-detail-label">Validité</span>
-                    <strong>Jusqu’au 14 MAY 18:00 UTC</strong>
-                  </div>
-                </div>
-
-                <details class="notam-raw-disclosure">
-                  <summary>Texte officiel NOTAM</summary>
-                  <pre>NOTAM exemple — RWY 08/26 : travaux de balisage. Texte officiel à remplacer par le flux Autorouter.</pre>
-                </details>
-
-                <a class="notam-detail-official-link" href="https://sofia-briefing.aviation-civile.gouv.fr/" target="_blank" rel="noopener noreferrer">Ouvrir SOFIA-Briefing</a>
-              </div>
             </article>
 
             <article class="notam-item notam-item--moderate" data-notam-card="ndb-unavailable">
-              <button class="notam-item-trigger" type="button" aria-expanded="false" aria-controls="notamDetailNdb">
+              <button class="notam-item-trigger" type="button" aria-expanded="false" aria-controls="notamDetailNdb" data-notam-target="notamDetailNdb">
                 <span class="notam-item-icon notam-item-icon--radio" aria-hidden="true">⌁</span>
                 <span class="notam-item-main">
                   <span class="notam-item-topline">
@@ -253,36 +229,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                   <strong>NDB LIL 352 kHz — Indisponible</strong>
                   <span class="notam-item-period">Jusqu’au 10 MAY 12:00 UTC</span>
                 </span>
-                <span class="notam-item-action" aria-hidden="true">›</span>
+                <span class="notam-item-action" aria-hidden="true">Voir détails ›</span>
               </button>
-
-              <div id="notamDetailNdb" class="notam-detail" hidden>
-                <div class="notam-detail-grid">
-                  <div class="notam-detail-panel notam-detail-panel--summary">
-                    <span class="notam-detail-label">Résumé NESDZ</span>
-                    <p>Aide radio-navigation NDB LIL signalée indisponible. Utiliser les informations officielles applicables à la préparation du vol.</p>
-                  </div>
-                  <div class="notam-detail-panel">
-                    <span class="notam-detail-label">Impact concerné</span>
-                    <strong>Navigation radio</strong>
-                  </div>
-                  <div class="notam-detail-panel">
-                    <span class="notam-detail-label">Validité</span>
-                    <strong>Jusqu’au 10 MAY 12:00 UTC</strong>
-                  </div>
-                </div>
-
-                <details class="notam-raw-disclosure">
-                  <summary>Texte officiel NOTAM</summary>
-                  <pre>NOTAM exemple — NDB LIL 352 kHz indisponible. Texte officiel à remplacer par le flux Autorouter.</pre>
-                </details>
-
-                <a class="notam-detail-official-link" href="https://sofia-briefing.aviation-civile.gouv.fr/" target="_blank" rel="noopener noreferrer">Ouvrir SOFIA-Briefing</a>
-              </div>
             </article>
 
             <article class="notam-item notam-item--info" data-notam-card="traffic-area">
-              <button class="notam-item-trigger" type="button" aria-expanded="false" aria-controls="notamDetailActivity">
+              <button class="notam-item-trigger" type="button" aria-expanded="false" aria-controls="notamDetailActivity" data-notam-target="notamDetailActivity">
                 <span class="notam-item-icon notam-item-icon--activity" aria-hidden="true">⌁</span>
                 <span class="notam-item-main">
                   <span class="notam-item-topline">
@@ -292,32 +244,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                   <strong>Aire de trafic — Activité parapente</strong>
                   <span class="notam-item-period">Jusqu’au 15 MAY · SFC / 2500 ft AMSL</span>
                 </span>
-                <span class="notam-item-action" aria-hidden="true">›</span>
+                <span class="notam-item-action" aria-hidden="true">Voir détails ›</span>
               </button>
-
-              <div id="notamDetailActivity" class="notam-detail" hidden>
-                <div class="notam-detail-grid">
-                  <div class="notam-detail-panel notam-detail-panel--summary">
-                    <span class="notam-detail-label">Résumé NESDZ</span>
-                    <p>Activité parapente publiée dans le secteur. Vérifier les limites, horaires et conditions exactes dans le briefing officiel.</p>
-                  </div>
-                  <div class="notam-detail-panel">
-                    <span class="notam-detail-label">Impact concerné</span>
-                    <strong>Activité aérienne</strong>
-                  </div>
-                  <div class="notam-detail-panel">
-                    <span class="notam-detail-label">Volume</span>
-                    <strong>SFC / 2500 ft AMSL</strong>
-                  </div>
-                </div>
-
-                <details class="notam-raw-disclosure">
-                  <summary>Texte officiel NOTAM</summary>
-                  <pre>NOTAM exemple — activité parapente SFC / 2500 ft AMSL. Texte officiel à remplacer par le flux Autorouter.</pre>
-                </details>
-
-                <a class="notam-detail-official-link" href="https://sofia-briefing.aviation-civile.gouv.fr/" target="_blank" rel="noopener noreferrer">Ouvrir SOFIA-Briefing</a>
-              </div>
             </article>
 
             <aside class="notam-sofia-card" aria-label="Source officielle SOFIA">
@@ -326,21 +254,109 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                 <span class="decoded-label">SOFIA — Source officielle</span>
                 <strong>Consulter le PIB complet avant le vol.</strong>
                 <p>NESDZ facilite la lecture, mais le briefing officiel reste la référence réglementaire.</p>
+                <a
+                  class="notam-assisted-link notam-sofia-link"
+                  href="https://sofia-briefing.aviation-civile.gouv.fr/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Ouvrir SOFIA-Briefing
+                </a>
               </div>
-              <a
-                class="notam-assisted-link notam-sofia-link"
-                href="https://sofia-briefing.aviation-civile.gouv.fr/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Ouvrir SOFIA-Briefing
-              </a>
             </aside>
           </div>
 
+          <div class="notam-detail-dock" aria-live="polite">
+            <section id="notamDetailRwy" class="notam-inline-detail notam-inline-detail--important" hidden>
+              <div class="notam-inline-detail-head">
+                <div>
+                  <span class="notam-detail-label">Détail NOTAM décodé</span>
+                  <strong>RWY 08/26 — Travaux de balisage</strong>
+                </div>
+                <span class="notam-level notam-level--important">Important</span>
+              </div>
+              <div class="notam-detail-grid">
+                <div class="notam-detail-panel notam-detail-panel--summary">
+                  <span class="notam-detail-label">Résumé NESDZ</span>
+                  <p>Travaux de balisage signalés sur la piste 08/26. Vérifier la disponibilité réelle et les consignes publiées via les services officiels.</p>
+                </div>
+                <div class="notam-detail-panel">
+                  <span class="notam-detail-label">Impact concerné</span>
+                  <strong>Piste / balisage</strong>
+                </div>
+                <div class="notam-detail-panel">
+                  <span class="notam-detail-label">Validité</span>
+                  <strong>Jusqu’au 14 MAY 18:00 UTC</strong>
+                </div>
+              </div>
+              <details class="notam-raw-disclosure">
+                <summary>Texte officiel NOTAM</summary>
+                <pre>RWY 08/26 LIGHTING WORK IN PROGRESS. CHECK OFFICIAL BRIEFING BEFORE FLIGHT.</pre>
+              </details>
+              <a class="notam-detail-official-link" href="https://sofia-briefing.aviation-civile.gouv.fr/" target="_blank" rel="noopener noreferrer">Ouvrir SOFIA-Briefing</a>
+            </section>
+
+            <section id="notamDetailNdb" class="notam-inline-detail notam-inline-detail--moderate" hidden>
+              <div class="notam-inline-detail-head">
+                <div>
+                  <span class="notam-detail-label">Détail NOTAM décodé</span>
+                  <strong>NDB LIL 352 kHz — Indisponible</strong>
+                </div>
+                <span class="notam-level notam-level--moderate">Modéré</span>
+              </div>
+              <div class="notam-detail-grid">
+                <div class="notam-detail-panel notam-detail-panel--summary">
+                  <span class="notam-detail-label">Résumé NESDZ</span>
+                  <p>Aide radio-navigation NDB LIL signalée indisponible. Vérifier les moyens de navigation et les publications officielles avant utilisation.</p>
+                </div>
+                <div class="notam-detail-panel">
+                  <span class="notam-detail-label">Impact concerné</span>
+                  <strong>Radio-navigation</strong>
+                </div>
+                <div class="notam-detail-panel">
+                  <span class="notam-detail-label">Validité</span>
+                  <strong>Jusqu’au 10 MAY 12:00 UTC</strong>
+                </div>
+              </div>
+              <details class="notam-raw-disclosure">
+                <summary>Texte officiel NOTAM</summary>
+                <pre>NDB LIL 352 KHZ U/S. CHECK OFFICIAL BRIEFING BEFORE FLIGHT.</pre>
+              </details>
+              <a class="notam-detail-official-link" href="https://sofia-briefing.aviation-civile.gouv.fr/" target="_blank" rel="noopener noreferrer">Ouvrir SOFIA-Briefing</a>
+            </section>
+
+            <section id="notamDetailActivity" class="notam-inline-detail notam-inline-detail--info" hidden>
+              <div class="notam-inline-detail-head">
+                <div>
+                  <span class="notam-detail-label">Détail NOTAM décodé</span>
+                  <strong>Aire de trafic — Activité parapente</strong>
+                </div>
+                <span class="notam-level notam-level--info">Info</span>
+              </div>
+              <div class="notam-detail-grid">
+                <div class="notam-detail-panel notam-detail-panel--summary">
+                  <span class="notam-detail-label">Résumé NESDZ</span>
+                  <p>Activité parapente publiée dans le secteur. Vérifier la localisation, les horaires et les limites verticales dans le briefing officiel.</p>
+                </div>
+                <div class="notam-detail-panel">
+                  <span class="notam-detail-label">Impact concerné</span>
+                  <strong>Activité aérienne</strong>
+                </div>
+                <div class="notam-detail-panel">
+                  <span class="notam-detail-label">Volume</span>
+                  <strong>SFC / 2500 ft AMSL</strong>
+                </div>
+              </div>
+              <details class="notam-raw-disclosure">
+                <summary>Texte officiel NOTAM</summary>
+                <pre>PARAGLIDING ACTIVITY. SFC/2500FT AMSL. CHECK OFFICIAL BRIEFING BEFORE FLIGHT.</pre>
+              </details>
+              <a class="notam-detail-official-link" href="https://sofia-briefing.aviation-civile.gouv.fr/" target="_blank" rel="noopener noreferrer">Ouvrir SOFIA-Briefing</a>
+            </section>
+          </div>
+
           <button class="notam-all-link" type="button" aria-label="Afficher tous les NOTAM simulés">
-            Voir tous les NOTAM
-            <span aria-hidden="true">›</span>
+            Voir tous les NOTAM <span aria-hidden="true">›</span>
           </button>
 
           <div class="notam-safety-strip">
@@ -5489,28 +5505,32 @@ function renderUlmNearbyItem(item) {
 
     function initNotamCockpitInteractions() {
       const triggers = Array.from(document.querySelectorAll(".notam-item-trigger"));
-      if (!triggers.length) return;
+      const detailPanels = Array.from(document.querySelectorAll(".notam-inline-detail"));
+      if (!triggers.length || !detailPanels.length) return;
 
       triggers.forEach((trigger) => {
         trigger.addEventListener("click", () => {
           const card = trigger.closest(".notam-item");
-          const detailId = trigger.getAttribute("aria-controls");
+          const detailId = trigger.dataset.notamTarget || trigger.getAttribute("aria-controls");
           const detail = detailId ? document.getElementById(detailId) : null;
           const isOpen = trigger.getAttribute("aria-expanded") === "true";
 
           triggers.forEach((otherTrigger) => {
             const otherCard = otherTrigger.closest(".notam-item");
-            const otherDetailId = otherTrigger.getAttribute("aria-controls");
-            const otherDetail = otherDetailId ? document.getElementById(otherDetailId) : null;
             otherTrigger.setAttribute("aria-expanded", "false");
             if (otherCard) otherCard.classList.remove("is-open");
-            if (otherDetail) otherDetail.hidden = true;
           });
 
-          if (!isOpen) {
+          detailPanels.forEach((panel) => {
+            panel.hidden = true;
+            panel.classList.remove("is-visible");
+          });
+
+          if (!isOpen && detail) {
             trigger.setAttribute("aria-expanded", "true");
             if (card) card.classList.add("is-open");
-            if (detail) detail.hidden = false;
+            detail.hidden = false;
+            requestAnimationFrame(() => detail.classList.add("is-visible"));
           }
         });
       });
@@ -11630,15 +11650,15 @@ function renderUlmNearbyItem(item) {
     }
 
 
-    /* Simulation NOTAM cockpit — passe 2 : cartes cliquables + SOFIA officielle */
+    /* Simulation NOTAM cockpit — pass 4 : concept laptop/mobile + détail lisible pleine largeur */
     .tool-page .notam-cockpit-block {
       margin-top: 18px;
-      padding: clamp(1rem, 1.8vw, 1.35rem);
+      padding: clamp(0.95rem, 1.55vw, 1.25rem);
       border-radius: 24px;
       border-color: rgba(127, 220, 255, 0.18);
       background:
         radial-gradient(circle at 0% 0%, rgba(127, 220, 255, 0.10), transparent 34%),
-        radial-gradient(circle at 100% 0%, rgba(255, 178, 87, 0.07), transparent 30%),
+        radial-gradient(circle at 100% 0%, rgba(255, 178, 87, 0.065), transparent 30%),
         linear-gradient(180deg, rgba(255,255,255,.038), rgba(255,255,255,.012)),
         rgba(6, 16, 33, 0.92);
       box-shadow:
@@ -11651,7 +11671,7 @@ function renderUlmNearbyItem(item) {
       justify-content: space-between;
       align-items: flex-start;
       gap: 1rem;
-      margin-bottom: 0.95rem;
+      margin-bottom: 0.9rem;
     }
 
     .tool-page .notam-title-row {
@@ -11680,6 +11700,7 @@ function renderUlmNearbyItem(item) {
       font-size: 0.78rem;
       font-weight: 800;
       line-height: 1;
+      white-space: nowrap;
     }
 
     .tool-page .notam-count-badge--important {
@@ -11700,14 +11721,13 @@ function renderUlmNearbyItem(item) {
     .tool-page .notam-source-link:hover,
     .tool-page .notam-assisted-link:hover,
     .tool-page .notam-detail-official-link:hover {
-      border-color: rgba(127, 220, 255, 0.52);
-      color: #fff;
-      box-shadow: 0 0 0 4px rgba(33,183,255,0.08);
+      border-color: rgba(127, 220, 255, 0.34);
+      box-shadow: 0 0 0 4px rgba(33, 183, 255, 0.08);
     }
 
     .tool-page .notam-cockpit-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(250px, 0.9fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 0.72rem;
       align-items: stretch;
     }
@@ -11715,20 +11735,19 @@ function renderUlmNearbyItem(item) {
     .tool-page .notam-item,
     .tool-page .notam-sofia-card,
     .tool-page .notam-safety-strip,
-    .tool-page .notam-all-link {
-      border: 1px solid rgba(160, 210, 245, 0.13);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.012)),
-        rgba(5, 13, 29, 0.72);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.045);
+    .tool-page .notam-all-link,
+    .tool-page .notam-inline-detail {
+      border: 1px solid rgba(127, 220, 255, 0.13);
+      background: rgba(8, 18, 36, 0.72);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.035);
     }
 
     .tool-page .notam-item {
-      min-height: 126px;
-      border-radius: 18px;
       position: relative;
+      min-height: 132px;
+      border-radius: 16px;
       overflow: hidden;
-      transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease, background .18s ease;
+      transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
     }
 
     .tool-page .notam-item::before {
@@ -11736,9 +11755,8 @@ function renderUlmNearbyItem(item) {
       position: absolute;
       inset: 0 auto 0 0;
       width: 3px;
-      background: rgba(127, 220, 255, 0.6);
-      opacity: 0.72;
-      z-index: 2;
+      opacity: 0.92;
+      pointer-events: none;
     }
 
     .tool-page .notam-item--important::before { background: rgba(255, 112, 112, 0.92); }
@@ -11746,380 +11764,359 @@ function renderUlmNearbyItem(item) {
     .tool-page .notam-item--info::before { background: rgba(54, 188, 255, 0.88); }
 
     .tool-page .notam-item:hover,
-    .tool-page .notam-item:focus-within {
-      border-color: rgba(127, 220, 255, 0.26);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.055), 0 0 0 4px rgba(33,183,255,0.06);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.016)),
-        rgba(6, 16, 33, 0.86);
+    .tool-page .notam-item:focus-within,
+    .tool-page .notam-item.is-open {
+      border-color: rgba(127, 220, 255, 0.28);
+      background: rgba(10, 24, 47, 0.88);
+      box-shadow: 0 0 0 4px rgba(33, 183, 255, 0.055), inset 0 1px 0 rgba(255,255,255,0.055);
+      transform: translateY(-1px);
     }
 
     .tool-page .notam-item-trigger {
+      position: relative;
+      z-index: 1;
       width: 100%;
-      min-height: 126px;
+      height: 100%;
+      min-height: 132px;
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
-      gap: 0.78rem;
+      grid-template-columns: 42px minmax(0, 1fr);
       align-items: center;
-      padding: 0.82rem;
+      gap: 0.78rem;
+      padding: 0.82rem 0.72rem 0.78rem 0.95rem;
       border: 0;
       background: transparent;
       color: inherit;
-      text-align: left;
       cursor: pointer;
+      text-align: left;
     }
 
-    .tool-page .notam-item-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 15px;
-      display: grid;
-      place-items: center;
-      color: rgba(189, 220, 238, 0.78);
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.035);
-      font-size: 1.3rem;
-      font-weight: 900;
+    .tool-page .notam-item-icon,
+    .tool-page .notam-sofia-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      border: 1px solid rgba(127, 220, 255, 0.14);
+      background: rgba(10, 31, 58, 0.58);
+      color: rgba(174, 224, 255, 0.9);
+      font-size: 1.12rem;
+      flex: 0 0 auto;
     }
 
     .tool-page .notam-item--important .notam-item-icon {
-      color: rgba(255, 181, 181, 0.96);
-      border-color: rgba(255, 112, 112, 0.18);
-      background: rgba(151, 36, 51, 0.16);
+      border-color: rgba(255, 112, 112, 0.28);
+      background: rgba(255, 112, 112, 0.08);
+      color: rgba(255, 138, 138, 0.95);
     }
 
     .tool-page .notam-item--moderate .notam-item-icon {
-      color: rgba(255, 211, 139, 0.96);
-      border-color: rgba(255, 179, 70, 0.18);
-      background: rgba(161, 94, 18, 0.15);
+      border-color: rgba(255, 179, 70, 0.28);
+      background: rgba(255, 179, 70, 0.08);
+      color: rgba(255, 195, 97, 0.96);
     }
 
     .tool-page .notam-item--info .notam-item-icon {
-      color: rgba(163, 229, 255, 0.98);
-      border-color: rgba(54, 188, 255, 0.18);
-      background: rgba(30, 127, 188, 0.15);
+      border-color: rgba(54, 188, 255, 0.30);
+      background: rgba(54, 188, 255, 0.09);
+      color: rgba(106, 212, 255, 0.98);
     }
 
     .tool-page .notam-item-main {
-      display: grid;
-      gap: 0.28rem;
       min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.26rem;
     }
 
     .tool-page .notam-item-topline {
       display: flex;
-      align-items: center;
       flex-wrap: wrap;
       gap: 0.36rem;
+      align-items: center;
     }
 
     .tool-page .notam-level,
     .tool-page .notam-tag {
       display: inline-flex;
       align-items: center;
-      min-height: 22px;
-      padding: 0.22rem 0.55rem;
+      min-height: 20px;
+      padding: 0.18rem 0.48rem;
       border-radius: 999px;
-      font-size: 0.66rem;
+      font-size: 0.62rem;
       font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.045em;
       line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.035em;
     }
 
     .tool-page .notam-level--important {
-      color: rgba(255, 210, 210, 0.98);
-      border: 1px solid rgba(255, 112, 112, 0.28);
-      background: rgba(160, 38, 52, 0.28);
+      background: rgba(255, 112, 112, 0.17);
+      border: 1px solid rgba(255, 112, 112, 0.32);
+      color: rgba(255, 187, 187, 0.98);
     }
 
     .tool-page .notam-level--moderate {
-      color: rgba(255, 223, 165, 0.98);
-      border: 1px solid rgba(255, 179, 70, 0.26);
-      background: rgba(180, 104, 18, 0.22);
+      background: rgba(255, 179, 70, 0.15);
+      border: 1px solid rgba(255, 179, 70, 0.30);
+      color: rgba(255, 218, 154, 0.98);
     }
 
     .tool-page .notam-level--info {
-      color: rgba(178, 232, 255, 0.98);
-      border: 1px solid rgba(54, 188, 255, 0.26);
-      background: rgba(30, 127, 188, 0.22);
+      background: rgba(54, 188, 255, 0.14);
+      border: 1px solid rgba(54, 188, 255, 0.30);
+      color: rgba(175, 232, 255, 0.98);
     }
 
     .tool-page .notam-tag {
-      color: rgba(201, 214, 230, 0.72);
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.035);
+      background: rgba(255,255,255,0.055);
+      border: 1px solid rgba(255,255,255,0.075);
+      color: rgba(215, 226, 240, 0.70);
       text-transform: none;
       letter-spacing: 0;
     }
 
     .tool-page .notam-item strong {
-      color: rgba(247, 251, 255, 0.97);
-      font-size: clamp(0.92rem, 1.1vw, 1.05rem);
-      line-height: 1.22;
+      display: block;
+      color: rgba(246, 250, 255, 0.98);
+      font-size: clamp(0.9rem, 1.25vw, 1.06rem);
+      line-height: 1.16;
     }
 
     .tool-page .notam-item-period,
     .tool-page .notam-sofia-card p {
+      color: rgba(207, 220, 237, 0.78);
+      font-size: 0.76rem;
+      line-height: 1.3;
       margin: 0;
-      color: rgba(213, 224, 232, 0.74);
-      font-size: 0.78rem;
-      line-height: 1.38;
     }
 
     .tool-page .notam-item-action {
-      width: 34px;
-      height: 34px;
-      border-radius: 12px;
+      align-self: end;
+      justify-self: end;
+      grid-column: 2;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 30px;
+      padding: 0.2rem 0.55rem;
+      border-radius: 11px;
       border: 1px solid rgba(127, 220, 255, 0.12);
-      background: rgba(19, 40, 72, 0.62);
-      color: rgba(218, 243, 255, 0.92);
-      display: grid;
-      place-items: center;
-      font-size: 1.35rem;
-      line-height: 1;
-      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+      background: rgba(14, 36, 68, 0.66);
+      color: rgba(205, 232, 255, 0.86);
+      font-size: 0.72rem;
+      font-weight: 850;
+      transition: transform .18s ease, border-color .18s ease;
     }
 
     .tool-page .notam-item.is-open .notam-item-action {
       transform: rotate(90deg);
-      border-color: rgba(127, 220, 255, 0.28);
-      background: rgba(27, 76, 121, 0.52);
+      border-color: rgba(127, 220, 255, 0.34);
     }
 
-    .tool-page .notam-detail {
-      margin: 0 0.72rem 0.72rem;
-      padding: 0.86rem;
-      border-radius: 15px;
-      border: 1px solid rgba(127, 220, 255, 0.14);
+    .tool-page .notam-sofia-card {
+      min-height: 132px;
+      border-radius: 16px;
+      padding: 0.95rem;
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      align-items: center;
+      gap: 0.8rem;
       background:
-        radial-gradient(circle at 0% 0%, rgba(33,183,255,0.09), transparent 45%),
-        rgba(2, 10, 23, 0.66);
-      animation: notamDetailIn .18s ease-out;
+        radial-gradient(circle at 100% 0%, rgba(54, 188, 255, 0.12), transparent 42%),
+        rgba(8, 22, 43, 0.84);
     }
+
+    .tool-page .notam-sofia-card strong {
+      display: block;
+      margin: 0.16rem 0 0.24rem;
+      color: rgba(247, 251, 255, 0.98);
+      font-size: 0.96rem;
+      line-height: 1.18;
+    }
+
+    .tool-page .notam-assisted-link,
+    .tool-page .notam-detail-official-link,
+    .tool-page .notam-all-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      min-height: 38px;
+      padding: 0.52rem 0.78rem;
+      border-radius: 12px;
+      border: 1px solid rgba(127, 220, 255, 0.18);
+      background: rgba(13, 35, 66, 0.76);
+      color: rgba(211, 237, 255, 0.94);
+      font-size: 0.78rem;
+      font-weight: 850;
+      line-height: 1;
+    }
+
+    .tool-page .notam-sofia-link {
+      width: 100%;
+      margin-top: 0.45rem;
+      border-color: rgba(127, 220, 255, 0.36);
+      background: linear-gradient(180deg, rgba(95, 198, 255, 0.92), rgba(36, 144, 205, 0.90));
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(33, 183, 255, 0.16);
+    }
+
+    .tool-page .notam-sofia-link::after { content: "↗"; }
+
+    .tool-page .notam-detail-dock {
+      margin-top: 0.78rem;
+    }
+
+    .tool-page .notam-inline-detail {
+      border-radius: 18px;
+      padding: clamp(0.9rem, 1.7vw, 1.15rem);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.040), rgba(255,255,255,.012)),
+        rgba(5, 14, 29, 0.92);
+      animation: notamDetailIn .18s ease-out;
+      overflow: hidden;
+    }
+
+    .tool-page .notam-inline-detail--important { border-color: rgba(255, 112, 112, 0.22); }
+    .tool-page .notam-inline-detail--moderate { border-color: rgba(255, 179, 70, 0.22); }
+    .tool-page .notam-inline-detail--info { border-color: rgba(54, 188, 255, 0.22); }
 
     @keyframes notamDetailIn {
       from { opacity: 0; transform: translateY(-4px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
+    .tool-page .notam-inline-detail-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .tool-page .notam-inline-detail-head strong {
+      display: block;
+      color: rgba(247, 251, 255, 0.98);
+      font-size: 1.05rem;
+      line-height: 1.18;
+    }
+
     .tool-page .notam-detail-grid {
       display: grid;
-      grid-template-columns: 1.4fr .8fr .9fr;
-      gap: 0.62rem;
-      margin-bottom: 0.65rem;
+      grid-template-columns: minmax(0, 1.35fr) minmax(160px, 0.65fr) minmax(180px, 0.7fr);
+      gap: 0.55rem;
     }
 
     .tool-page .notam-detail-panel {
-      padding: 0.66rem;
-      border-radius: 13px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.026);
+      border-radius: 14px;
+      border: 1px solid rgba(127, 220, 255, 0.10);
+      background: rgba(7, 18, 35, 0.72);
+      padding: 0.72rem;
     }
 
     .tool-page .notam-detail-panel--summary {
-      border-color: rgba(127, 220, 255, 0.13);
+      border-color: rgba(127, 220, 255, 0.16);
+      background: rgba(9, 26, 49, 0.72);
     }
 
     .tool-page .notam-detail-label {
       display: block;
-      margin-bottom: 0.32rem;
-      color: rgba(127,220,255,0.92);
+      margin-bottom: 0.34rem;
+      color: rgba(118, 219, 255, 0.92);
       font-size: 0.68rem;
       font-weight: 900;
+      letter-spacing: 0.09em;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
     }
 
     .tool-page .notam-detail-panel p,
     .tool-page .notam-detail-panel strong {
       margin: 0;
-      color: rgba(232, 240, 248, 0.86);
-      font-size: 0.78rem;
-      line-height: 1.42;
+      color: rgba(229, 239, 252, 0.90);
+      font-size: 0.84rem;
+      line-height: 1.48;
     }
 
     .tool-page .notam-raw-disclosure {
-      margin: 0;
-      border-radius: 13px;
+      margin-top: 0.55rem;
+      border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.024);
+      background: rgba(4, 11, 23, 0.62);
       overflow: hidden;
     }
 
     .tool-page .notam-raw-disclosure summary {
       cursor: pointer;
-      padding: 0.62rem 0.7rem;
-      color: rgba(218, 243, 255, 0.9);
-      font-size: 0.76rem;
-      font-weight: 800;
+      padding: 0.62rem 0.72rem;
+      color: rgba(230, 240, 255, 0.88);
+      font-size: 0.78rem;
+      font-weight: 850;
     }
 
     .tool-page .notam-raw-disclosure pre {
       margin: 0;
-      padding: 0.7rem;
+      border-radius: 0;
+      background: rgba(0,0,0,0.34);
+      color: rgba(211, 225, 241, 0.84);
+      font-size: 0.76rem;
       white-space: pre-wrap;
-      color: rgba(213, 224, 232, 0.74);
-      font-size: 0.72rem;
-      line-height: 1.46;
-      border-top: 1px solid rgba(255,255,255,0.06);
     }
 
     .tool-page .notam-detail-official-link {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 34px;
-      margin-top: 0.65rem;
-      padding: 0.48rem 0.72rem;
-      border-radius: 12px;
-      border: 1px solid rgba(127, 220, 255, 0.16);
-      background: rgba(20, 53, 92, 0.48);
-      color: rgba(218, 243, 255, 0.92);
-      font-size: 0.78rem;
-      font-weight: 800;
-    }
-
-    .tool-page .notam-sofia-card {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      gap: 0.78rem;
-      align-content: center;
-      padding: 0.95rem;
-      border-radius: 18px;
-      border-color: rgba(127, 220, 255, 0.24);
-      background:
-        radial-gradient(circle at 0% 0%, rgba(33,183,255,0.14), transparent 48%),
-        rgba(5, 15, 32, 0.78);
-    }
-
-    .tool-page .notam-sofia-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 15px;
-      display: grid;
-      place-items: center;
-      color: rgba(218, 236, 255, 0.88);
-      border: 1px solid rgba(127, 220, 255, 0.14);
-      background: rgba(255,255,255,0.035);
-      font-size: 1.2rem;
-      font-weight: 900;
-    }
-
-    .tool-page .notam-sofia-main {
-      display: grid;
-      gap: 0.28rem;
-      min-width: 0;
-    }
-
-    .tool-page .notam-sofia-card strong {
-      font-size: 0.98rem;
-      line-height: 1.24;
-    }
-
-    .tool-page .notam-assisted-link {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.8rem;
-      min-height: 38px;
-      margin-top: 0.22rem;
-      padding: 0.55rem 0.72rem;
-      border-radius: 13px;
-      border: 1px solid rgba(127, 220, 255, 0.16);
-      background: rgba(20, 53, 92, 0.48);
-      color: rgba(218, 243, 255, 0.92);
-      font-size: 0.82rem;
-      font-weight: 800;
-    }
-
-    .tool-page .notam-sofia-link {
-      grid-column: 1 / -1;
-      margin-top: 0.15rem;
-      background: linear-gradient(180deg, rgba(78, 190, 255, 0.82), rgba(35, 143, 214, 0.82));
-      color: #f7fcff;
-      border-color: rgba(189, 236, 255, 0.38);
-    }
-
-    .tool-page .notam-assisted-link::after {
-      content: "↗";
-      font-size: 0.95rem;
+      margin-top: 0.6rem;
+      min-height: 36px;
     }
 
     .tool-page .notam-all-link {
-      width: 100%;
-      min-height: 42px;
-      margin-top: 0.72rem;
-      border-radius: 15px;
-      color: rgba(127, 220, 255, 0.96);
-      font-weight: 900;
-      cursor: pointer;
       display: none;
-      align-items: center;
-      justify-content: center;
-      gap: 0.55rem;
+      width: 100%;
+      margin-top: 0.72rem;
+      background: rgba(11, 29, 55, 0.82);
+      border-color: rgba(127, 220, 255, 0.16);
+      cursor: pointer;
     }
 
     .tool-page .notam-safety-strip {
       margin-top: 0.72rem;
-      padding: 0.78rem 0.95rem;
-      border-radius: 15px;
-      color: rgba(213, 224, 232, 0.72);
-      font-size: 0.76rem;
-      line-height: 1.42;
+      border-radius: 13px;
+      padding: 0.62rem 0.78rem;
+      color: rgba(196, 211, 230, 0.76);
+      font-size: 0.74rem;
+      line-height: 1.34;
+      background: rgba(7, 16, 31, 0.76);
     }
 
-    @media (max-width: 1180px) {
-      .tool-page .notam-cockpit-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .tool-page .notam-sofia-card {
-        grid-column: 1 / -1;
-      }
-    }
-
-    @media (max-width: 720px) {
-      .tool-page .notam-cockpit-head {
-        display: grid;
-        gap: 0.75rem;
-      }
-
-      .tool-page .notam-source-link {
-        justify-content: flex-start;
-        width: fit-content;
-      }
-
+    @media (max-width: 980px) {
       .tool-page .notam-cockpit-grid {
         grid-template-columns: 1fr;
       }
 
-      .tool-page .notam-item {
-        min-height: 0;
+      .tool-page .notam-item,
+      .tool-page .notam-item-trigger,
+      .tool-page .notam-sofia-card {
+        min-height: 88px;
       }
 
       .tool-page .notam-item-trigger {
-        min-height: 92px;
-        padding: 0.76rem 0.72rem;
-        gap: 0.64rem;
+        grid-template-columns: 40px minmax(0, 1fr) auto;
+        padding: 0.7rem 0.7rem 0.7rem 0.82rem;
       }
 
-      .tool-page .notam-item-icon,
-      .tool-page .notam-sofia-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 13px;
-        font-size: 1.08rem;
+      .tool-page .notam-item-action {
+        grid-column: 3;
+        grid-row: 1;
+        align-self: center;
+        padding: 0.2rem 0.45rem;
+        font-size: 0;
+        min-width: 34px;
       }
 
-      .tool-page .notam-item strong {
-        font-size: 0.92rem;
-      }
-
-      .tool-page .notam-item-period,
-      .tool-page .notam-sofia-card p,
-      .tool-page .notam-safety-strip {
-        font-size: 0.74rem;
+      .tool-page .notam-item-action::before {
+        content: "›";
+        font-size: 1.35rem;
+        line-height: 1;
       }
 
       .tool-page .notam-detail-grid {
@@ -12129,9 +12126,45 @@ function renderUlmNearbyItem(item) {
       .tool-page .notam-all-link {
         display: flex;
       }
+    }
+
+    @media (max-width: 720px) {
+      .tool-page .notam-cockpit-block {
+        padding: 0.78rem;
+        border-radius: 22px;
+      }
+
+      .tool-page .notam-cockpit-head {
+        display: grid;
+        gap: 0.7rem;
+      }
+
+      .tool-page .notam-source-link {
+        justify-content: flex-start;
+        width: fit-content;
+      }
+
+      .tool-page .notam-item-icon,
+      .tool-page .notam-sofia-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 13px;
+        font-size: 1.05rem;
+      }
+
+      .tool-page .notam-item strong {
+        font-size: 0.9rem;
+      }
+
+      .tool-page .notam-item-period,
+      .tool-page .notam-sofia-card p,
+      .tool-page .notam-safety-strip {
+        font-size: 0.73rem;
+      }
 
       .tool-page .notam-sofia-card {
-        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-columns: 40px minmax(0, 1fr);
+        padding: 0.8rem;
       }
     }
 
