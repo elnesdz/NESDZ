@@ -12168,5 +12168,322 @@ function renderUlmNearbyItem(item) {
       }
     }
 
+
+
+    /* NESDZ pass 5 — alignement mockup cockpit laptop/mobile
+       Objectif : lecture rapide compacte + NOTAM en rangée cockpit, détail en dock séparé. */
+    @media (min-width: 981px) {
+      .tool-page {
+        width: min(calc(100vw - 64px), 1320px) !important;
+        max-width: 1320px !important;
+      }
+
+      .tool-page > .card > .pad {
+        max-width: none !important;
+        padding: 18px 20px 22px !important;
+      }
+
+      .tool-page .tool-block {
+        margin-top: 16px !important;
+      }
+
+      .tool-page .decoded-grid--summary {
+        display: grid !important;
+        grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+        align-items: stretch !important;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card-terrain {
+        display: none !important;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card,
+      .tool-page .decoded-grid--summary .decoded-card-mobile-wide,
+      .tool-page .decoded-grid--summary .decoded-card-wide {
+        grid-column: auto !important;
+        min-height: 92px !important;
+        padding: 12px 14px !important;
+        border-radius: 12px !important;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card::after {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(91, 211, 255, 0.72);
+        font-size: 1.35rem;
+        line-height: 1;
+        text-shadow: 0 0 18px rgba(33, 183, 255, 0.22);
+        opacity: 0.9;
+        pointer-events: none;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card-status::after { content: "☁"; }
+      .tool-page .decoded-grid--summary .decoded-card-metric:nth-of-type(3)::after { content: "≋"; }
+      .tool-page .decoded-grid--summary .decoded-card-metric:nth-of-type(4)::after { content: "◉"; }
+      .tool-page .decoded-grid--summary .decoded-card-metric:nth-of-type(5)::after { content: "☁"; }
+      .tool-page .decoded-grid--summary .decoded-card-metric:nth-of-type(6)::after { content: "♨"; }
+      .tool-page .decoded-grid--summary .decoded-card-metric:nth-of-type(7)::after { content: "◴"; }
+      .tool-page .decoded-grid--summary .decoded-card-metric:nth-of-type(8)::after { content: "⌁"; }
+
+      .tool-page .decoded-grid--summary .decoded-label {
+        font-size: 0.68rem !important;
+        letter-spacing: 0.07em !important;
+        text-transform: uppercase !important;
+      }
+
+      .tool-page .decoded-grid--summary strong {
+        max-width: calc(100% - 34px);
+        font-size: clamp(0.92rem, 1.02vw, 1.1rem) !important;
+        line-height: 1.18 !important;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card-status strong {
+        color: rgba(69, 239, 163, 0.98) !important;
+        font-size: clamp(1.05rem, 1.35vw, 1.34rem) !important;
+      }
+    }
+
+    @media (min-width: 1120px) {
+      .tool-page .notam-cockpit-block {
+        padding: 12px 12px 10px !important;
+        border-radius: 18px !important;
+      }
+
+      .tool-page .notam-cockpit-head {
+        margin-bottom: 8px !important;
+        align-items: center !important;
+      }
+
+      .tool-page .notam-title-row h2 {
+        font-size: 1.12rem !important;
+      }
+
+      .tool-page .notam-kicker,
+      .tool-page .notam-note {
+        font-size: 0.74rem !important;
+      }
+
+      .tool-page .notam-cockpit-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(250px, 0.9fr) !important;
+        gap: 10px !important;
+      }
+
+      .tool-page .notam-item,
+      .tool-page .notam-sofia-card {
+        min-height: 126px !important;
+        border-radius: 14px !important;
+      }
+
+      .tool-page .notam-item-trigger {
+        min-height: 126px !important;
+        display: grid !important;
+        grid-template-columns: 42px minmax(0, 1fr) !important;
+        grid-template-rows: minmax(0, 1fr) auto !important;
+        align-items: center !important;
+        gap: 8px 12px !important;
+        padding: 14px 14px 12px !important;
+      }
+
+      .tool-page .notam-item-main {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+        align-self: center !important;
+        gap: 4px !important;
+      }
+
+      .tool-page .notam-item-icon {
+        grid-column: 1 !important;
+        grid-row: 1 / span 2 !important;
+        align-self: center !important;
+        justify-self: center !important;
+      }
+
+      .tool-page .notam-item strong {
+        font-size: clamp(0.86rem, 1.05vw, 1rem) !important;
+        line-height: 1.12 !important;
+      }
+
+      .tool-page .notam-item-period {
+        font-size: 0.72rem !important;
+        line-height: 1.22 !important;
+      }
+
+      .tool-page .notam-item-action {
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+        justify-self: end !important;
+        align-self: end !important;
+        white-space: nowrap !important;
+        writing-mode: horizontal-tb !important;
+        transform: none !important;
+        min-height: 28px !important;
+        min-width: 86px !important;
+        padding: 0.28rem 0.62rem !important;
+        font-size: 0.66rem !important;
+        line-height: 1 !important;
+      }
+
+      .tool-page .notam-item.is-open .notam-item-action {
+        transform: none !important;
+        border-color: rgba(127, 220, 255, 0.34) !important;
+        background: rgba(18, 55, 92, 0.78) !important;
+      }
+
+      .tool-page .notam-sofia-card {
+        grid-template-columns: 40px minmax(0, 1fr) !important;
+        align-content: center !important;
+        padding: 14px !important;
+        gap: 10px !important;
+      }
+
+      .tool-page .notam-sofia-card strong {
+        font-size: 0.9rem !important;
+        line-height: 1.16 !important;
+      }
+
+      .tool-page .notam-sofia-card p {
+        font-size: 0.72rem !important;
+        line-height: 1.3 !important;
+      }
+
+      .tool-page .notam-sofia-link {
+        min-height: 34px !important;
+        padding: 0.46rem 0.62rem !important;
+        font-size: 0.7rem !important;
+      }
+
+      .tool-page .notam-inline-detail {
+        margin-top: 8px !important;
+        padding: 12px 14px !important;
+        border-radius: 16px !important;
+      }
+
+      .tool-page .notam-detail-grid {
+        grid-template-columns: minmax(0, 1.5fr) minmax(170px, 0.65fr) minmax(190px, 0.75fr) !important;
+        gap: 8px !important;
+      }
+
+      .tool-page .notam-detail-panel {
+        padding: 10px 12px !important;
+      }
+
+      .tool-page .notam-safety-strip {
+        margin-top: 8px !important;
+        padding: 8px 10px !important;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .tool-page .decoded-grid--summary {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card-terrain {
+        display: none !important;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card {
+        min-height: 82px !important;
+        padding: 12px !important;
+        border-radius: 14px !important;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card-status,
+      .tool-page .decoded-grid--summary .decoded-card-status strong {
+        color: rgba(69, 239, 163, 0.98) !important;
+      }
+
+      .tool-page .notam-cockpit-block {
+        padding: 0.85rem !important;
+      }
+
+      .tool-page .notam-cockpit-grid {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+      }
+
+      .tool-page .notam-item,
+      .tool-page .notam-sofia-card {
+        min-height: 78px !important;
+        border-radius: 15px !important;
+      }
+
+      .tool-page .notam-item-trigger {
+        min-height: 78px !important;
+        grid-template-columns: 40px minmax(0, 1fr) 34px !important;
+        padding: 0.68rem 0.72rem !important;
+      }
+
+      .tool-page .notam-item-action {
+        grid-column: 3 !important;
+        grid-row: 1 !important;
+        align-self: center !important;
+        justify-self: center !important;
+        min-width: 34px !important;
+        width: 34px !important;
+        min-height: 34px !important;
+        padding: 0 !important;
+        font-size: 0 !important;
+        border-radius: 12px !important;
+        transform: none !important;
+      }
+
+      .tool-page .notam-item-action::before {
+        content: "›";
+        font-size: 1.3rem;
+        line-height: 1;
+      }
+
+      .tool-page .notam-item.is-open .notam-item-action {
+        transform: rotate(90deg) !important;
+      }
+
+      .tool-page .notam-sofia-card {
+        grid-template-columns: 42px minmax(0, 1fr) !important;
+        padding: 0.72rem !important;
+      }
+
+      .tool-page .notam-sofia-link {
+        width: 100% !important;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .tool-page .decoded-grid--summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+
+      .tool-page .decoded-grid--summary .decoded-card {
+        min-height: 76px !important;
+        padding: 10px 11px !important;
+      }
+
+      .tool-page .decoded-grid--summary strong {
+        font-size: 0.92rem !important;
+        line-height: 1.16 !important;
+      }
+
+      .tool-page .notam-cockpit-head {
+        gap: 0.55rem !important;
+      }
+
+      .tool-page .notam-title-row h2 {
+        font-size: 1.25rem !important;
+      }
+
+      .tool-page .notam-item strong {
+        font-size: 0.9rem !important;
+      }
+
+      .tool-page .notam-detail-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
 </style>
 </BaseLayout>
