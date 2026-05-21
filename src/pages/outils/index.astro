@@ -126,56 +126,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             <div id="platformWindVisual" class="terrain-visual-canvas" aria-label="Schéma vent et pistes"></div>
           </div>
 
-          <div class="decoded-grid decoded-grid--summary-extra">
-            <div class="decoded-card decoded-card-wide">
-              <span class="decoded-label">Radio</span>
 
-              <div class="radio-panel">
-                <div class="radio-primary">
-                  <div class="radio-primary-head">
-                    <span id="radioTypeValue" class="radio-badge">Radio</span>
-                    <span id="radioSourceValue" class="radio-primary-note">
-                      Radio : SIA / BASULM.
-                    </span>
-                  </div>
-
-                  <div id="radioValue" class="radio-primary-main">—</div>
-
-                  <div id="radioLabelValue" class="radio-primary-label">
-                    Aucune fréquence disponible
-                  </div>
-                </div>
-
-                <div id="radioSupportBlock" class="radio-support-grid" hidden>
-                  <div id="radioAtisCard" class="radio-support-card" hidden>
-                    <div class="radio-support-head">
-                      <span class="radio-support-badge">ATIS</span>
-                      <span id="radioAtisSourceValue" class="radio-support-note">Information arrivée / départ</span>
-                    </div>
-                    <div id="radioAtisValue" class="radio-support-main">—</div>
-                    <div id="radioAtisLabel" class="radio-support-label">—</div>
-                  </div>
-
-                  <div id="radioPhoneCard" class="radio-support-card" hidden>
-                    <div class="radio-support-head">
-                      <span class="radio-support-badge">Téléphone publié</span>
-                      <span id="radioPhoneSourceValue" class="radio-support-note">Publié pour le terrain</span>
-                    </div>
-                    <div id="radioPhoneValue" class="radio-support-main">—</div>
-                    <div id="radioPhoneLabel" class="radio-support-label">Coordonnée terrain publiée</div>
-                  </div>
-                </div>
-
-                <details id="radioSecondaryBlock" class="radio-secondary radio-secondary-disclosure" hidden>
-                  <summary class="radio-secondary-summary">
-                    <span class="radio-secondary-title">Fréquences complémentaires</span>
-                    <span id="radioSecondaryCount" class="radio-secondary-count">0</span>
-                  </summary>
-                  <ul id="radioList" class="radio-list"></ul>
-                </details>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div class="tool-block notam-block notam-cockpit-block" aria-labelledby="notamCockpitTitle">
@@ -386,6 +337,63 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               <strong id="platformContactValue">—</strong>
             </div>
 
+          </div>
+
+          <div class="terrain-radio-section">
+            <div class="terrain-info-subhead">
+              <span class="decoded-label">Exploitation terrain</span>
+              <strong>Radio & contacts opérationnels</strong>
+            </div>
+          <div class="decoded-grid decoded-grid--summary-extra terrain-radio-grid">
+            <div class="decoded-card decoded-card-wide">
+              <span class="decoded-label">Radio</span>
+
+              <div class="radio-panel">
+                <div class="radio-primary">
+                  <div class="radio-primary-head">
+                    <span id="radioTypeValue" class="radio-badge">Radio</span>
+                    <span id="radioSourceValue" class="radio-primary-note">
+                      Radio : SIA / BASULM.
+                    </span>
+                  </div>
+
+                  <div id="radioValue" class="radio-primary-main">—</div>
+
+                  <div id="radioLabelValue" class="radio-primary-label">
+                    Aucune fréquence disponible
+                  </div>
+                </div>
+
+                <div id="radioSupportBlock" class="radio-support-grid" hidden>
+                  <div id="radioAtisCard" class="radio-support-card" hidden>
+                    <div class="radio-support-head">
+                      <span class="radio-support-badge">ATIS</span>
+                      <span id="radioAtisSourceValue" class="radio-support-note">Information arrivée / départ</span>
+                    </div>
+                    <div id="radioAtisValue" class="radio-support-main">—</div>
+                    <div id="radioAtisLabel" class="radio-support-label">—</div>
+                  </div>
+
+                  <div id="radioPhoneCard" class="radio-support-card" hidden>
+                    <div class="radio-support-head">
+                      <span class="radio-support-badge">Téléphone publié</span>
+                      <span id="radioPhoneSourceValue" class="radio-support-note">Publié pour le terrain</span>
+                    </div>
+                    <div id="radioPhoneValue" class="radio-support-main">—</div>
+                    <div id="radioPhoneLabel" class="radio-support-label">Coordonnée terrain publiée</div>
+                  </div>
+                </div>
+
+                <details id="radioSecondaryBlock" class="radio-secondary radio-secondary-disclosure" hidden>
+                  <summary class="radio-secondary-summary">
+                    <span class="radio-secondary-title">Fréquences complémentaires</span>
+                    <span id="radioSecondaryCount" class="radio-secondary-count">0</span>
+                  </summary>
+                  <ul id="radioList" class="radio-list"></ul>
+                </details>
+              </div>
+            </div>
+          </div>
           </div>
 
           <div id="platformDocsPanel" class="tool-block tool-block--compact platform-docs-panel" hidden>
@@ -12485,5 +12493,92 @@ function renderUlmNearbyItem(item) {
       }
     }
 
-</style>
+
+/* NESDZ pass 6 — ordre briefing pilote : identification terrain, NOTAM avant radio, radio dans infos terrain */
+.tool-page .decoded-grid--summary .decoded-card-terrain {
+  display: block !important;
+}
+
+@media (min-width: 981px) {
+  .tool-page .decoded-grid--summary {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .tool-page .decoded-grid--summary .decoded-card-status {
+    grid-column: span 1 !important;
+  }
+
+  .tool-page .decoded-grid--summary .decoded-card-terrain {
+    grid-column: span 5 !important;
+  }
+
+  .tool-page .decoded-grid--summary .decoded-card-terrain strong {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .tool-page .decoded-grid--summary .decoded-card-metric {
+    grid-column: span 1 !important;
+    min-height: 88px !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .tool-page .decoded-grid--summary .decoded-card-terrain {
+    display: block !important;
+    grid-column: 1 / -1 !important;
+  }
+}
+
+.tool-page .terrain-radio-section {
+  margin-top: 14px;
+}
+
+.tool-page .terrain-info-subhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 2px 0 10px;
+}
+
+.tool-page .terrain-info-subhead strong {
+  font-size: 0.98rem;
+  color: rgba(239, 246, 252, 0.96);
+  letter-spacing: -0.015em;
+}
+
+.tool-page .terrain-radio-grid {
+  margin-top: 0 !important;
+}
+
+.tool-page .terrain-radio-grid > .decoded-card {
+  padding: 12px !important;
+  min-height: 0 !important;
+}
+
+.tool-page .notam-cockpit-block {
+  margin-top: 16px !important;
+}
+
+/* Sur mobile, la radio reste après NOTAM mais compacte dans Infos terrain. */
+@media (max-width: 720px) {
+  .tool-page .terrain-info-subhead {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .tool-page .terrain-radio-section {
+    margin-top: 12px;
+  }
+
+  .tool-page .terrain-radio-grid > .decoded-card {
+    padding: 10px !important;
+  }
+}
+
+  </style>
 </BaseLayout>
