@@ -5583,8 +5583,9 @@ function renderUlmNearbyItem(item) {
     }
 
     function renderNotamDetailHtml(item) {
+      const factsHtml = renderNotamFactsHtml(item.facts || []);
       const volumePanel = item.volumeLabel
-        ? `<div class="notam-detail-panel"><span class="notam-detail-label">Volume</span><strong>${escapeHtml(item.volumeLabel)}</strong></div>`
+        ? `<div class="notam-detail-panel"><span class="notam-detail-label">Limites verticales</span><strong>${escapeHtml(item.volumeLabel)}</strong></div>`
         : `<div class="notam-detail-panel"><span class="notam-detail-label">Validité</span><strong>${escapeHtml(item.periodLabel)}</strong></div>`;
 
       return `
@@ -5598,12 +5599,12 @@ function renderUlmNearbyItem(item) {
           </div>
           <div class="notam-detail-grid">
             <div class="notam-detail-panel notam-detail-panel--summary">
-              <span class="notam-detail-label">Résumé NESDZ</span>
-              <p>${escapeHtml(item.summary)}</p>
+              <span class="notam-detail-label">Lecture factuelle NESDZ</span>
+              ${factsHtml}
             </div>
             <div class="notam-detail-panel">
-              <span class="notam-detail-label">Impact concerné</span>
-              <strong>${escapeHtml(item.impactLabel)}</strong>
+              <span class="notam-detail-label">Type reconnu</span>
+              <strong>${escapeHtml(item.categoryLabel)}</strong>
             </div>
             ${volumePanel}
           </div>
@@ -5616,12 +5617,31 @@ function renderUlmNearbyItem(item) {
       `;
     }
 
+    function renderNotamFactsHtml(facts = []) {
+      const visibleFacts = Array.isArray(facts) ? facts.filter((fact) => fact?.label && fact?.value) : [];
+      if (!visibleFacts.length) {
+        return `<p>Lecture structurée indisponible. Consulter le texte officiel ci-dessous.</p>`;
+      }
+
+      return `
+        <dl class="notam-facts-list">
+          ${visibleFacts.map((fact) => `
+            <div class="notam-fact-row">
+              <dt>${escapeHtml(fact.label)}</dt>
+              <dd>${escapeHtml(fact.value)}</dd>
+            </div>
+          `).join("")}
+        </dl>
+      `;
+    }
+
     function decodeAutorouterNotam(row, index, icao) {
       const itemText = String(row?.iteme || row?.item || row?.text || "").replace(/\\n/g, "\n").trim();
       const normalized = itemText.toUpperCase();
       const category = classifyNotamCategory(normalized, row);
       const level = scoreNotamLevel(normalized, category, row);
-      const title = buildNotamTitle(itemText, category, row, icao);
+      const facts = buildNotamFacts(row, itemText, category, icao);
+      const title = buildNotamTitle(itemText, category, row, icao, facts);
       const periodLabel = formatNotamPeriod(row);
       const volumeLabel = formatNotamVolume(row);
       const id = `notam-live-${index}-${String(row?.id || row?.number || index).replace(/[^a-zA-Z0-9_-]/g, "")}`;
@@ -5638,23 +5658,30 @@ function renderUlmNearbyItem(item) {
         title,
         periodLabel,
         volumeLabel,
-        summary: buildNotamSummary(itemText, category, level),
+        facts,
+        summary: facts.map((fact) => `${fact.label} : ${fact.value}`).join(" · "),
         rawText: buildNotamRawText(row, itemText, icao),
       };
     }
 
     function classifyNotamCategory(text, row = {}) {
       const purpose = String(row?.purpose || "").trim().toUpperCase();
+      if (/\b(RFFS|FIRE FIGHTING|RESCUE|SSLIA|LEVEL\s+[0-9])\b/.test(text)) {
+        return { label: "Service", impact: "Service terrain publié", icon: "activity", glyph: "⌁" };
+      }
       if (/\b(RWY|RUNWAY|THR|TORA|TODA|ASDA|LDA|MARKING|LIGHT|BALISAGE|APCH LIGHT|PAPI|VASI)\b/.test(text)) {
         return { label: "Piste", impact: "Piste / balisage", icon: "runway", glyph: "⌁" };
       }
       if (/\b(TWY|TAXIWAY|APRON|PARKING|STAND)\b/.test(text)) {
         return { label: "Sol", impact: "Roulage / parking", icon: "runway", glyph: "⌁" };
       }
-      if (/\b(NDB|VOR|DME|ILS|LOC|GLIDE|GNSS|RNAV|RNP|TACAN|FREQ|FREQUENCY|RADIO|ATIS)\b/.test(text)) {
-        return { label: "Radio", impact: "Radio-navigation / procédures", icon: "radio", glyph: "⌁" };
+      if (/\b(NDB|VOR|DME|ILS|LOC|GLIDE|GNSS|RNAV|RNP|TACAN|FREQ|FREQUENCY|FREQUENCIES|RADIO|ATIS|TWR|TOWER)\b/.test(text)) {
+        if (/\b(WATER TOWER|TOWER AND ANTENNAS|ANTENNAS|MAST|CRANE|OBST)\b/.test(text)) {
+          return { label: "Obstacle", impact: "Obstacle / hauteur publiée", icon: "activity", glyph: "⌁" };
+        }
+        return { label: "Radio", impact: "Radio-navigation / fréquence / procédure", icon: "radio", glyph: "⌁" };
       }
-      if (/\b(OBST|OBSTACLE|CRANE|TOWER|MAST|WIND TURBINE|EOLIEN|EOLIENNE)\b/.test(text)) {
+      if (/\b(OBST|OBSTACLE|CRANE|TOWER|MAST|ANTENNA|ANTENNAS|WIND TURBINE|EOLIEN|EOLIENNE)\b/.test(text)) {
         return { label: "Obstacle", impact: "Obstacle / hauteur publiée", icon: "activity", glyph: "⌁" };
       }
       if (/\b(PARAGLID|GLIDER|AEROBATIC|AEROBATICS|MODEL FLYING|UAS|DRONE|PJE|PARACHUTE|ACTIVITY|EXERCISE|MIL)\b/.test(text)) {
@@ -5673,54 +5700,147 @@ function renderUlmNearbyItem(item) {
       if (/\b(RWY|RUNWAY|AD |AERODROME|APCH|APPROACH|ILS|LOC|RNP|RNAV)\b/.test(text)) {
         return "important";
       }
-      if (/\b(WIP|WORK|MAINT|LIMITED|RESTRICTED|CRANE|OBST|ACTIVITY|PARACHUTE|PJE|DRONE|UAS)\b/.test(text)) {
+      if (category.label === "Obstacle") return "important";
+      if (/\b(WIP|WORK|MAINT|LIMITED|RESTRICTED|CRANE|OBST|ACTIVITY|PARACHUTE|PJE|DRONE|UAS|RFFS)\b/.test(text)) {
         return "moderate";
       }
-      if (["Piste", "Radio", "Obstacle"].includes(category.label)) return "moderate";
+      if (["Piste", "Radio", "Service"].includes(category.label)) return "moderate";
       return "info";
     }
 
-    function buildNotamTitle(text, category, row = {}, icao = "") {
+    function buildNotamTitle(text, category, row = {}, icao = "", facts = []) {
       const clean = text.replace(/\s+/g, " ").trim();
+      const objectFact = facts.find((fact) => fact.label === "Objet")?.value || "";
       const rwy = clean.match(/\bRWY\s*([0-9]{2}[LCR]?(?:\/[0-9]{2}[LCR]?)?)\b/i);
       if (rwy) {
-        if (/LIGHT|BALISAGE|PAPI|VASI/i.test(clean)) return `RWY ${rwy[1]} — Balisage / aides visuelles`;
-        if (/CLSD|CLOSED|CLOSURE/i.test(clean)) return `RWY ${rwy[1]} — Fermeture publiée`;
-        if (/WIP|WORK|MAINT/i.test(clean)) return `RWY ${rwy[1]} — Travaux publiés`;
-        return `RWY ${rwy[1]} — Information piste`;
+        if (/LIGHT|BALISAGE|PAPI|VASI/i.test(clean)) return `Piste ${rwy[1]} — balisage / aides visuelles`;
+        if (/CLSD|CLOSED|CLOSURE/i.test(clean)) return `Piste ${rwy[1]} — fermeture publiée`;
+        if (/WIP|WORK|MAINT/i.test(clean)) return `Piste ${rwy[1]} — travaux publiés`;
+        return `Piste ${rwy[1]} — information publiée`;
       }
 
-      const nav = clean.match(/\b(ILS|LOC|NDB|VOR|DME|GNSS|RNAV|RNP)\b(?:\s+([A-Z0-9]{2,6}))?/i);
-      if (nav) {
+      const nav = clean.match(/\b(ILS|LOC|NDB|VOR|DME|GNSS|RNAV|RNP|TWR|ATIS)\b(?:\s+([A-Z0-9]{2,6}))?/i);
+      if (nav && category.label === "Radio") {
         const name = [nav[1], nav[2]].filter(Boolean).join(" ");
-        if (/U\/S|UNSERVICEABLE|OUT OF SERVICE/i.test(clean)) return `${name} — Indisponible`;
-        return `${name} — Information navigation`;
+        if (/U\/S|UNSERVICEABLE|OUT OF SERVICE|INDISPONIBLE/i.test(clean)) return `${name} — indisponible`;
+        if (/FREQ|FREQUENCY|FREQUENCIES/i.test(clean)) return `${name} — fréquence publiée`;
+        return `${name} — information publiée`;
       }
 
+      if (category.label === "Obstacle") return objectFact ? `Obstacle — ${objectFact}` : "Obstacle publié";
+      if (category.label === "Service") return objectFact ? `Service — ${objectFact}` : "Service terrain publié";
       if (/PARAGLID/i.test(clean)) return "Activité parapente publiée";
       if (/DRONE|UAS/i.test(clean)) return "Activité drone / UAS publiée";
-      if (/OBST|CRANE/i.test(clean)) return "Obstacle publié";
-      if (/CLSD|CLOSED/i.test(clean)) return `${icao || "Terrain"} — Fermeture publiée`;
+      if (/CLSD|CLOSED/i.test(clean)) return `${icao || "Terrain"} — fermeture publiée`;
 
       return clean.length > 64 ? `${clean.slice(0, 61)}…` : clean || `${icao || "Terrain"} — NOTAM publié`;
     }
 
-    function buildNotamSummary(text, category, level) {
-      const clean = text.replace(/\s+/g, " ").trim();
-      const prefix = {
-        Piste: "Information publiée concernant une piste ou son balisage.",
-        Sol: "Information publiée concernant le roulage, l’aire de trafic ou le stationnement.",
-        Radio: "Information publiée concernant une aide radio, une fréquence ou une procédure.",
-        Obstacle: "Obstacle ou contrainte verticale publiée dans le secteur.",
-        Activité: "Activité aérienne publiée dans le secteur.",
-        Espace: "Information publiée concernant un espace ou volume aérien.",
-        NOTAM: "Information aéronautique publiée.",
-      }[category.label] || "Information aéronautique publiée.";
-      const caution = level === "important"
-        ? "Vérifier la disponibilité réelle et les consignes officielles avant départ."
-        : "Vérifier le détail et la période dans le briefing officiel avant le vol.";
-      const snippet = clean.length > 140 ? `${clean.slice(0, 137)}…` : clean;
-      return `${prefix} ${caution}${snippet ? ` Texte source : ${snippet}` : ""}`;
+    function buildNotamFacts(row = {}, itemText = "", category = {}, icao = "") {
+      const clean = String(itemText || "").replace(/\s+/g, " ").trim();
+      const facts = [];
+      const addFact = (label, value) => {
+        const text = String(value || "").replace(/\s+/g, " ").trim();
+        if (label && text && !facts.some((fact) => fact.label === label && fact.value === text)) {
+          facts.push({ label, value: text });
+        }
+      };
+
+      addFact("Type", category?.label || "NOTAM");
+      addFact("Objet", extractNotamObject(clean, category));
+      addFact("Aérodrome / zone", Array.isArray(row?.itema) ? row.itema.join(", ") : icao);
+      addFact("Validité", formatNotamPeriod(row));
+      addFact("Limites verticales", formatNotamVolume(row));
+      addFact("Position publiée", extractNotamCoordinates(clean));
+      addFact("Hauteur publiée", extractNotamHeight(clean));
+      addFact("Fréquence publiée", extractNotamFrequency(clean));
+      addFact("Piste publiée", extractNotamRunway(clean));
+      addFact("Référence publiée", extractNotamReference(clean));
+      addFact("Codes Q", formatNotamCodeFields(row));
+      addFact("Texte E décodé", translateNotamTextLiteral(clean));
+
+      return facts;
+    }
+
+    function extractNotamObject(text, category = {}) {
+      const upper = String(text || "").toUpperCase();
+      if (/WATER TOWER/.test(upper) && /ANTENNA/.test(upper)) return "Château d’eau et antennes";
+      if (/WATER TOWER/.test(upper)) return "Château d’eau";
+      if (/ANTENNA|ANTENNAS/.test(upper)) return "Antenne(s)";
+      if (/CRANE/.test(upper)) return "Grue";
+      if (/MAST/.test(upper)) return "Mât";
+      if (/RFFS|FIRE FIGHTING|RESCUE/.test(upper)) return "Service de sauvetage et lutte incendie";
+      if (/TWR/.test(upper) && /FREQ/.test(upper)) return "Fréquence tour";
+      if (/NDB/.test(upper)) return "NDB";
+      if (/VOR/.test(upper)) return "VOR";
+      if (/DME/.test(upper)) return "DME";
+      if (/ILS|LOC/.test(upper)) return "ILS / LOC";
+      if (/PARAGLID/.test(upper)) return "Activité parapente";
+      if (/DRONE|UAS/.test(upper)) return "Activité drone / UAS";
+      if (/RWY|RUNWAY/.test(upper)) return "Piste";
+      return category?.impact || "Information publiée";
+    }
+
+    function extractNotamCoordinates(text) {
+      const matches = String(text || "").match(/\b\d{4,6}[NS]\s*\d{5,7}[EW]\b/g);
+      return matches?.length ? matches.join(" · ") : "";
+    }
+
+    function extractNotamHeight(text) {
+      const values = [];
+      const hgt = String(text || "").match(/\bHGT\s*:?\s*([0-9]{1,5}\s*FT)\b/i);
+      const elev = String(text || "").match(/\bELEV\s*:?\s*([0-9]{1,5}\s*FT)\b/i);
+      if (hgt) values.push(`HGT ${hgt[1].replace(/\s+/g, " ")}`);
+      if (elev) values.push(`ELEV ${elev[1].replace(/\s+/g, " ")}`);
+      return values.join(" · ");
+    }
+
+    function extractNotamFrequency(text) {
+      const matches = String(text || "").match(/\b\d{3}\.\d{3}\s*MHZ\b|\b\d{3}\s*KHZ\b/gi);
+      return matches?.length ? matches.map((item) => item.replace(/\s+/g, " ").toUpperCase()).join(" · ") : "";
+    }
+
+    function extractNotamRunway(text) {
+      const matches = String(text || "").match(/\bRWY\s*[0-9]{2}[LCR]?(?:\/[0-9]{2}[LCR]?)?\b/gi);
+      return matches?.length ? matches.map((item) => item.replace(/\s+/g, " ").toUpperCase()).join(" · ") : "";
+    }
+
+    function extractNotamReference(text) {
+      const matches = String(text || "").match(/\bREF\s*:?\s*[^.]+/i);
+      return matches ? matches[0].replace(/\s+/g, " ").trim() : "";
+    }
+
+    function formatNotamCodeFields(row = {}) {
+      const parts = [];
+      if (row?.fir) parts.push(`FIR ${row.fir}`);
+      if (row?.code23) parts.push(`Q-code ${row.code23}`);
+      if (row?.traffic) parts.push(`Trafic ${row.traffic}`);
+      if (row?.purpose) parts.push(`Objet ${row.purpose}`);
+      if (row?.scope) parts.push(`Portée ${row.scope}`);
+      return parts.join(" · ");
+    }
+
+    function translateNotamTextLiteral(text) {
+      const clean = String(text || "").replace(/\s+/g, " ").trim();
+      if (!clean) return "";
+      const translations = [];
+      const upper = clean.toUpperCase();
+
+      if (/WATER TOWER/.test(upper)) translations.push("WATER TOWER = château d’eau");
+      if (/ANTENNA|ANTENNAS/.test(upper)) translations.push("ANTENNA(S) = antenne(s)");
+      if (/RDL\s*\d{3}/.test(upper)) translations.push("RDL = radial publié");
+      if (/ARP/.test(upper)) translations.push("ARP = point de référence de l’aérodrome");
+      if (/PSN/.test(upper)) translations.push("PSN = position publiée");
+      if (/HGT/.test(upper)) translations.push("HGT = hauteur");
+      if (/ELEV/.test(upper)) translations.push("ELEV = altitude publiée");
+      if (/LGT/.test(upper)) translations.push("LGT = balisage / feux");
+      if (/NIL/.test(upper)) translations.push("NIL = néant / absent");
+      if (/REF/.test(upper)) translations.push("REF = référence documentaire publiée");
+      if (/RFFS/.test(upper)) translations.push("RFFS = sauvetage et lutte incendie d’aérodrome");
+      if (/U\/S|UNSERVICEABLE/.test(upper)) translations.push("U/S = hors service");
+      if (/CLSD|CLOSED/.test(upper)) translations.push("CLSD = fermé");
+
+      return translations.join(" · ");
     }
 
     function formatNotamPeriod(row = {}) {
@@ -5769,12 +5889,16 @@ function renderUlmNearbyItem(item) {
         .join(" /");
       const aLine = Array.isArray(row?.itema) ? row.itema.join(", ") : (icao || "");
       const bLine = formatNotamPeriod(row);
+      const fLine = row?.lower !== null && row?.lower !== undefined ? `F) ${Number(row.lower) <= 0 ? "SFC" : `${row.lower}FT`}` : "";
+      const gLine = row?.upper !== null && row?.upper !== undefined ? `G) ${Number(row.upper) >= 999 ? "UNL" : `${row.upper}FT`}` : "";
       return [
         number ? `${number} NOTAM` : "NOTAM",
         qLine ? `Q) ${qLine}` : "",
         aLine ? `A) ${aLine}` : "",
         bLine ? `B/C) ${bLine}` : "",
         itemText ? `E) ${itemText}` : "E) Texte officiel indisponible dans la réponse Autorouter.",
+        fLine,
+        gLine,
       ].filter(Boolean).join("\n");
     }
 
@@ -12316,6 +12440,42 @@ function renderUlmNearbyItem(item) {
       color: rgba(229, 239, 252, 0.90);
       font-size: 0.84rem;
       line-height: 1.48;
+    }
+
+    .tool-page .notam-facts-list {
+      display: grid;
+      gap: 0.38rem;
+      margin: 0;
+    }
+
+    .tool-page .notam-fact-row {
+      display: grid;
+      grid-template-columns: minmax(92px, 0.42fr) minmax(0, 1fr);
+      gap: 0.55rem;
+      align-items: start;
+      padding: 0.38rem 0;
+      border-top: 1px solid rgba(255,255,255,0.055);
+    }
+
+    .tool-page .notam-fact-row:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .tool-page .notam-fact-row dt {
+      color: rgba(118, 219, 255, 0.84);
+      font-size: 0.68rem;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .tool-page .notam-fact-row dd {
+      margin: 0;
+      color: rgba(237, 246, 255, 0.92);
+      font-size: 0.82rem;
+      font-weight: 760;
+      line-height: 1.35;
     }
 
     .tool-page .notam-raw-disclosure {
