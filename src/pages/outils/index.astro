@@ -5525,42 +5525,50 @@ function renderUlmNearbyItem(item) {
         return;
       }
 
-      if (notamCockpitGrid) {
-        notamCockpitGrid.innerHTML = `
-          ${visibleItems.map(renderNotamCardHtml).join("")}
-          ${renderSofiaCardHtml()}
-        `;
+      function shouldUseInlineNotamDetails() {
+        return window.matchMedia && window.matchMedia("(max-width: 980px)").matches;
       }
 
-      if (notamDetailDock) {
-        notamDetailDock.innerHTML = visibleItems.map(renderNotamDetailHtml).join("");
+      function paintNotamGrid(cards, expanded = false) {
+        const inlineDetails = shouldUseInlineNotamDetails();
+
+        if (notamCockpitGrid) {
+          notamCockpitGrid.innerHTML = `
+            ${cards.map(inlineDetails ? renderNotamCardWithInlineDetailHtml : renderNotamCardHtml).join("")}
+            ${renderSofiaCardHtml()}
+          `;
+        }
+
+        if (notamDetailDock) {
+          notamDetailDock.hidden = inlineDetails;
+          notamDetailDock.innerHTML = inlineDetails
+            ? ""
+            : cards.map(renderNotamDetailHtml).join("");
+        }
+
+        if (notamAllBtn) {
+          notamAllBtn.hidden = activeItems.length <= 3;
+          notamAllBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
+          notamAllBtn.innerHTML = expanded
+            ? `Réduire les NOTAM <span aria-hidden="true">›</span>`
+            : `Voir tous les NOTAM (${activeItems.length}) <span aria-hidden="true">›</span>`;
+        }
+
+        initNotamCockpitInteractions();
       }
+
+      paintNotamGrid(visibleItems, false);
 
       if (notamAllBtn) {
-        notamAllBtn.hidden = activeItems.length <= 3;
-        notamAllBtn.innerHTML = `Voir tous les NOTAM (${activeItems.length}) <span aria-hidden="true">›</span>`;
         notamAllBtn.onclick = () => {
-          if (!notamDetailDock) return;
           const alreadyExpanded = notamAllBtn.getAttribute("aria-expanded") === "true";
-          if (alreadyExpanded) {
-            notamDetailDock.querySelectorAll(".notam-inline-detail").forEach((panel) => {
-              panel.hidden = true;
-              panel.classList.remove("is-visible");
-            });
-            document.querySelectorAll(".notam-item-trigger").forEach((trigger) => trigger.setAttribute("aria-expanded", "false"));
-            document.querySelectorAll(".notam-item").forEach((card) => card.classList.remove("is-open"));
-            notamAllBtn.setAttribute("aria-expanded", "false");
-            return;
-          }
-          notamDetailDock.querySelectorAll(".notam-inline-detail").forEach((panel) => {
-            panel.hidden = false;
-            panel.classList.add("is-visible");
-          });
-          notamAllBtn.setAttribute("aria-expanded", "true");
+          paintNotamGrid(alreadyExpanded ? visibleItems : activeItems, !alreadyExpanded);
         };
       }
+    }
 
-      initNotamCockpitInteractions();
+    function renderNotamCardWithInlineDetailHtml(item) {
+      return `${renderNotamCardHtml(item)}${renderNotamDetailHtml(item)}`;
     }
 
     function renderNotamCardHtml(item) {
@@ -12583,6 +12591,12 @@ function renderUlmNearbyItem(item) {
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 0.72rem;
       align-items: stretch;
+    }
+
+    .tool-page .notam-cockpit-grid > .notam-inline-detail {
+      grid-column: 1 / -1;
+      margin-top: -0.12rem;
+      margin-bottom: 0.12rem;
     }
 
     .tool-page .notam-item,
