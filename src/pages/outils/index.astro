@@ -14076,4 +14076,268 @@ function renderUlmNearbyItem(item) {
 
 </style>
 
+
+<style is:global>
+  /* NESDZ pass 14 — Infos terrain compact desktop + mobile
+     Objectif : moins de scroll, même lisibilité, look premium sobre. */
+
+  .nesdz-premium-ui .tool-page #platformBlock.tool-block--compact {
+    padding: clamp(1rem, 1.6vw, 1.35rem);
+  }
+
+  .nesdz-premium-ui .tool-page .terrain-info-head {
+    align-items: center;
+    margin-bottom: clamp(0.7rem, 1vw, 0.95rem);
+  }
+
+  .nesdz-premium-ui .tool-page .terrain-info-grid {
+    display: grid;
+    gap: clamp(0.62rem, 1vw, 0.9rem);
+  }
+
+  .nesdz-premium-ui .tool-page .terrain-info-grid > .decoded-card {
+    min-height: unset;
+    padding: clamp(0.78rem, 1.05vw, 1rem);
+    border-radius: 18px;
+  }
+
+  .nesdz-premium-ui .tool-page .terrain-info-grid .decoded-label {
+    margin-bottom: 0.28rem;
+  }
+
+  .nesdz-premium-ui .tool-page .terrain-info-grid strong {
+    font-size: clamp(0.98rem, 1.15vw, 1.18rem);
+    line-height: 1.25;
+  }
+
+  .nesdz-premium-ui .tool-page .terrain-radio-section {
+    margin-top: clamp(0.9rem, 1.35vw, 1.18rem);
+  }
+
+  .nesdz-premium-ui .tool-page .terrain-info-subhead {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-bottom: 0.58rem;
+  }
+
+  .nesdz-premium-ui .tool-page .terrain-radio-grid > .decoded-card {
+    padding: clamp(0.78rem, 1.05vw, 1rem);
+    border-radius: 18px;
+  }
+
+  .nesdz-premium-ui .tool-page .radio-primary {
+    min-height: unset;
+    padding: clamp(0.72rem, 1vw, 0.95rem);
+    border-radius: 16px;
+  }
+
+  .nesdz-premium-ui .tool-page .radio-primary-main {
+    margin-top: 0.45rem;
+    font-size: clamp(1rem, 1.15vw, 1.18rem);
+    line-height: 1.18;
+  }
+
+  .nesdz-premium-ui .tool-page .radio-primary-label {
+    margin-top: 0.22rem;
+    font-size: 0.78rem;
+  }
+
+  .nesdz-premium-ui .tool-page .radio-support-grid {
+    gap: 0.55rem;
+    margin-top: 0.62rem;
+  }
+
+  .nesdz-premium-ui .tool-page .radio-support-card {
+    padding: 0.68rem 0.78rem;
+    border-radius: 15px;
+  }
+
+  .nesdz-premium-ui .tool-page .platform-docs-panel {
+    margin-top: 0.85rem;
+    padding: 0.84rem;
+    border-radius: 18px;
+  }
+
+  @media (min-width: 900px) {
+    .nesdz-premium-ui .tool-page .terrain-info-grid {
+      grid-template-columns: minmax(190px, 0.8fr) minmax(0, 1.35fr) minmax(260px, 1.15fr);
+      align-items: stretch;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-info-grid > .decoded-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-info-grid > .decoded-card:nth-child(1),
+    .nesdz-premium-ui .tool-page .terrain-info-grid > .decoded-card:nth-child(2),
+    .nesdz-premium-ui .tool-page .terrain-info-grid > .decoded-card:nth-child(3) {
+      grid-column: auto;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-info-grid > .decoded-card:nth-child(2) {
+      min-width: 0;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-info-grid > .decoded-card:nth-child(3) strong,
+    .nesdz-premium-ui .tool-page .terrain-info-grid > .decoded-card:nth-child(2) strong {
+      overflow-wrap: anywhere;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-radio-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (min-width: 1180px) {
+    .nesdz-premium-ui .tool-page .terrain-info-grid {
+      grid-template-columns: minmax(210px, 0.75fr) minmax(0, 1.45fr) minmax(300px, 1.05fr);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .nesdz-premium-ui .tool-page #platformBlock.tool-block--compact {
+      padding: 12px;
+      border-radius: 21px;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-info-head {
+      gap: 0.65rem;
+      margin-bottom: 0.72rem;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-info-head h2 {
+      font-size: clamp(1.55rem, 7vw, 2.15rem);
+      margin-bottom: 0;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-source-badge {
+      font-size: 0.62rem;
+      padding: 0.28rem 0.52rem;
+      max-width: 48%;
+      text-align: right;
+      white-space: normal;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-info-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-info-grid > .decoded-card {
+      padding: 10px 12px;
+      border-radius: 16px;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-info-grid .decoded-label {
+      margin-bottom: 2px;
+      font-size: 0.78rem;
+      letter-spacing: 0.035em;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-info-grid strong {
+      font-size: 0.98rem;
+      line-height: 1.22;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-info-grid > .decoded-card:nth-child(1) {
+      min-height: 64px;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-info-grid > .decoded-card:nth-child(2),
+    .nesdz-premium-ui .tool-page .terrain-info-grid > .decoded-card:nth-child(3) {
+      min-height: 70px;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-info-subhead {
+      display: grid;
+      gap: 2px;
+      margin-top: 0.82rem;
+      margin-bottom: 0.48rem;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-info-subhead strong {
+      font-size: 1rem;
+      line-height: 1.2;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-radio-section {
+      margin-top: 0.72rem;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-radio-grid {
+      gap: 8px;
+    }
+
+    .nesdz-premium-ui .tool-page .terrain-radio-grid > .decoded-card {
+      padding: 10px;
+      border-radius: 16px;
+    }
+
+    .nesdz-premium-ui .tool-page .radio-primary {
+      padding: 10px 11px;
+      border-radius: 15px;
+    }
+
+    .nesdz-premium-ui .tool-page .radio-primary-head,
+    .nesdz-premium-ui .tool-page .radio-support-head {
+      gap: 0.45rem;
+    }
+
+    .nesdz-premium-ui .tool-page .radio-primary-main {
+      font-size: 1.05rem;
+      margin-top: 0.42rem;
+    }
+
+    .nesdz-premium-ui .tool-page .radio-primary-label,
+    .nesdz-premium-ui .tool-page .radio-primary-note,
+    .nesdz-premium-ui .tool-page .radio-support-note,
+    .nesdz-premium-ui .tool-page .radio-support-label {
+      font-size: 0.68rem;
+      line-height: 1.25;
+    }
+
+    .nesdz-premium-ui .tool-page .radio-support-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .nesdz-premium-ui .tool-page .radio-support-card {
+      padding: 10px 11px;
+      border-radius: 15px;
+    }
+
+    .nesdz-premium-ui .tool-page .radio-secondary-summary {
+      min-height: 38px;
+      padding: 0.55rem 0.7rem;
+      border-radius: 14px;
+    }
+
+    .nesdz-premium-ui .tool-page .platform-docs-panel {
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 16px;
+    }
+
+    .nesdz-premium-ui .tool-page .platform-docs-actions {
+      gap: 8px;
+    }
+
+    .nesdz-premium-ui .tool-page .platform-doc-link {
+      min-height: 42px;
+      padding: 0.56rem 0.72rem;
+      border-radius: 15px;
+    }
+
+    .nesdz-premium-ui .tool-page #platformSourceNote {
+      margin-top: 0.48rem;
+      font-size: 0.68rem;
+    }
+  }
+</style>
+
 </BaseLayout>
