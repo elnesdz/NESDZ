@@ -5586,6 +5586,7 @@ function renderUlmNearbyItem(item) {
     function renderNotamDetailHtml(item) {
       const operationalHtml = renderNotamOperationalHtml(item);
       const essentialsHtml = renderNotamEssentialsHtml(item.essentials || []);
+      const learningHtml = renderNotamLearningHtml(item);
       const technicalHtml = renderNotamFactsHtml(item.technicalFacts || []);
       const rawPreview = item.rawText || "Texte officiel indisponible dans la réponse Autorouter.";
 
@@ -5601,6 +5602,8 @@ function renderUlmNearbyItem(item) {
           </div>
 
           ${operationalHtml}
+
+          ${learningHtml}
 
           <div class="notam-pilot-grid">
             <div class="notam-detail-panel notam-detail-panel--pilot-main">
@@ -5644,6 +5647,21 @@ function renderUlmNearbyItem(item) {
             <p>${escapeHtml(item.operationalLine || "Information aéronautique publiée. Lire le texte officiel ci-dessous.")}</p>
             ${chipHtml}
           </div>
+        </div>
+      `;
+    }
+
+
+    function renderNotamLearningHtml(item = {}) {
+      const explanations = Array.isArray(item.learningNotes) ? item.learningNotes.filter(Boolean) : [];
+      if (!explanations.length) return "";
+
+      return `
+        <div class="notam-detail-panel notam-detail-panel--pilot-main notam-learning-panel">
+          <span class="notam-detail-label">Ce qu’il faut comprendre</span>
+          <ul class="notam-learning-list">
+            ${explanations.map((note) => `<li>${escapeHtml(note)}</li>`).join("")}
+          </ul>
         </div>
       `;
     }
@@ -5718,6 +5736,7 @@ function renderUlmNearbyItem(item) {
         essentials: operation.essentials || [],
         technicalFacts: facts,
         pilotChips,
+        learningNotes: operation.learningNotes || [],
         summary: facts.map((fact) => `${fact.label} : ${fact.value}`).join(" · "),
         rawText: buildNotamRawText(row, itemText, icao),
       };
@@ -5734,6 +5753,11 @@ function renderUlmNearbyItem(item) {
         if (label && text && !essentials.some((fact) => fact.label === label && fact.value === text)) {
           essentials.push({ label, value: text });
         }
+      };
+      const learningNotes = [];
+      const addLearning = (value) => {
+        const text = String(value || "").replace(/\s+/g, " ").trim();
+        if (text && !learningNotes.includes(text)) learningNotes.push(text);
       };
 
       const runway = extractPrimaryRunway(clean);
@@ -5794,6 +5818,8 @@ function renderUlmNearbyItem(item) {
       if (periodLabel && periodLabel !== "Validité à vérifier") lineParts.push(periodLabel);
       if (lineParts.length) line = lineParts.join(" · ");
 
+      buildNotamLearningNotes({ text: upper, status, cause, runway, taxiway, apron, navAid, category, volumeLabel, reference, frequency, coordinates, height }).forEach(addLearning);
+
       addEssential("Élément concerné", subjectLabel || category.impact || category.label);
       if (status.label) addEssential("État publié", status.label);
       if (cause.label) addEssential("Cause publiée", cause.label);
@@ -5814,7 +5840,129 @@ function renderUlmNearbyItem(item) {
         entityLabel,
         statusLabel: status.label,
         causeLabel: cause.label,
+        learningNotes,
       };
+    }
+
+
+    const NOTAM_CODE_EXPLANATIONS = {
+      RWY: "RWY = piste",
+      TWY: "TWY = voie de circulation / taxiway",
+      APRON: "APRON = aire de trafic / parking",
+      AD: "AD = aérodrome",
+      ARP: "ARP = point de référence de l’aérodrome",
+      PSN: "PSN = position publiée",
+      RDL: "RDL = radial publié",
+      HGT: "HGT = hauteur au-dessus du sol",
+      ELEV: "ELEV = altitude publiée",
+      SFC: "SFC = surface / sol",
+      UNL: "UNL = unlimited / sans limite supérieure publiée",
+      AGL: "AGL = au-dessus du sol",
+      AMSL: "AMSL = au-dessus du niveau moyen de la mer",
+      FT: "FT = pieds",
+      REF: "REF = référence documentaire publiée",
+      NIL: "NIL = néant / absent",
+      CLSD: "CLSD = fermé",
+      CLOSED: "CLOSED = fermé",
+      WIP: "WIP = travaux en cours",
+      MAINT: "MAINT = maintenance",
+      U_S: "U/S = hors service / indisponible",
+      UNSERVICEABLE: "UNSERVICEABLE = hors service / indisponible",
+      AVBL: "AVBL = disponible",
+      LTD: "LTD = limité",
+      BTN: "BTN = entre",
+      FM: "FM = à partir de",
+      TO: "TO = jusqu’à / vers",
+      DLY: "DLY = quotidiennement",
+      H24: "H24 = 24 h/24",
+      HR: "HR = heures",
+      PROC: "PROC = procédure",
+      APCH: "APCH = approche",
+      DEP: "DEP = départ",
+      ARR: "ARR = arrivée",
+      ILS: "ILS = système d’atterrissage aux instruments",
+      LOC: "LOC = localizer",
+      GP: "GP = glide path / plan de descente ILS",
+      DME: "DME = équipement de mesure de distance",
+      VOR: "VOR = radio-navigation VHF",
+      NDB: "NDB = radiophare non directionnel",
+      RNP: "RNP = navigation basée sur performance requise",
+      RNAV: "RNAV = navigation de surface",
+      TWR: "TWR = tour de contrôle",
+      ATIS: "ATIS = information automatique de terrain",
+      FREQ: "FREQ = fréquence",
+      RFFS: "RFFS = sauvetage et lutte incendie d’aérodrome",
+      OBST: "OBST = obstacle",
+      LGT: "LGT = feux / balisage lumineux",
+      PAPI: "PAPI = indicateur visuel de pente d’approche",
+      THR: "THR = seuil de piste",
+      TORA: "TORA = distance de roulement utilisable au décollage",
+      TODA: "TODA = distance utilisable au décollage",
+      ASDA: "ASDA = distance utilisable pour accélération-arrêt",
+      LDA: "LDA = distance utilisable à l’atterrissage",
+      CTR: "CTR = zone de contrôle",
+      TMA: "TMA = région de contrôle terminale",
+      ATZ: "ATZ = zone de trafic d’aérodrome",
+      DANGER: "DANGER = zone dangereuse",
+      RESTRICTED: "RESTRICTED = zone réglementée",
+      PROHIBITED: "PROHIBITED = zone interdite",
+    };
+
+    function explainDetectedNotamCodes(text = "") {
+      const upper = String(text || "").toUpperCase();
+      const explanations = [];
+      const add = (value) => {
+        if (value && !explanations.includes(value)) explanations.push(value);
+      };
+
+      Object.entries(NOTAM_CODE_EXPLANATIONS).forEach(([code, explanation]) => {
+        if (code === "U_S") {
+          if (/\bU\/S\b/.test(upper)) add(explanation);
+          return;
+        }
+        const pattern = new RegExp(`\\b${code.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")}\\b`, "i");
+        if (pattern.test(upper)) add(explanation);
+      });
+
+      return explanations;
+    }
+
+    function buildNotamLearningNotes({ text = "", status = {}, cause = {}, runway = "", taxiway = "", apron = "", navAid = "", category = {}, volumeLabel = "", reference = "", frequency = "", coordinates = "", height = "" } = {}) {
+      const notes = [];
+      const add = (value) => {
+        const text = String(value || "").replace(/\s+/g, " ").trim();
+        if (text && !notes.includes(text)) notes.push(text);
+      };
+
+      if (status?.key === "closed") add("Le NOTAM publie une fermeture : l’élément indiqué ne doit pas être considéré utilisable sans vérification officielle.");
+      if (status?.key === "unserviceable") add("Le NOTAM publie une indisponibilité : l’équipement, service ou élément mentionné est hors service selon le texte publié.");
+      if (status?.key === "modified") add("Le NOTAM publie une modification documentaire : il faut consulter la référence indiquée, le texte ne décrit pas forcément un danger immédiat.");
+      if (cause?.key === "work") add("La cause publiée est liée à des travaux ou une maintenance.");
+      if (runway) add(`Élément principal reconnu : piste ${runway}.`);
+      if (taxiway) add(`Élément principal reconnu : taxiway ${taxiway}.`);
+      if (apron) add(`Élément principal reconnu : aire de trafic / parking.`);
+      if (navAid) add(`Élément radio-navigation reconnu : ${navAid}.`);
+      if (frequency) add(`Fréquence publiée : ${frequency}.`);
+      if (coordinates) add(`Position publiée dans le NOTAM : ${coordinates}.`);
+      if (height) add(`Hauteur ou altitude publiée : ${height}.`);
+      if (reference) add("Le NOTAM renvoie à une référence officielle : cette référence doit être consultée dans le briefing officiel.");
+      if (volumeLabel) add(explainNotamVolume(volumeLabel));
+
+      const codeExplanations = explainDetectedNotamCodes(text);
+      if (codeExplanations.length) add(`Codes reconnus : ${codeExplanations.slice(0, 8).join(" · ")}.`);
+
+      if (!notes.length) add("Lecture automatique limitée : conserver le texte officiel NOTAM comme référence principale.");
+      return notes;
+    }
+
+    function explainNotamVolume(volumeLabel = "") {
+      const upper = String(volumeLabel || "").toUpperCase();
+      if (upper.includes("SFC") && upper.includes("UNL")) {
+        return "Limites verticales SFC / UNL : du sol jusqu’à une limite supérieure non publiée. Pour certains NOTAM administratifs ou documentaires, cela décrit la portée du message, pas forcément un obstacle réel vertical.";
+      }
+      if (upper.includes("SFC")) return "Limite basse SFC : le NOTAM commence au niveau du sol / de la surface.";
+      if (upper.includes("UNL")) return "Limite haute UNL : pas de limite supérieure publiée dans ce champ.";
+      return `Limites verticales publiées : ${volumeLabel}.`;
     }
 
     function detectNotamStatus(text) {
@@ -6016,25 +6164,11 @@ function renderUlmNearbyItem(item) {
     function translateNotamTextLiteral(text) {
       const clean = String(text || "").replace(/\s+/g, " ").trim();
       if (!clean) return "";
-      const translations = [];
+      const translations = explainDetectedNotamCodes(clean);
       const upper = clean.toUpperCase();
 
-      if (/RWY/.test(upper)) translations.push("RWY = piste");
-      if (/TWY/.test(upper)) translations.push("TWY = taxiway");
-      if (/CLSD|CLOSED/.test(upper)) translations.push("CLSD = fermé");
-      if (/U\/S|UNSERVICEABLE/.test(upper)) translations.push("U/S = hors service");
-      if (/WIP/.test(upper)) translations.push("WIP = travaux en cours");
-      if (/WATER TOWER/.test(upper)) translations.push("WATER TOWER = château d’eau");
-      if (/ANTENNA|ANTENNAS/.test(upper)) translations.push("ANTENNA(S) = antenne(s)");
-      if (/RDL\s*\d{3}/.test(upper)) translations.push("RDL = radial publié");
-      if (/ARP/.test(upper)) translations.push("ARP = point de référence de l’aérodrome");
-      if (/PSN/.test(upper)) translations.push("PSN = position publiée");
-      if (/HGT/.test(upper)) translations.push("HGT = hauteur");
-      if (/ELEV/.test(upper)) translations.push("ELEV = altitude publiée");
-      if (/LGT/.test(upper)) translations.push("LGT = balisage / feux");
-      if (/NIL/.test(upper)) translations.push("NIL = néant / absent");
-      if (/REF/.test(upper)) translations.push("REF = référence documentaire publiée");
-      if (/RFFS/.test(upper)) translations.push("RFFS = sauvetage et lutte incendie d’aérodrome");
+      if (/WATER TOWER/.test(upper) && !translations.includes("WATER TOWER = château d’eau")) translations.push("WATER TOWER = château d’eau");
+      if (/ANTENNA|ANTENNAS/.test(upper) && !translations.includes("ANTENNA(S) = antenne(s)")) translations.push("ANTENNA(S) = antenne(s)");
 
       return translations.join(" · ");
     }
@@ -13362,4 +13496,21 @@ function renderUlmNearbyItem(item) {
 }
 
   </style>
+  <style>
+    .notam-learning-panel {
+      margin: 12px 0 14px;
+      border-color: rgba(97, 218, 251, 0.24);
+      background: linear-gradient(135deg, rgba(12, 42, 62, 0.78), rgba(5, 19, 34, 0.9));
+    }
+    .notam-learning-list {
+      margin: 10px 0 0;
+      padding-left: 1.1rem;
+      color: rgba(235, 245, 255, 0.92);
+      line-height: 1.55;
+    }
+    .notam-learning-list li + li {
+      margin-top: 0.45rem;
+    }
+  </style>
+
 </BaseLayout>
