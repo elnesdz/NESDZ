@@ -135,11 +135,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               <span class="notam-kicker">Briefing réglementaire</span>
               <div class="notam-title-row">
                 <h2 id="notamCockpitTitle">NOTAM</h2>
-                <span class="notam-count-badge">3 actifs</span>
-                <span class="notam-count-badge notam-count-badge--important">1 important</span>
+                <span id="notamActiveCount" class="notam-count-badge">Chargement</span>
+                <span id="notamImportantCount" class="notam-count-badge notam-count-badge--important">—</span>
               </div>
               <p class="notam-note">
-                Décodage assisté NESDZ. Le texte officiel et les services officiels restent prioritaires.
+                <span id="notamStatusText">Connexion NOTAM en attente. Le texte officiel et les services officiels restent prioritaires.</span>
               </p>
             </div>
 
@@ -153,50 +153,19 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             </a>
           </div>
 
-          <div class="notam-cockpit-grid" aria-label="Simulation NOTAM compacte">
-            <article class="notam-item notam-item--important" data-notam-card="rwy-lighting">
-              <button class="notam-item-trigger" type="button" aria-expanded="false" aria-controls="notamDetailRwy" data-notam-target="notamDetailRwy">
-                <span class="notam-item-icon notam-item-icon--runway" aria-hidden="true">⌁</span>
-                <span class="notam-item-main">
-                  <span class="notam-item-topline">
-                    <span class="notam-level notam-level--important">Important</span>
-                    <span class="notam-tag">Aérodrome</span>
-                  </span>
-                  <strong>RWY 08/26 — Travaux de balisage</strong>
-                  <span class="notam-item-period">Jusqu’au 14 MAY 18:00 UTC</span>
-                </span>
-                <span class="notam-item-action" aria-hidden="true">Voir détails ›</span>
-              </button>
-            </article>
-
-            <article class="notam-item notam-item--moderate" data-notam-card="ndb-unavailable">
-              <button class="notam-item-trigger" type="button" aria-expanded="false" aria-controls="notamDetailNdb" data-notam-target="notamDetailNdb">
-                <span class="notam-item-icon notam-item-icon--radio" aria-hidden="true">⌁</span>
-                <span class="notam-item-main">
-                  <span class="notam-item-topline">
-                    <span class="notam-level notam-level--moderate">Modéré</span>
-                    <span class="notam-tag">Radio</span>
-                  </span>
-                  <strong>NDB LIL 352 kHz — Indisponible</strong>
-                  <span class="notam-item-period">Jusqu’au 10 MAY 12:00 UTC</span>
-                </span>
-                <span class="notam-item-action" aria-hidden="true">Voir détails ›</span>
-              </button>
-            </article>
-
-            <article class="notam-item notam-item--info" data-notam-card="traffic-area">
-              <button class="notam-item-trigger" type="button" aria-expanded="false" aria-controls="notamDetailActivity" data-notam-target="notamDetailActivity">
+          <div id="notamCockpitGrid" class="notam-cockpit-grid" aria-label="NOTAM actifs">
+            <article class="notam-item notam-item--info notam-item--loading" aria-live="polite">
+              <div class="notam-item-trigger notam-item-trigger--static">
                 <span class="notam-item-icon notam-item-icon--activity" aria-hidden="true">⌁</span>
                 <span class="notam-item-main">
                   <span class="notam-item-topline">
-                    <span class="notam-level notam-level--info">Info</span>
-                    <span class="notam-tag">Activité</span>
+                    <span class="notam-level notam-level--info">Connexion</span>
+                    <span class="notam-tag">Autorouter</span>
                   </span>
-                  <strong>Aire de trafic — Activité parapente</strong>
-                  <span class="notam-item-period">Jusqu’au 15 MAY · SFC / 2500 ft AMSL</span>
+                  <strong>Chargement des NOTAM…</strong>
+                  <span class="notam-item-period">Source technique : Autorouter / EAD</span>
                 </span>
-                <span class="notam-item-action" aria-hidden="true">Voir détails ›</span>
-              </button>
+              </div>
             </article>
 
             <aside class="notam-sofia-card" aria-label="Source officielle SOFIA">
@@ -217,96 +186,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             </aside>
           </div>
 
-          <div class="notam-detail-dock" aria-live="polite">
-            <section id="notamDetailRwy" class="notam-inline-detail notam-inline-detail--important" hidden>
-              <div class="notam-inline-detail-head">
-                <div>
-                  <span class="notam-detail-label">Détail NOTAM décodé</span>
-                  <strong>RWY 08/26 — Travaux de balisage</strong>
-                </div>
-                <span class="notam-level notam-level--important">Important</span>
-              </div>
-              <div class="notam-detail-grid">
-                <div class="notam-detail-panel notam-detail-panel--summary">
-                  <span class="notam-detail-label">Résumé NESDZ</span>
-                  <p>Travaux de balisage signalés sur la piste 08/26. Vérifier la disponibilité réelle et les consignes publiées via les services officiels.</p>
-                </div>
-                <div class="notam-detail-panel">
-                  <span class="notam-detail-label">Impact concerné</span>
-                  <strong>Piste / balisage</strong>
-                </div>
-                <div class="notam-detail-panel">
-                  <span class="notam-detail-label">Validité</span>
-                  <strong>Jusqu’au 14 MAY 18:00 UTC</strong>
-                </div>
-              </div>
-              <details class="notam-raw-disclosure">
-                <summary>Texte officiel NOTAM</summary>
-                <pre>RWY 08/26 LIGHTING WORK IN PROGRESS. CHECK OFFICIAL BRIEFING BEFORE FLIGHT.</pre>
-              </details>
-              <a class="notam-detail-official-link" href="https://sofia-briefing.aviation-civile.gouv.fr/" target="_blank" rel="noopener noreferrer">Ouvrir SOFIA-Briefing</a>
-            </section>
+          <div id="notamDetailDock" class="notam-detail-dock" aria-live="polite"></div>
 
-            <section id="notamDetailNdb" class="notam-inline-detail notam-inline-detail--moderate" hidden>
-              <div class="notam-inline-detail-head">
-                <div>
-                  <span class="notam-detail-label">Détail NOTAM décodé</span>
-                  <strong>NDB LIL 352 kHz — Indisponible</strong>
-                </div>
-                <span class="notam-level notam-level--moderate">Modéré</span>
-              </div>
-              <div class="notam-detail-grid">
-                <div class="notam-detail-panel notam-detail-panel--summary">
-                  <span class="notam-detail-label">Résumé NESDZ</span>
-                  <p>Aide radio-navigation NDB LIL signalée indisponible. Vérifier les moyens de navigation et les publications officielles avant utilisation.</p>
-                </div>
-                <div class="notam-detail-panel">
-                  <span class="notam-detail-label">Impact concerné</span>
-                  <strong>Radio-navigation</strong>
-                </div>
-                <div class="notam-detail-panel">
-                  <span class="notam-detail-label">Validité</span>
-                  <strong>Jusqu’au 10 MAY 12:00 UTC</strong>
-                </div>
-              </div>
-              <details class="notam-raw-disclosure">
-                <summary>Texte officiel NOTAM</summary>
-                <pre>NDB LIL 352 KHZ U/S. CHECK OFFICIAL BRIEFING BEFORE FLIGHT.</pre>
-              </details>
-              <a class="notam-detail-official-link" href="https://sofia-briefing.aviation-civile.gouv.fr/" target="_blank" rel="noopener noreferrer">Ouvrir SOFIA-Briefing</a>
-            </section>
-
-            <section id="notamDetailActivity" class="notam-inline-detail notam-inline-detail--info" hidden>
-              <div class="notam-inline-detail-head">
-                <div>
-                  <span class="notam-detail-label">Détail NOTAM décodé</span>
-                  <strong>Aire de trafic — Activité parapente</strong>
-                </div>
-                <span class="notam-level notam-level--info">Info</span>
-              </div>
-              <div class="notam-detail-grid">
-                <div class="notam-detail-panel notam-detail-panel--summary">
-                  <span class="notam-detail-label">Résumé NESDZ</span>
-                  <p>Activité parapente publiée dans le secteur. Vérifier la localisation, les horaires et les limites verticales dans le briefing officiel.</p>
-                </div>
-                <div class="notam-detail-panel">
-                  <span class="notam-detail-label">Impact concerné</span>
-                  <strong>Activité aérienne</strong>
-                </div>
-                <div class="notam-detail-panel">
-                  <span class="notam-detail-label">Volume</span>
-                  <strong>SFC / 2500 ft AMSL</strong>
-                </div>
-              </div>
-              <details class="notam-raw-disclosure">
-                <summary>Texte officiel NOTAM</summary>
-                <pre>PARAGLIDING ACTIVITY. SFC/2500FT AMSL. CHECK OFFICIAL BRIEFING BEFORE FLIGHT.</pre>
-              </details>
-              <a class="notam-detail-official-link" href="https://sofia-briefing.aviation-civile.gouv.fr/" target="_blank" rel="noopener noreferrer">Ouvrir SOFIA-Briefing</a>
-            </section>
-          </div>
-
-          <button class="notam-all-link" type="button" aria-label="Afficher tous les NOTAM simulés">
+          <button id="notamAllBtn" class="notam-all-link" type="button" aria-label="Afficher tous les NOTAM actifs">
             Voir tous les NOTAM <span aria-hidden="true">›</span>
           </button>
 
@@ -646,6 +528,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
   <script>
     const WORKER_URL = "https://metar-proxy-nesdz.elnesdz.workers.dev/";
+    const NOTAM_WORKER_URL = "https://notam-proxy-nesdz.elnesdz.workers.dev/";
     const AIRPORTS_FR_URL = "/data/airports-fr-full.json";
     const AIRPORTS_WORLD_URL = "/data/airports-world-lite.json";
     const ULM_URL = "/data/ulm-fr.json";
@@ -725,6 +608,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const tafVisualCards = document.getElementById("tafVisualCards");
     const weatherFreshnessNote = document.getElementById("weatherFreshnessNote");
     const forecastFreshnessNote = document.getElementById("forecastFreshnessNote");
+    const notamCockpitGrid = document.getElementById("notamCockpitGrid");
+    const notamDetailDock = document.getElementById("notamDetailDock");
+    const notamActiveCount = document.getElementById("notamActiveCount");
+    const notamImportantCount = document.getElementById("notamImportantCount");
+    const notamStatusText = document.getElementById("notamStatusText");
+    const notamAllBtn = document.getElementById("notamAllBtn");
 
     const weatherRefsBlock = document.getElementById("weatherRefsBlock");
     const weatherRefsList = document.getElementById("weatherRefsList");
@@ -2497,6 +2386,7 @@ let ulmDetailsPromise = null;
         metarOutput.textContent = "Entre un terrain, une ville ou un code OACI.";
         tafOutput.textContent = "Entre un terrain, une ville ou un code OACI.";
         resetDecoded();
+        renderNotamUnavailable("Aucun terrain sélectionné", "Entre un code OACI pour afficher les NOTAM.");
         return;
       }
 
@@ -5087,6 +4977,7 @@ function renderUlmNearbyItem(item) {
 
       syncIcaoInUrl(icao);
       renderPlatformBlock(matchedAirport, matchedUlm, matchedUlmDetails);
+      loadNotams(icao);
 
       try {
         const res = await fetch(`${WORKER_URL}?icao=${encodeURIComponent(icao)}`);
@@ -5511,13 +5402,391 @@ function renderUlmNearbyItem(item) {
     }
 
 
+    function renderSofiaCardHtml() {
+      return `
+        <aside class="notam-sofia-card" aria-label="Source officielle SOFIA">
+          <div class="notam-sofia-icon" aria-hidden="true">▤</div>
+          <div class="notam-sofia-main">
+            <span class="decoded-label">SOFIA — Source officielle</span>
+            <strong>Consulter le PIB complet avant le vol.</strong>
+            <p>NESDZ facilite la lecture, mais le briefing officiel reste la référence réglementaire.</p>
+            <a class="notam-assisted-link notam-sofia-link" href="https://sofia-briefing.aviation-civile.gouv.fr/" target="_blank" rel="noopener noreferrer">Ouvrir SOFIA-Briefing</a>
+          </div>
+        </aside>
+      `;
+    }
+
+    function setNotamHeader({ active = "—", important = "—", status = "" } = {}) {
+      if (notamActiveCount) notamActiveCount.textContent = active;
+      if (notamImportantCount) notamImportantCount.textContent = important;
+      if (notamStatusText && status) notamStatusText.textContent = status;
+    }
+
+    function renderNotamUnavailable(title = "NOTAM indisponibles", message = "Impossible de charger les NOTAM pour le moment.") {
+      setNotamHeader({
+        active: "—",
+        important: "—",
+        status: `${message} Le briefing officiel SOFIA reste prioritaire.`,
+      });
+      if (notamDetailDock) notamDetailDock.innerHTML = "";
+      if (notamCockpitGrid) {
+        notamCockpitGrid.innerHTML = `
+          <article class="notam-item notam-item--info notam-item--empty">
+            <div class="notam-item-trigger notam-item-trigger--static">
+              <span class="notam-item-icon notam-item-icon--activity" aria-hidden="true">⌁</span>
+              <span class="notam-item-main">
+                <span class="notam-item-topline">
+                  <span class="notam-level notam-level--info">Info</span>
+                  <span class="notam-tag">NOTAM</span>
+                </span>
+                <strong>${escapeHtml(title)}</strong>
+                <span class="notam-item-period">${escapeHtml(message)}</span>
+              </span>
+            </div>
+          </article>
+          ${renderSofiaCardHtml()}
+        `;
+      }
+    }
+
+    async function loadNotams(icao) {
+      const code = normalizeCode(icao);
+      if (!isValidWeatherCode(code)) {
+        renderNotamUnavailable("Aucun terrain sélectionné", "Entre un code OACI pour afficher les NOTAM.");
+        return;
+      }
+
+      setNotamHeader({
+        active: "Chargement",
+        important: "—",
+        status: `Chargement des NOTAM ${code} via Autorouter. Le texte officiel et les services officiels restent prioritaires.`,
+      });
+      if (notamDetailDock) notamDetailDock.innerHTML = "";
+      if (notamCockpitGrid) {
+        notamCockpitGrid.innerHTML = `
+          <article class="notam-item notam-item--info notam-item--loading">
+            <div class="notam-item-trigger notam-item-trigger--static">
+              <span class="notam-item-icon notam-item-icon--activity" aria-hidden="true">⌁</span>
+              <span class="notam-item-main">
+                <span class="notam-item-topline">
+                  <span class="notam-level notam-level--info">Connexion</span>
+                  <span class="notam-tag">Autorouter</span>
+                </span>
+                <strong>Chargement des NOTAM ${escapeHtml(code)}…</strong>
+                <span class="notam-item-period">Source technique : Autorouter / Eurocontrol EAD</span>
+              </span>
+            </div>
+          </article>
+          ${renderSofiaCardHtml()}
+        `;
+      }
+
+      try {
+        const response = await fetch(`${NOTAM_WORKER_URL}?icao=${encodeURIComponent(code)}`, {
+          headers: { Accept: "application/json" },
+        });
+        const data = await response.json().catch(() => null);
+
+        if (!response.ok || !data?.ok) {
+          renderNotamUnavailable(
+            `NOTAM ${code} indisponibles`,
+            data?.error || `Service NOTAM indisponible (${response.status}).`
+          );
+          return;
+        }
+
+        const rows = Array.isArray(data.rows) ? data.rows : [];
+        const decoded = rows.map((row, index) => decodeAutorouterNotam(row, index, code));
+        renderNotamCockpit(decoded, data);
+      } catch (error) {
+        console.error("Erreur NOTAM", error);
+        renderNotamUnavailable(`NOTAM ${code} indisponibles`, "Impossible de joindre le proxy NOTAM.");
+      }
+    }
+
+    function renderNotamCockpit(items, meta = {}) {
+      const activeItems = Array.isArray(items) ? items : [];
+      const importantCount = activeItems.filter((item) => item.level === "important").length;
+      const visibleItems = activeItems.slice(0, 3);
+      const total = Number.isFinite(Number(meta.total)) ? Number(meta.total) : activeItems.length;
+      const fetchedAt = meta.fetchedAt ? formatNotamFetchedAt(meta.fetchedAt) : "";
+
+      setNotamHeader({
+        active: `${total} actif${total > 1 ? "s" : ""}`,
+        important: `${importantCount} important${importantCount > 1 ? "s" : ""}`,
+        status: `Décodage assisté NESDZ depuis Autorouter / EAD${fetchedAt ? ` · ${fetchedAt}` : ""}. Le texte officiel et les services officiels restent prioritaires.`,
+      });
+
+      if (!visibleItems.length) {
+        renderNotamUnavailable(
+          `Aucun NOTAM retourné pour ${escapeHtml(meta.icao || "ce terrain")}`,
+          "Vérifier tout de même le briefing officiel SOFIA avant le vol."
+        );
+        return;
+      }
+
+      if (notamCockpitGrid) {
+        notamCockpitGrid.innerHTML = `
+          ${visibleItems.map(renderNotamCardHtml).join("")}
+          ${renderSofiaCardHtml()}
+        `;
+      }
+
+      if (notamDetailDock) {
+        notamDetailDock.innerHTML = visibleItems.map(renderNotamDetailHtml).join("");
+      }
+
+      if (notamAllBtn) {
+        notamAllBtn.hidden = activeItems.length <= 3;
+        notamAllBtn.innerHTML = `Voir tous les NOTAM (${activeItems.length}) <span aria-hidden="true">›</span>`;
+        notamAllBtn.onclick = () => {
+          if (!notamDetailDock) return;
+          const alreadyExpanded = notamAllBtn.getAttribute("aria-expanded") === "true";
+          if (alreadyExpanded) {
+            notamDetailDock.querySelectorAll(".notam-inline-detail").forEach((panel) => {
+              panel.hidden = true;
+              panel.classList.remove("is-visible");
+            });
+            document.querySelectorAll(".notam-item-trigger").forEach((trigger) => trigger.setAttribute("aria-expanded", "false"));
+            document.querySelectorAll(".notam-item").forEach((card) => card.classList.remove("is-open"));
+            notamAllBtn.setAttribute("aria-expanded", "false");
+            return;
+          }
+          notamDetailDock.querySelectorAll(".notam-inline-detail").forEach((panel) => {
+            panel.hidden = false;
+            panel.classList.add("is-visible");
+          });
+          notamAllBtn.setAttribute("aria-expanded", "true");
+        };
+      }
+
+      initNotamCockpitInteractions();
+    }
+
+    function renderNotamCardHtml(item) {
+      return `
+        <article class="notam-item notam-item--${escapeHtml(item.level)}" data-notam-card="${escapeHtml(item.id)}">
+          <button class="notam-item-trigger" type="button" aria-expanded="false" aria-controls="${escapeHtml(item.detailId)}" data-notam-target="${escapeHtml(item.detailId)}">
+            <span class="notam-item-icon notam-item-icon--${escapeHtml(item.icon)}" aria-hidden="true">${escapeHtml(item.iconGlyph)}</span>
+            <span class="notam-item-main">
+              <span class="notam-item-topline">
+                <span class="notam-level notam-level--${escapeHtml(item.level)}">${escapeHtml(item.levelLabel)}</span>
+                <span class="notam-tag">${escapeHtml(item.categoryLabel)}</span>
+              </span>
+              <strong>${escapeHtml(item.title)}</strong>
+              <span class="notam-item-period">${escapeHtml(item.periodLabel)}</span>
+            </span>
+            <span class="notam-item-action" aria-hidden="true">Voir détails ›</span>
+          </button>
+        </article>
+      `;
+    }
+
+    function renderNotamDetailHtml(item) {
+      const volumePanel = item.volumeLabel
+        ? `<div class="notam-detail-panel"><span class="notam-detail-label">Volume</span><strong>${escapeHtml(item.volumeLabel)}</strong></div>`
+        : `<div class="notam-detail-panel"><span class="notam-detail-label">Validité</span><strong>${escapeHtml(item.periodLabel)}</strong></div>`;
+
+      return `
+        <section id="${escapeHtml(item.detailId)}" class="notam-inline-detail notam-inline-detail--${escapeHtml(item.level)}" hidden>
+          <div class="notam-inline-detail-head">
+            <div>
+              <span class="notam-detail-label">Détail NOTAM décodé</span>
+              <strong>${escapeHtml(item.title)}</strong>
+            </div>
+            <span class="notam-level notam-level--${escapeHtml(item.level)}">${escapeHtml(item.levelLabel)}</span>
+          </div>
+          <div class="notam-detail-grid">
+            <div class="notam-detail-panel notam-detail-panel--summary">
+              <span class="notam-detail-label">Résumé NESDZ</span>
+              <p>${escapeHtml(item.summary)}</p>
+            </div>
+            <div class="notam-detail-panel">
+              <span class="notam-detail-label">Impact concerné</span>
+              <strong>${escapeHtml(item.impactLabel)}</strong>
+            </div>
+            ${volumePanel}
+          </div>
+          <details class="notam-raw-disclosure">
+            <summary>Texte officiel NOTAM</summary>
+            <pre>${escapeHtml(item.rawText)}</pre>
+          </details>
+          <a class="notam-detail-official-link" href="https://sofia-briefing.aviation-civile.gouv.fr/" target="_blank" rel="noopener noreferrer">Ouvrir SOFIA-Briefing</a>
+        </section>
+      `;
+    }
+
+    function decodeAutorouterNotam(row, index, icao) {
+      const itemText = String(row?.iteme || row?.item || row?.text || "").replace(/\\n/g, "\n").trim();
+      const normalized = itemText.toUpperCase();
+      const category = classifyNotamCategory(normalized, row);
+      const level = scoreNotamLevel(normalized, category, row);
+      const title = buildNotamTitle(itemText, category, row, icao);
+      const periodLabel = formatNotamPeriod(row);
+      const volumeLabel = formatNotamVolume(row);
+      const id = `notam-live-${index}-${String(row?.id || row?.number || index).replace(/[^a-zA-Z0-9_-]/g, "")}`;
+
+      return {
+        id,
+        detailId: `${id}-detail`,
+        level,
+        levelLabel: level === "important" ? "Important" : level === "moderate" ? "Modéré" : "Info",
+        categoryLabel: category.label,
+        impactLabel: category.impact,
+        icon: category.icon,
+        iconGlyph: category.glyph,
+        title,
+        periodLabel,
+        volumeLabel,
+        summary: buildNotamSummary(itemText, category, level),
+        rawText: buildNotamRawText(row, itemText, icao),
+      };
+    }
+
+    function classifyNotamCategory(text, row = {}) {
+      const purpose = String(row?.purpose || "").trim().toUpperCase();
+      if (/\b(RWY|RUNWAY|THR|TORA|TODA|ASDA|LDA|MARKING|LIGHT|BALISAGE|APCH LIGHT|PAPI|VASI)\b/.test(text)) {
+        return { label: "Piste", impact: "Piste / balisage", icon: "runway", glyph: "⌁" };
+      }
+      if (/\b(TWY|TAXIWAY|APRON|PARKING|STAND)\b/.test(text)) {
+        return { label: "Sol", impact: "Roulage / parking", icon: "runway", glyph: "⌁" };
+      }
+      if (/\b(NDB|VOR|DME|ILS|LOC|GLIDE|GNSS|RNAV|RNP|TACAN|FREQ|FREQUENCY|RADIO|ATIS)\b/.test(text)) {
+        return { label: "Radio", impact: "Radio-navigation / procédures", icon: "radio", glyph: "⌁" };
+      }
+      if (/\b(OBST|OBSTACLE|CRANE|TOWER|MAST|WIND TURBINE|EOLIEN|EOLIENNE)\b/.test(text)) {
+        return { label: "Obstacle", impact: "Obstacle / hauteur publiée", icon: "activity", glyph: "⌁" };
+      }
+      if (/\b(PARAGLID|GLIDER|AEROBATIC|AEROBATICS|MODEL FLYING|UAS|DRONE|PJE|PARACHUTE|ACTIVITY|EXERCISE|MIL)\b/.test(text)) {
+        return { label: "Activité", impact: "Activité aérienne", icon: "activity", glyph: "⌁" };
+      }
+      if (/\b(CTR|TMA|ATZ|DANGER|PROHIBITED|RESTRICTED|AIRSPACE|AREA|ZONE|SFC)\b/.test(text) || purpose === "NBO") {
+        return { label: "Espace", impact: "Espace aérien / volume", icon: "activity", glyph: "⌁" };
+      }
+      return { label: "NOTAM", impact: "Information aéronautique", icon: "activity", glyph: "⌁" };
+    }
+
+    function scoreNotamLevel(text, category, row = {}) {
+      if (/\b(CLSD|CLOSED|CLOSURE|U\/S|UNSERVICEABLE|SUSPENDED|PROHIBITED|FORBIDDEN|OUT OF SERVICE)\b/.test(text)) {
+        return "important";
+      }
+      if (/\b(RWY|RUNWAY|AD |AERODROME|APCH|APPROACH|ILS|LOC|RNP|RNAV)\b/.test(text)) {
+        return "important";
+      }
+      if (/\b(WIP|WORK|MAINT|LIMITED|RESTRICTED|CRANE|OBST|ACTIVITY|PARACHUTE|PJE|DRONE|UAS)\b/.test(text)) {
+        return "moderate";
+      }
+      if (["Piste", "Radio", "Obstacle"].includes(category.label)) return "moderate";
+      return "info";
+    }
+
+    function buildNotamTitle(text, category, row = {}, icao = "") {
+      const clean = text.replace(/\s+/g, " ").trim();
+      const rwy = clean.match(/\bRWY\s*([0-9]{2}[LCR]?(?:\/[0-9]{2}[LCR]?)?)\b/i);
+      if (rwy) {
+        if (/LIGHT|BALISAGE|PAPI|VASI/i.test(clean)) return `RWY ${rwy[1]} — Balisage / aides visuelles`;
+        if (/CLSD|CLOSED|CLOSURE/i.test(clean)) return `RWY ${rwy[1]} — Fermeture publiée`;
+        if (/WIP|WORK|MAINT/i.test(clean)) return `RWY ${rwy[1]} — Travaux publiés`;
+        return `RWY ${rwy[1]} — Information piste`;
+      }
+
+      const nav = clean.match(/\b(ILS|LOC|NDB|VOR|DME|GNSS|RNAV|RNP)\b(?:\s+([A-Z0-9]{2,6}))?/i);
+      if (nav) {
+        const name = [nav[1], nav[2]].filter(Boolean).join(" ");
+        if (/U\/S|UNSERVICEABLE|OUT OF SERVICE/i.test(clean)) return `${name} — Indisponible`;
+        return `${name} — Information navigation`;
+      }
+
+      if (/PARAGLID/i.test(clean)) return "Activité parapente publiée";
+      if (/DRONE|UAS/i.test(clean)) return "Activité drone / UAS publiée";
+      if (/OBST|CRANE/i.test(clean)) return "Obstacle publié";
+      if (/CLSD|CLOSED/i.test(clean)) return `${icao || "Terrain"} — Fermeture publiée`;
+
+      return clean.length > 64 ? `${clean.slice(0, 61)}…` : clean || `${icao || "Terrain"} — NOTAM publié`;
+    }
+
+    function buildNotamSummary(text, category, level) {
+      const clean = text.replace(/\s+/g, " ").trim();
+      const prefix = {
+        Piste: "Information publiée concernant une piste ou son balisage.",
+        Sol: "Information publiée concernant le roulage, l’aire de trafic ou le stationnement.",
+        Radio: "Information publiée concernant une aide radio, une fréquence ou une procédure.",
+        Obstacle: "Obstacle ou contrainte verticale publiée dans le secteur.",
+        Activité: "Activité aérienne publiée dans le secteur.",
+        Espace: "Information publiée concernant un espace ou volume aérien.",
+        NOTAM: "Information aéronautique publiée.",
+      }[category.label] || "Information aéronautique publiée.";
+      const caution = level === "important"
+        ? "Vérifier la disponibilité réelle et les consignes officielles avant départ."
+        : "Vérifier le détail et la période dans le briefing officiel avant le vol.";
+      const snippet = clean.length > 140 ? `${clean.slice(0, 137)}…` : clean;
+      return `${prefix} ${caution}${snippet ? ` Texte source : ${snippet}` : ""}`;
+    }
+
+    function formatNotamPeriod(row = {}) {
+      const start = unixToDate(row?.startvalidity);
+      const end = unixToDate(row?.endvalidity);
+      if (start && end) return `${formatNotamDate(start)} → ${formatNotamDate(end)}`;
+      if (end) return `Jusqu’au ${formatNotamDate(end)}`;
+      if (start) return `Depuis le ${formatNotamDate(start)}`;
+      return "Validité à vérifier";
+    }
+
+    function formatNotamVolume(row = {}) {
+      const lower = Number(row?.lower);
+      const upper = Number(row?.upper);
+      if (!Number.isFinite(lower) && !Number.isFinite(upper)) return "";
+      const lowerLabel = Number.isFinite(lower) ? (lower <= 0 ? "SFC" : `${lower} ft`) : "—";
+      const upperLabel = Number.isFinite(upper) ? (upper >= 999 ? "UNL" : `${upper} ft`) : "—";
+      return `${lowerLabel} / ${upperLabel}`;
+    }
+
+    function unixToDate(value) {
+      const num = Number(value);
+      if (!Number.isFinite(num) || num <= 0 || num >= 2147483647) return null;
+      return new Date(num * 1000);
+    }
+
+    function formatNotamDate(date) {
+      if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "—";
+      const day = String(date.getUTCDate()).padStart(2, "0");
+      const month = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"][date.getUTCMonth()];
+      const hour = String(date.getUTCHours()).padStart(2, "0");
+      const min = String(date.getUTCMinutes()).padStart(2, "0");
+      return `${day} ${month} ${hour}:${min} UTC`;
+    }
+
+    function formatNotamFetchedAt(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "";
+      return `maj ${formatUtcClock(date)}`;
+    }
+
+    function buildNotamRawText(row = {}, itemText = "", icao = "") {
+      const number = `${row?.series || ""}${row?.number || ""}/${row?.year || ""}`.replace(/^\//, "").trim();
+      const qLine = [row?.fir, row?.code23, row?.traffic, row?.purpose, row?.scope, row?.lower, row?.upper]
+        .filter((value) => value !== null && value !== undefined && String(value).trim() !== "")
+        .join(" /");
+      const aLine = Array.isArray(row?.itema) ? row.itema.join(", ") : (icao || "");
+      const bLine = formatNotamPeriod(row);
+      return [
+        number ? `${number} NOTAM` : "NOTAM",
+        qLine ? `Q) ${qLine}` : "",
+        aLine ? `A) ${aLine}` : "",
+        bLine ? `B/C) ${bLine}` : "",
+        itemText ? `E) ${itemText}` : "E) Texte officiel indisponible dans la réponse Autorouter.",
+      ].filter(Boolean).join("\n");
+    }
+
+
     function initNotamCockpitInteractions() {
       const triggers = Array.from(document.querySelectorAll(".notam-item-trigger"));
       const detailPanels = Array.from(document.querySelectorAll(".notam-inline-detail"));
       if (!triggers.length || !detailPanels.length) return;
 
       triggers.forEach((trigger) => {
-        trigger.addEventListener("click", () => {
+        if (!(trigger instanceof HTMLButtonElement)) return;
+        trigger.onclick = () => {
           const card = trigger.closest(".notam-item");
           const detailId = trigger.dataset.notamTarget || trigger.getAttribute("aria-controls");
           const detail = detailId ? document.getElementById(detailId) : null;
@@ -5534,13 +5803,15 @@ function renderUlmNearbyItem(item) {
             panel.classList.remove("is-visible");
           });
 
+          if (notamAllBtn) notamAllBtn.setAttribute("aria-expanded", "false");
+
           if (!isOpen && detail) {
             trigger.setAttribute("aria-expanded", "true");
             if (card) card.classList.add("is-open");
             detail.hidden = false;
             requestAnimationFrame(() => detail.classList.add("is-visible"));
           }
-        });
+        };
       });
     }
 
