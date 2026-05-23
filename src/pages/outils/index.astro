@@ -5587,7 +5587,20 @@ function renderUlmNearbyItem(item) {
       const svg = paths[icon] || paths.activity;
 
       return `
-        <svg class="${classes}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <svg
+          class="${classes}"
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          aria-hidden="true"
+          focusable="false"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.9"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          style="display:block;width:1.08rem;height:1.08rem;max-width:1.08rem;max-height:1.08rem;overflow:visible;"
+        >
           ${svg}
         </svg>
       `;
@@ -13649,7 +13662,7 @@ function renderUlmNearbyItem(item) {
 }
 
   </style>
-  <style>
+  <style is:global>
     .notam-learning-panel {
       margin: 12px 0 14px;
       border-color: rgba(97, 218, 251, 0.24);
