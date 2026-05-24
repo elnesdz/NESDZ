@@ -340,8 +340,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           <h2>Lecture prévision</h2>
           <div class="decoded-grid decoded-grid--forecast">
             <div class="decoded-card decoded-card-wide taf-decode-card">
-              <div class="taf-head">
-                <span class="decoded-label">TAF décodé</span>
+              <div class="taf-head taf-head--hidden-summary">
+                <span class="decoded-label">Prévision</span>
                 <strong id="tafSummaryValue">Aucune donnée</strong>
               </div>
 
@@ -367,14 +367,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               <div id="tafVisualBlock" class="taf-visual-block" hidden>
                 <div class="taf-visual-head">
                   <div>
-                    <span class="taf-visual-kicker">Lecture TAF</span>
-                    <strong>Chronologie décodée</strong>
+                    <span class="taf-visual-kicker">Prévision principale</span>
+                    <strong>BASE</strong>
                   </div>
-                  <span class="taf-visual-source">Codes TAF conservés · lecture guidée</span>
+                  <span class="taf-visual-source">TAF officiel décodé</span>
                 </div>
 
                 <p class="taf-visual-intro">
-                  Les codes aéronautiques restent visibles. Chaque carte est cliquable : lecture immédiate en façade, détail complet au clic ou au toucher.
+                  Lecture simplifiée du TAF officiel. Les évolutions prévues restent visibles juste en dessous.
                 </p>
 
                 <div id="tafVisualOverview" class="taf-visual-overview"></div>
@@ -1695,7 +1695,8 @@ let ulmDetailsPromise = null;
         tafVisualCards.innerHTML = "";
       }
 
-      tafVisualOverview.innerHTML = groups.map((group) => {
+      const displayGroups = groups.filter((group) => String(group?.type || "BASE").toUpperCase() === "BASE").slice(0, 1);
+      tafVisualOverview.innerHTML = (displayGroups.length ? displayGroups : groups.slice(0, 1)).map((group) => {
         const categoryTone = escapeHtml(group.analysis.category.tone || "none");
         const categoryLabel = escapeHtml(group.analysis.category.label || "—");
         const explain = escapeHtml(getTafGroupExplainLabel(group));
@@ -1779,12 +1780,57 @@ let ulmDetailsPromise = null;
       if (decoded.cancelled) return;
 
       const baseBullets = decoded.base.length ? decoded.base : ["Le message TAF est disponible en brut ci-dessous, mais aucun groupe standard exploitable n’a été reconnu."];
+      if (tafBaseDisclosure) tafBaseDisclosure.hidden = true;
       if (tafBaseCount) tafBaseCount.textContent = String(baseBullets.length);
       if (tafBaseList) tafBaseList.innerHTML = baseBullets.map((item) => `<li>${item}</li>`).join("");
-      if (decoded.changes.length && tafChangesSection && tafChangesList) {
+
+      const evolutionGroups = Array.isArray(decoded.visualGroups)
+        ? decoded.visualGroups.filter((group) => String(group?.type || "BASE").toUpperCase() !== "BASE")
+        : [];
+      if (evolutionGroups.length && tafChangesSection && tafChangesList) {
         tafChangesSection.hidden = false;
+        tafChangesSection.open = true;
+        if (tafChangesCount) tafChangesCount.textContent = String(evolutionGroups.length);
+        tafChangesList.innerHTML = evolutionGroups.map((group) => {
+          const title = escapeHtml(getTafGroupTypeLabel(group));
+          const hint = escapeHtml(getTafMobilePhaseHint(group));
+          const range = escapeHtml(group.rangeLabel || "Plage non précisée");
+          const wind = escapeHtml(group.analysis?.wind || "—");
+          const visibility = escapeHtml(group.analysis?.visibility || "—");
+          const ceiling = escapeHtml(group.analysis?.ceiling || "—");
+          const weather = escapeHtml(group.analysis?.weather?.length ? group.analysis.weather.join(" · ") : "—");
+          const raw = escapeHtml(group.raw || "—");
+          return `
+            <details class="taf-evolution-item taf-evolution-item--${escapeHtml(group.tone || "base")}">
+              <summary>
+                <span class="taf-evolution-code">${title}</span>
+                <span class="taf-evolution-main">
+                  <strong>${hint}</strong>
+                  <small>${range}</small>
+                </span>
+                <span class="taf-evolution-glance">${wind}</span>
+              </summary>
+              <div class="taf-evolution-body">
+                <span>Visibilité : ${visibility}</span>
+                <span>Plafond : ${ceiling}</span>
+                <span>Temps : ${weather}</span>
+                <code>${raw}</code>
+              </div>
+            </details>
+          `;
+        }).join("");
+      } else if (decoded.changes.length && tafChangesSection && tafChangesList) {
+        tafChangesSection.hidden = false;
+        tafChangesSection.open = true;
         if (tafChangesCount) tafChangesCount.textContent = String(decoded.changes.length);
-        tafChangesList.innerHTML = decoded.changes.map((group) => `\n            <div class="taf-timeline-item">\n              <strong class="taf-timeline-title">${group.title}</strong>\n              <ul class="taf-bullet-list taf-bullet-list--nested">\n                ${group.bullets.map((item) => `<li>${item}</li>`).join("")}\n              </ul>\n            </div>\n          `).join("");
+        tafChangesList.innerHTML = decoded.changes.map((group) => `
+          <div class="taf-evolution-item taf-evolution-item--fallback">
+            <div class="taf-evolution-fallback-title">${group.title}</div>
+            <ul class="taf-bullet-list taf-bullet-list--nested">
+              ${group.bullets.map((item) => `<li>${item}</li>`).join("")}
+            </ul>
+          </div>
+        `).join("");
       }
       if (decoded.temps.length && tafTempsSection && tafTempList) {
         tafTempsSection.hidden = false;
@@ -1792,8 +1838,8 @@ let ulmDetailsPromise = null;
         tafTempList.innerHTML = decoded.temps.map((item) => `<li>${item}</li>`).join("");
       }
       renderTafVisual(decoded);
-      const hasVisualGroups = Array.isArray(decoded.visualGroups) && decoded.visualGroups.length > 0;
-      if (tafDecodeBlock) tafDecodeBlock.hidden = hasVisualGroups;
+      const hasEvolutionGroups = (Array.isArray(decoded.visualGroups) && decoded.visualGroups.some((group) => String(group?.type || "BASE").toUpperCase() !== "BASE")) || decoded.changes.length || decoded.temps.length;
+      if (tafDecodeBlock) tafDecodeBlock.hidden = !hasEvolutionGroups;
     }
 
     function getAirportWeatherCode(airport) {
@@ -14096,6 +14142,222 @@ function renderUlmNearbyItem(item) {
       }
     }
 
+
+  /* PASS 17 — TAF cockpit compact : une BASE lisible + évolutions visibles */
+  .nesdz-premium-ui .tool-page .taf-head--hidden-summary {
+    display: none;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-decode-card {
+    padding: clamp(14px, 2vw, 22px);
+  }
+
+  .nesdz-premium-ui .tool-page .taf-meta-grid {
+    margin-top: 0;
+    margin-bottom: 1rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-decoder-meta {
+    margin: 0 0 0.95rem;
+    font-size: 0.82rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-block {
+    padding: clamp(14px, 2vw, 22px);
+    margin-top: 0.75rem;
+    border-radius: 24px;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-head {
+    margin-bottom: 0.7rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-head strong {
+    font-size: clamp(1.15rem, 2vw, 1.55rem);
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-intro {
+    margin: 0 0 0.9rem;
+    max-width: none;
+    font-size: 0.86rem;
+    line-height: 1.45;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-overview {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-overview-item {
+    min-height: unset;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-overview-summary {
+    min-height: 108px;
+    padding: clamp(13px, 1.7vw, 18px);
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-overview-explain {
+    display: none;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-overview-glance {
+    margin-top: 0.55rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-decode-block {
+    margin-top: 0.85rem;
+  }
+
+  .nesdz-premium-ui .tool-page #tafBaseDisclosure {
+    display: none !important;
+  }
+
+  .nesdz-premium-ui .tool-page #tafChangesSection {
+    border: 1px solid rgba(125, 211, 252, 0.18);
+    background: rgba(7, 16, 31, 0.46);
+  }
+
+  .nesdz-premium-ui .tool-page #tafChangesSection > summary {
+    min-height: 48px;
+    padding: 0.75rem 0.95rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-timeline {
+    display: grid;
+    gap: 8px;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-item {
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 16px;
+    background: rgba(9, 18, 34, 0.72);
+    overflow: hidden;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-item > summary {
+    cursor: pointer;
+    list-style: none;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.72rem;
+    padding: 0.7rem 0.82rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-item > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 62px;
+    min-height: 28px;
+    padding: 0.24rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(125, 211, 252, 0.22);
+    color: #a8e9ff;
+    background: rgba(14, 165, 233, 0.10);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-main {
+    min-width: 0;
+    display: grid;
+    gap: 0.18rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-main strong {
+    color: rgba(248, 250, 252, 0.94);
+    font-size: 0.92rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-main small {
+    color: rgba(203, 213, 225, 0.72);
+    font-size: 0.74rem;
+    line-height: 1.25;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-glance {
+    justify-self: end;
+    color: rgba(248, 250, 252, 0.88);
+    font-size: 0.78rem;
+    font-weight: 900;
+    white-space: nowrap;
+    padding: 0.24rem 0.52rem;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.66);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-body {
+    display: grid;
+    gap: 0.35rem;
+    padding: 0 0.82rem 0.75rem calc(62px + 1.54rem);
+    color: rgba(203, 213, 225, 0.78);
+    font-size: 0.8rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-body code {
+    margin-top: 0.2rem;
+    color: rgba(226, 232, 240, 0.72);
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  @media (max-width: 720px) {
+    .nesdz-premium-ui .tool-page .taf-meta-grid {
+      gap: 8px;
+      margin-bottom: 0.75rem;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-visual-block {
+      padding: 12px;
+      border-radius: 20px;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-visual-source {
+      display: none;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-visual-intro {
+      font-size: 0.78rem;
+      margin-bottom: 0.72rem;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-visual-overview-summary {
+      min-height: 0;
+      padding: 12px;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-visual-open-hint {
+      min-height: 32px;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-evolution-item > summary {
+      grid-template-columns: 1fr;
+      gap: 0.45rem;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-evolution-code {
+      justify-self: start;
+      min-width: 0;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-evolution-glance {
+      justify-self: start;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-evolution-body {
+      padding: 0 0.82rem 0.75rem;
+      font-size: 0.78rem;
+    }
+  }
+
 </style>
 
 
@@ -14360,6 +14622,222 @@ function renderUlmNearbyItem(item) {
       font-size: 0.68rem;
     }
   }
+
+  /* PASS 17 — TAF cockpit compact : une BASE lisible + évolutions visibles */
+  .nesdz-premium-ui .tool-page .taf-head--hidden-summary {
+    display: none;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-decode-card {
+    padding: clamp(14px, 2vw, 22px);
+  }
+
+  .nesdz-premium-ui .tool-page .taf-meta-grid {
+    margin-top: 0;
+    margin-bottom: 1rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-decoder-meta {
+    margin: 0 0 0.95rem;
+    font-size: 0.82rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-block {
+    padding: clamp(14px, 2vw, 22px);
+    margin-top: 0.75rem;
+    border-radius: 24px;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-head {
+    margin-bottom: 0.7rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-head strong {
+    font-size: clamp(1.15rem, 2vw, 1.55rem);
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-intro {
+    margin: 0 0 0.9rem;
+    max-width: none;
+    font-size: 0.86rem;
+    line-height: 1.45;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-overview {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-overview-item {
+    min-height: unset;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-overview-summary {
+    min-height: 108px;
+    padding: clamp(13px, 1.7vw, 18px);
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-overview-explain {
+    display: none;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-visual-overview-glance {
+    margin-top: 0.55rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-decode-block {
+    margin-top: 0.85rem;
+  }
+
+  .nesdz-premium-ui .tool-page #tafBaseDisclosure {
+    display: none !important;
+  }
+
+  .nesdz-premium-ui .tool-page #tafChangesSection {
+    border: 1px solid rgba(125, 211, 252, 0.18);
+    background: rgba(7, 16, 31, 0.46);
+  }
+
+  .nesdz-premium-ui .tool-page #tafChangesSection > summary {
+    min-height: 48px;
+    padding: 0.75rem 0.95rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-timeline {
+    display: grid;
+    gap: 8px;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-item {
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 16px;
+    background: rgba(9, 18, 34, 0.72);
+    overflow: hidden;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-item > summary {
+    cursor: pointer;
+    list-style: none;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.72rem;
+    padding: 0.7rem 0.82rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-item > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 62px;
+    min-height: 28px;
+    padding: 0.24rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(125, 211, 252, 0.22);
+    color: #a8e9ff;
+    background: rgba(14, 165, 233, 0.10);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-main {
+    min-width: 0;
+    display: grid;
+    gap: 0.18rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-main strong {
+    color: rgba(248, 250, 252, 0.94);
+    font-size: 0.92rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-main small {
+    color: rgba(203, 213, 225, 0.72);
+    font-size: 0.74rem;
+    line-height: 1.25;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-glance {
+    justify-self: end;
+    color: rgba(248, 250, 252, 0.88);
+    font-size: 0.78rem;
+    font-weight: 900;
+    white-space: nowrap;
+    padding: 0.24rem 0.52rem;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.66);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-body {
+    display: grid;
+    gap: 0.35rem;
+    padding: 0 0.82rem 0.75rem calc(62px + 1.54rem);
+    color: rgba(203, 213, 225, 0.78);
+    font-size: 0.8rem;
+  }
+
+  .nesdz-premium-ui .tool-page .taf-evolution-body code {
+    margin-top: 0.2rem;
+    color: rgba(226, 232, 240, 0.72);
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  @media (max-width: 720px) {
+    .nesdz-premium-ui .tool-page .taf-meta-grid {
+      gap: 8px;
+      margin-bottom: 0.75rem;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-visual-block {
+      padding: 12px;
+      border-radius: 20px;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-visual-source {
+      display: none;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-visual-intro {
+      font-size: 0.78rem;
+      margin-bottom: 0.72rem;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-visual-overview-summary {
+      min-height: 0;
+      padding: 12px;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-visual-open-hint {
+      min-height: 32px;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-evolution-item > summary {
+      grid-template-columns: 1fr;
+      gap: 0.45rem;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-evolution-code {
+      justify-self: start;
+      min-width: 0;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-evolution-glance {
+      justify-self: start;
+    }
+
+    .nesdz-premium-ui .tool-page .taf-evolution-body {
+      padding: 0 0.82rem 0.75rem;
+      font-size: 0.78rem;
+    }
+  }
+
 </style>
 
 </BaseLayout>
