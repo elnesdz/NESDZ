@@ -14838,6 +14838,391 @@ function renderUlmNearbyItem(item) {
     }
   }
 
+
+
+  /* ==========================================================
+     NESDZ — Compact cockpit refinement v1
+     Passe ciblée UX : densité laptop + sections secondaires.
+     Aucun changement JS / logique métier.
+     ========================================================== */
+
+  @media (min-width: 900px) {
+    .tool-page {
+      padding-top: 12px !important;
+    }
+
+    .tool-page > .card > .pad {
+      padding-top: clamp(18px, 2.2vw, 30px) !important;
+      padding-bottom: clamp(18px, 2.2vw, 30px) !important;
+    }
+
+    .tool-page h1 {
+      font-size: clamp(3.05rem, 6.1vw, 5.25rem) !important;
+      line-height: 0.96 !important;
+      letter-spacing: -0.065em !important;
+      margin-bottom: clamp(1rem, 1.9vw, 1.45rem) !important;
+    }
+
+    .tool-page h2 {
+      font-size: clamp(1.85rem, 3.3vw, 3rem) !important;
+      line-height: 1 !important;
+      margin-bottom: 0.95rem !important;
+    }
+
+    .tool-page .tool-block {
+      margin-top: 1.05rem !important;
+      padding: clamp(1rem, 1.55vw, 1.55rem) !important;
+      border-radius: 24px !important;
+    }
+
+    .tool-page .tool-entry-block {
+      padding: clamp(0.95rem, 1.45vw, 1.35rem) !important;
+    }
+
+    .tool-page .tool-entry-help,
+    .tool-page .decoded-note,
+    .tool-page .tool-source-line {
+      font-size: 0.82rem !important;
+      line-height: 1.35 !important;
+    }
+
+    .tool-page .tool-row {
+      gap: 0.75rem !important;
+      align-items: center !important;
+    }
+
+    .tool-page input#icaoInput {
+      min-height: 48px !important;
+      padding-block: 0.72rem !important;
+    }
+
+    .tool-page .tool-action-btn {
+      min-height: 44px !important;
+      padding: 0.68rem 1rem !important;
+    }
+
+    .tool-page .decoded-grid {
+      gap: 0.72rem !important;
+    }
+
+    .tool-page .decoded-card {
+      min-height: 0 !important;
+      padding: 0.9rem 1rem !important;
+      border-radius: 14px !important;
+    }
+
+    .tool-page .decoded-card strong {
+      line-height: 1.18 !important;
+    }
+
+    .tool-page .decoded-label,
+    .tool-page .taf-meta-label,
+    .tool-page .nearby-kicker,
+    .tool-page .notam-kicker {
+      font-size: 0.75rem !important;
+      letter-spacing: 0.075em !important;
+    }
+
+    .tool-page .terrain-visual-card {
+      padding: clamp(1rem, 1.7vw, 1.5rem) !important;
+    }
+
+    .tool-page .terrain-visual-canvas {
+      margin-top: 0.95rem !important;
+    }
+
+    .tool-page .notam-cockpit-block {
+      padding: 1rem !important;
+    }
+
+    .tool-page .notam-cockpit-head {
+      margin-bottom: 0.72rem !important;
+      gap: 0.9rem !important;
+    }
+
+    .tool-page .notam-title-row {
+      gap: 0.42rem !important;
+    }
+
+    .tool-page .notam-note {
+      margin-top: 0.28rem !important;
+      font-size: 0.82rem !important;
+      line-height: 1.35 !important;
+    }
+
+    .tool-page .notam-cockpit-grid {
+      gap: 0.7rem !important;
+    }
+
+    .tool-page .notam-item {
+      min-height: 0 !important;
+      border-radius: 13px !important;
+    }
+
+    .tool-page .notam-item-trigger {
+      padding: 0.82rem 0.9rem !important;
+      gap: 0.65rem !important;
+    }
+
+    .tool-page .notam-item-icon {
+      width: 34px !important;
+      height: 34px !important;
+      min-width: 34px !important;
+      font-size: 0.95rem !important;
+    }
+
+    .tool-page .notam-item-main strong {
+      font-size: 0.98rem !important;
+      line-height: 1.15 !important;
+    }
+
+    .tool-page .notam-item-period,
+    .tool-page .notam-item-summary,
+    .tool-page .notam-safety-strip {
+      font-size: 0.78rem !important;
+      line-height: 1.34 !important;
+    }
+
+    .tool-page .notam-sofia-card {
+      padding: 0.9rem !important;
+      border-radius: 14px !important;
+    }
+
+    .tool-page .notam-sofia-icon {
+      width: 34px !important;
+      height: 34px !important;
+      min-width: 34px !important;
+    }
+
+    .tool-page .notam-sofia-main strong {
+      font-size: 0.95rem !important;
+      line-height: 1.2 !important;
+    }
+
+    .tool-page .notam-assisted-link,
+    .tool-page .notam-sofia-link {
+      min-height: 36px !important;
+      padding: 0.55rem 0.8rem !important;
+    }
+
+    .tool-page #platformBlock.tool-block {
+      padding: clamp(1rem, 1.45vw, 1.35rem) !important;
+    }
+
+    .tool-page .terrain-info-head {
+      margin-bottom: 0.75rem !important;
+    }
+
+    .tool-page .terrain-info-grid {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr) minmax(0, 1.7fr) !important;
+      gap: 0.72rem !important;
+    }
+
+    .tool-page .terrain-info-grid .decoded-card {
+      padding: 0.86rem 0.95rem !important;
+    }
+
+    .tool-page .terrain-info-grid .decoded-card strong {
+      font-size: clamp(1rem, 1.35vw, 1.28rem) !important;
+      line-height: 1.22 !important;
+    }
+
+    .tool-page .terrain-radio-section {
+      margin-top: 0.95rem !important;
+    }
+
+    .tool-page .terrain-info-subhead {
+      margin-bottom: 0.55rem !important;
+    }
+
+    .tool-page .terrain-radio-grid .decoded-card,
+    .tool-page .radio-panel {
+      padding: 0 !important;
+    }
+
+    .tool-page .radio-primary,
+    .tool-page .radio-support-card {
+      padding: 0.85rem 0.95rem !important;
+      border-radius: 14px !important;
+    }
+
+    .tool-page .radio-primary-main,
+    .tool-page .radio-support-main {
+      font-size: clamp(1.05rem, 1.55vw, 1.35rem) !important;
+      line-height: 1.15 !important;
+      margin-top: 0.35rem !important;
+    }
+
+    .tool-page .radio-primary-label,
+    .tool-page .radio-support-label,
+    .tool-page .radio-primary-note,
+    .tool-page .radio-support-note {
+      font-size: 0.78rem !important;
+      line-height: 1.3 !important;
+    }
+
+    .tool-page .radio-support-grid {
+      gap: 0.65rem !important;
+      margin-top: 0.65rem !important;
+    }
+
+    .tool-page .radio-secondary-summary,
+    .tool-page .terrain-disclosure > summary {
+      min-height: 40px !important;
+      padding: 0.65rem 0.82rem !important;
+      border-radius: 12px !important;
+    }
+
+    .tool-page .platform-docs-panel {
+      padding: 0.9rem !important;
+      margin-top: 0.8rem !important;
+    }
+
+    .tool-page .platform-docs-actions {
+      gap: 0.55rem !important;
+      margin-top: 0.55rem !important;
+    }
+
+    .tool-page .platform-doc-link {
+      min-height: 0 !important;
+      padding: 0.65rem 0.85rem !important;
+      border-radius: 13px !important;
+    }
+
+    .tool-page .platform-doc-link-title {
+      font-size: 1.05rem !important;
+      line-height: 1 !important;
+    }
+
+    .tool-page .platform-doc-link-note {
+      font-size: 0.76rem !important;
+      line-height: 1.18 !important;
+    }
+
+    .tool-page .taf-meta-grid {
+      gap: 0.72rem !important;
+      margin-bottom: 0.9rem !important;
+    }
+
+    .tool-page .taf-meta-card {
+      min-height: 0 !important;
+      padding: 0.9rem 1rem !important;
+      border-radius: 14px !important;
+    }
+
+    .tool-page .taf-meta-card strong {
+      font-size: 1rem !important;
+      line-height: 1.25 !important;
+    }
+
+    .tool-page .taf-visual-block {
+      padding: 1rem !important;
+      border-radius: 18px !important;
+      margin-top: 0.75rem !important;
+    }
+
+    .tool-page .taf-visual-head {
+      margin-bottom: 0.55rem !important;
+    }
+
+    .tool-page .taf-visual-intro {
+      max-width: 52rem !important;
+      margin: 0 0 0.75rem !important;
+      font-size: 0.86rem !important;
+      line-height: 1.4 !important;
+    }
+
+    .tool-page .taf-visual-overview-summary,
+    .tool-page .taf-visual-card,
+    .tool-page .taf-evolution-item {
+      border-radius: 14px !important;
+    }
+
+    .tool-page .taf-visual-overview-summary {
+      padding: 0.95rem !important;
+      min-height: 0 !important;
+    }
+
+    .tool-page .taf-visual-detail-row {
+      padding-block: 0.36rem !important;
+    }
+
+    .tool-page .taf-visual-raw {
+      margin-top: 0.7rem !important;
+      padding: 0.62rem 0.72rem !important;
+      border-radius: 11px !important;
+    }
+
+    .tool-page .taf-evolution-item > summary {
+      padding: 0.72rem 0.82rem !important;
+    }
+
+    .tool-page .taf-evolution-body {
+      padding: 0 0.82rem 0.7rem !important;
+    }
+
+    .tool-page .raw-weather-disclosure {
+      padding: 0.9rem !important;
+    }
+
+    .tool-page .raw-weather-disclosure > summary {
+      min-height: 44px !important;
+      padding: 0.68rem 0.85rem !important;
+      border-radius: 13px !important;
+    }
+
+    .tool-page .nearby-block--spotlight {
+      padding: 1.05rem !important;
+    }
+
+    .tool-page .nearby-block-head {
+      gap: 0.8rem !important;
+      margin-top: 0.3rem !important;
+    }
+
+    .tool-page .nearby-block h2 {
+      font-size: clamp(1.7rem, 3vw, 2.6rem) !important;
+      margin-bottom: 0.35rem !important;
+    }
+
+    .tool-page .nearby-block-note {
+      font-size: 0.88rem !important;
+      margin: 0 !important;
+    }
+
+    .tool-page .nearby-btn {
+      min-width: 260px !important;
+      max-width: 360px !important;
+    }
+
+    .tool-page .nearby-summary {
+      margin-top: 0.7rem !important;
+      padding: 0.66rem 0.8rem !important;
+      border-radius: 12px !important;
+      font-size: 0.84rem !important;
+    }
+
+    .tool-page .tool-sources-strip {
+      padding: 0.85rem 1rem !important;
+      min-height: 0 !important;
+    }
+  }
+
+  @media (max-width: 899px) {
+    .tool-page h1 {
+      line-height: 0.98 !important;
+    }
+
+    .tool-page .tool-block {
+      margin-top: 0.9rem !important;
+    }
+
+    .tool-page .platform-doc-link,
+    .tool-page .radio-secondary-summary,
+    .tool-page .terrain-disclosure > summary {
+      min-height: 42px !important;
+    }
+  }
 </style>
 
 </BaseLayout>
