@@ -5561,17 +5561,24 @@ function renderUlmNearbyItem(item) {
         const line = String(item.line || item.brief || "").toLowerCase();
         const joined = `${category} ${title} ${line}`;
 
+        const hasDirectOperationalImpact = /piste|runway|rwy|taxiway|twy|obstacle|crane|grue|travaux|wip|fermeture|fermé|fermée|closed|clsd|u\/s|indisponible|hors service|radio|nav|ils|vor|dme|atis|twr|service/.test(joined);
+        const isDocumentaryOnly = /référence documentaire|reference documentaire|reference documentary|documentaire|document officiel|publication|mise à jour|aip|airac|amdt|sup aip|aic/.test(joined) && !hasDirectOperationalImpact;
+
+        // Affichage principal volontairement strict : seules les cartes réellement
+        // classées PRIORITAIRES remontent dans le briefing court. Les NOTAM
+        // documentaires ou simplement à vérifier restent accessibles via “Voir tous”.
         if (level === "important") return 1;
-        if (level === "moderate") return 2;
-        if (/piste|runway|rwy|taxiway|twy|obstacle|radio|nav|ils|vor|dme|atis|twr|service|travaux|fermeture|indisponible|hors service/.test(joined)) return 2;
-        if (/procédure|procedure|aip|iac|sid|star|rnp|rnav/.test(joined)) return 3;
+        if (isDocumentaryOnly) return 4;
+        if (level === "moderate") return 3;
+        if (hasDirectOperationalImpact) return 3;
+        if (/procédure|procedure|iac|sid|star|rnp|rnav/.test(joined)) return 3;
         return 4;
       }
 
       const sortedItems = [...activeItems].sort((a, b) => getNotamPriorityRank(a) - getNotamPriorityRank(b));
-      const priorityItems = sortedItems.filter((item) => getNotamPriorityRank(item) <= 2);
+      const priorityItems = sortedItems.filter((item) => getNotamPriorityRank(item) === 1);
       const importantCount = priorityItems.length;
-      const visibleItems = (priorityItems.length ? priorityItems : sortedItems).slice(0, 3);
+      const visibleItems = priorityItems.slice(0, 3);
       const hiddenCount = Math.max(0, sortedItems.length - visibleItems.length);
 
       setNotamHeader({
@@ -5584,7 +5591,7 @@ function renderUlmNearbyItem(item) {
           : `Aucun NOTAM prioritaire détecté automatiquement${fetchedAt ? ` · ${fetchedAt}` : ""}. Voir le détail et SOFIA avant le vol.`,
       });
 
-      if (!visibleItems.length) {
+      if (!activeItems.length) {
         renderNotamUnavailable(
           `Aucun NOTAM retourné pour ${escapeHtml(meta.icao || "ce terrain")}`,
           "Vérifier tout de même le briefing officiel SOFIA avant le vol."
@@ -5600,8 +5607,24 @@ function renderUlmNearbyItem(item) {
         const inlineDetails = shouldUseInlineNotamDetails();
 
         if (notamCockpitGrid) {
+          const cardsHtml = cards.length
+            ? cards.map(inlineDetails ? renderNotamCardWithInlineDetailHtml : renderNotamCardHtml).join("")
+            : `
+              <article class="notam-item notam-item--info notam-item--empty notam-item--calm">
+                <div class="notam-item-trigger notam-item-trigger--static">
+                  <span class="notam-item-main">
+                    <span class="notam-item-topline">
+                      <span class="notam-level notam-level--info">Lecture normale</span>
+                    </span>
+                    <strong>Aucun NOTAM prioritaire détecté</strong>
+                    <span class="notam-item-period">Les autres NOTAM restent disponibles via “Voir tous” et le PIB SOFIA reste la référence.</span>
+                  </span>
+                </div>
+              </article>
+            `;
+
           notamCockpitGrid.innerHTML = `
-            ${cards.map(inlineDetails ? renderNotamCardWithInlineDetailHtml : renderNotamCardHtml).join("")}
+            ${cardsHtml}
             ${renderSofiaCardHtml()}
           `;
         }
@@ -13729,7 +13752,275 @@ function renderUlmNearbyItem(item) {
   }
 }
 
-  </style>
+  
+
+  /* ==========================================================
+     NESDZ — Operational compact pass v2
+     NOTAM plus sobres + CTA terrains proches plus évident.
+     Passe CSS/JS ciblée : aucun parsing météo/TAF/terrain modifié.
+     ========================================================== */
+
+  .tool-page .notam-cockpit-block .notam-item {
+    background: linear-gradient(180deg, rgba(10, 22, 40, 0.92), rgba(7, 17, 31, 0.96)) !important;
+    border-color: rgba(120, 170, 210, 0.18) !important;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.025) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-item::before {
+    display: none !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-item:hover,
+  .tool-page .notam-cockpit-block .notam-item:focus-within,
+  .tool-page .notam-cockpit-block .notam-item.is-open {
+    border-color: rgba(140, 205, 255, 0.28) !important;
+    box-shadow: inset 0 0 0 1px rgba(125, 205, 255, 0.08) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-item-icon {
+    color: rgba(170, 198, 220, 0.78) !important;
+    background: rgba(13, 31, 52, 0.72) !important;
+    border-color: rgba(135, 180, 220, 0.22) !important;
+    box-shadow: none !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-tag {
+    color: rgba(196, 211, 228, 0.82) !important;
+    background: rgba(140, 160, 185, 0.14) !important;
+    border-color: rgba(170, 190, 215, 0.14) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-level {
+    background: rgba(135, 155, 178, 0.14) !important;
+    border-color: rgba(170, 190, 215, 0.16) !important;
+    color: rgba(224, 234, 246, 0.88) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-level--important {
+    color: #ffd7d7 !important;
+    background: rgba(228, 92, 98, 0.22) !important;
+    border-color: rgba(255, 132, 138, 0.38) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-level--moderate {
+    color: rgba(232, 220, 198, 0.9) !important;
+    background: rgba(160, 132, 72, 0.14) !important;
+    border-color: rgba(210, 180, 120, 0.2) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-item-action {
+    color: rgba(216, 235, 250, 0.88) !important;
+    background: rgba(32, 70, 104, 0.56) !important;
+    border-color: rgba(120, 180, 230, 0.28) !important;
+    box-shadow: none !important;
+  }
+
+  .tool-page .notam-sofia-card {
+    background: rgba(10, 32, 52, 0.82) !important;
+    border-color: rgba(115, 190, 235, 0.22) !important;
+    box-shadow: none !important;
+  }
+
+  .tool-page .notam-sofia-link,
+  .tool-page .notam-assisted-link {
+    box-shadow: none !important;
+  }
+
+  .tool-page .nearby-btn {
+    background: linear-gradient(180deg, rgba(60, 175, 230, 0.96), rgba(31, 116, 172, 0.94)) !important;
+    border-color: rgba(185, 238, 255, 0.9) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.12) inset, 0 10px 24px rgba(24, 157, 220, 0.18) !important;
+  }
+
+  .tool-page .nearby-btn::after {
+    content: "›";
+    margin-left: 0.55rem;
+    font-size: 1.15em;
+    line-height: 1;
+  }
+
+  .tool-page .nearby-btn:hover,
+  .tool-page .nearby-btn:focus-visible {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 760px) {
+    .tool-page h1 {
+      font-size: clamp(2.65rem, 12vw, 3.85rem) !important;
+      line-height: 0.98 !important;
+      margin-bottom: 1rem !important;
+    }
+
+    .tool-page .tool-block {
+      margin-top: 0.95rem !important;
+      padding: 1rem !important;
+      border-radius: 22px !important;
+    }
+
+    .tool-page .decoded-card {
+      padding: 0.9rem 0.95rem !important;
+      border-radius: 15px !important;
+      min-height: 0 !important;
+    }
+
+    .tool-page .decoded-grid {
+      gap: 0.72rem !important;
+    }
+
+    .tool-page .terrain-visual-card {
+      padding: 1rem !important;
+    }
+
+    .tool-page .terrain-visual-head {
+      gap: 0.65rem !important;
+    }
+
+    .tool-page .terrain-visual-meta {
+      align-self: flex-start !important;
+      font-size: 0.82rem !important;
+      padding: 0.38rem 0.58rem !important;
+      box-shadow: none !important;
+    }
+
+    .tool-page .terrain-runway-summary,
+    .tool-page .terrain-wind-metric,
+    .tool-page .terrain-visual-stats .decoded-card,
+    .tool-page .terrain-visual-card .decoded-card {
+      min-height: 0 !important;
+      padding: 0.82rem 0.9rem !important;
+    }
+
+    .tool-page .notam-cockpit-block {
+      padding: 0.95rem !important;
+    }
+
+    .tool-page .notam-cockpit-head {
+      gap: 0.65rem !important;
+      margin-bottom: 0.75rem !important;
+    }
+
+    .tool-page .notam-title-row {
+      gap: 0.45rem !important;
+    }
+
+    .tool-page .notam-title-row h2 {
+      font-size: clamp(1.9rem, 9vw, 2.45rem) !important;
+    }
+
+    .tool-page .notam-note {
+      font-size: 0.96rem !important;
+      line-height: 1.35 !important;
+    }
+
+    .tool-page .notam-source-link {
+      width: fit-content !important;
+      min-height: 36px !important;
+      padding: 0.45rem 0.7rem !important;
+      font-size: 0.86rem !important;
+    }
+
+    .tool-page .notam-cockpit-grid {
+      gap: 0.7rem !important;
+    }
+
+    .tool-page .notam-item-trigger {
+      padding: 0.84rem 0.85rem !important;
+      gap: 0.72rem !important;
+      align-items: center !important;
+    }
+
+    .tool-page .notam-item-icon {
+      width: 38px !important;
+      height: 38px !important;
+      min-width: 38px !important;
+    }
+
+    .tool-page .notam-item-main strong {
+      font-size: 1.02rem !important;
+      line-height: 1.13 !important;
+    }
+
+    .tool-page .notam-item-period {
+      font-size: 0.88rem !important;
+      line-height: 1.28 !important;
+    }
+
+    .tool-page .notam-sofia-card {
+      padding: 0.95rem !important;
+      gap: 0.75rem !important;
+    }
+
+    .tool-page .notam-sofia-main strong {
+      font-size: 1.02rem !important;
+    }
+
+    .tool-page .notam-sofia-link {
+      min-height: 42px !important;
+      padding: 0.7rem 0.85rem !important;
+      font-size: 0.92rem !important;
+    }
+
+    .tool-page .notam-all-link {
+      min-height: 48px !important;
+      padding: 0.75rem 0.9rem !important;
+      font-size: 0.98rem !important;
+      border-color: rgba(115, 180, 230, 0.32) !important;
+      background: rgba(15, 38, 62, 0.9) !important;
+    }
+
+    .tool-page #platformBlock .decoded-card,
+    .tool-page .radio-primary,
+    .tool-page .radio-support-card,
+    .tool-page .platform-doc-link,
+    .tool-page .radio-secondary-summary,
+    .tool-page .terrain-disclosure > summary {
+      padding: 0.88rem 0.95rem !important;
+      min-height: 0 !important;
+    }
+
+    .tool-page .radio-primary-main,
+    .tool-page .radio-support-main {
+      font-size: clamp(1.25rem, 6vw, 1.55rem) !important;
+      line-height: 1.18 !important;
+      word-break: normal !important;
+      overflow-wrap: anywhere !important;
+    }
+
+    .tool-page .platform-docs-actions {
+      gap: 0.7rem !important;
+    }
+
+    .tool-page .platform-doc-link-title {
+      font-size: 1.15rem !important;
+    }
+
+    .tool-page .taf-meta-card,
+    .tool-page .taf-visual-block,
+    .tool-page .taf-phase-card,
+    .tool-page .taf-visual-card {
+      padding: 0.95rem !important;
+      border-radius: 16px !important;
+    }
+
+    .tool-page .nearby-block {
+      padding: 1rem !important;
+    }
+
+    .tool-page .nearby-block h2 {
+      font-size: clamp(2rem, 9vw, 2.55rem) !important;
+    }
+
+    .tool-page .nearby-btn {
+      width: 100% !important;
+      min-height: 52px !important;
+      justify-content: center !important;
+      font-size: 1rem !important;
+    }
+  }
+
+</style>
   <style is:global>
     .notam-learning-panel {
       margin: 12px 0 14px;
@@ -14355,6 +14646,274 @@ function renderUlmNearbyItem(item) {
     .nesdz-premium-ui .tool-page .taf-evolution-body {
       padding: 0 0.82rem 0.75rem;
       font-size: 0.78rem;
+    }
+  }
+
+
+
+  /* ==========================================================
+     NESDZ — Operational compact pass v2
+     NOTAM plus sobres + CTA terrains proches plus évident.
+     Passe CSS/JS ciblée : aucun parsing météo/TAF/terrain modifié.
+     ========================================================== */
+
+  .tool-page .notam-cockpit-block .notam-item {
+    background: linear-gradient(180deg, rgba(10, 22, 40, 0.92), rgba(7, 17, 31, 0.96)) !important;
+    border-color: rgba(120, 170, 210, 0.18) !important;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.025) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-item::before {
+    display: none !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-item:hover,
+  .tool-page .notam-cockpit-block .notam-item:focus-within,
+  .tool-page .notam-cockpit-block .notam-item.is-open {
+    border-color: rgba(140, 205, 255, 0.28) !important;
+    box-shadow: inset 0 0 0 1px rgba(125, 205, 255, 0.08) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-item-icon {
+    color: rgba(170, 198, 220, 0.78) !important;
+    background: rgba(13, 31, 52, 0.72) !important;
+    border-color: rgba(135, 180, 220, 0.22) !important;
+    box-shadow: none !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-tag {
+    color: rgba(196, 211, 228, 0.82) !important;
+    background: rgba(140, 160, 185, 0.14) !important;
+    border-color: rgba(170, 190, 215, 0.14) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-level {
+    background: rgba(135, 155, 178, 0.14) !important;
+    border-color: rgba(170, 190, 215, 0.16) !important;
+    color: rgba(224, 234, 246, 0.88) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-level--important {
+    color: #ffd7d7 !important;
+    background: rgba(228, 92, 98, 0.22) !important;
+    border-color: rgba(255, 132, 138, 0.38) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-level--moderate {
+    color: rgba(232, 220, 198, 0.9) !important;
+    background: rgba(160, 132, 72, 0.14) !important;
+    border-color: rgba(210, 180, 120, 0.2) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-item-action {
+    color: rgba(216, 235, 250, 0.88) !important;
+    background: rgba(32, 70, 104, 0.56) !important;
+    border-color: rgba(120, 180, 230, 0.28) !important;
+    box-shadow: none !important;
+  }
+
+  .tool-page .notam-sofia-card {
+    background: rgba(10, 32, 52, 0.82) !important;
+    border-color: rgba(115, 190, 235, 0.22) !important;
+    box-shadow: none !important;
+  }
+
+  .tool-page .notam-sofia-link,
+  .tool-page .notam-assisted-link {
+    box-shadow: none !important;
+  }
+
+  .tool-page .nearby-btn {
+    background: linear-gradient(180deg, rgba(60, 175, 230, 0.96), rgba(31, 116, 172, 0.94)) !important;
+    border-color: rgba(185, 238, 255, 0.9) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.12) inset, 0 10px 24px rgba(24, 157, 220, 0.18) !important;
+  }
+
+  .tool-page .nearby-btn::after {
+    content: "›";
+    margin-left: 0.55rem;
+    font-size: 1.15em;
+    line-height: 1;
+  }
+
+  .tool-page .nearby-btn:hover,
+  .tool-page .nearby-btn:focus-visible {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 760px) {
+    .tool-page h1 {
+      font-size: clamp(2.65rem, 12vw, 3.85rem) !important;
+      line-height: 0.98 !important;
+      margin-bottom: 1rem !important;
+    }
+
+    .tool-page .tool-block {
+      margin-top: 0.95rem !important;
+      padding: 1rem !important;
+      border-radius: 22px !important;
+    }
+
+    .tool-page .decoded-card {
+      padding: 0.9rem 0.95rem !important;
+      border-radius: 15px !important;
+      min-height: 0 !important;
+    }
+
+    .tool-page .decoded-grid {
+      gap: 0.72rem !important;
+    }
+
+    .tool-page .terrain-visual-card {
+      padding: 1rem !important;
+    }
+
+    .tool-page .terrain-visual-head {
+      gap: 0.65rem !important;
+    }
+
+    .tool-page .terrain-visual-meta {
+      align-self: flex-start !important;
+      font-size: 0.82rem !important;
+      padding: 0.38rem 0.58rem !important;
+      box-shadow: none !important;
+    }
+
+    .tool-page .terrain-runway-summary,
+    .tool-page .terrain-wind-metric,
+    .tool-page .terrain-visual-stats .decoded-card,
+    .tool-page .terrain-visual-card .decoded-card {
+      min-height: 0 !important;
+      padding: 0.82rem 0.9rem !important;
+    }
+
+    .tool-page .notam-cockpit-block {
+      padding: 0.95rem !important;
+    }
+
+    .tool-page .notam-cockpit-head {
+      gap: 0.65rem !important;
+      margin-bottom: 0.75rem !important;
+    }
+
+    .tool-page .notam-title-row {
+      gap: 0.45rem !important;
+    }
+
+    .tool-page .notam-title-row h2 {
+      font-size: clamp(1.9rem, 9vw, 2.45rem) !important;
+    }
+
+    .tool-page .notam-note {
+      font-size: 0.96rem !important;
+      line-height: 1.35 !important;
+    }
+
+    .tool-page .notam-source-link {
+      width: fit-content !important;
+      min-height: 36px !important;
+      padding: 0.45rem 0.7rem !important;
+      font-size: 0.86rem !important;
+    }
+
+    .tool-page .notam-cockpit-grid {
+      gap: 0.7rem !important;
+    }
+
+    .tool-page .notam-item-trigger {
+      padding: 0.84rem 0.85rem !important;
+      gap: 0.72rem !important;
+      align-items: center !important;
+    }
+
+    .tool-page .notam-item-icon {
+      width: 38px !important;
+      height: 38px !important;
+      min-width: 38px !important;
+    }
+
+    .tool-page .notam-item-main strong {
+      font-size: 1.02rem !important;
+      line-height: 1.13 !important;
+    }
+
+    .tool-page .notam-item-period {
+      font-size: 0.88rem !important;
+      line-height: 1.28 !important;
+    }
+
+    .tool-page .notam-sofia-card {
+      padding: 0.95rem !important;
+      gap: 0.75rem !important;
+    }
+
+    .tool-page .notam-sofia-main strong {
+      font-size: 1.02rem !important;
+    }
+
+    .tool-page .notam-sofia-link {
+      min-height: 42px !important;
+      padding: 0.7rem 0.85rem !important;
+      font-size: 0.92rem !important;
+    }
+
+    .tool-page .notam-all-link {
+      min-height: 48px !important;
+      padding: 0.75rem 0.9rem !important;
+      font-size: 0.98rem !important;
+      border-color: rgba(115, 180, 230, 0.32) !important;
+      background: rgba(15, 38, 62, 0.9) !important;
+    }
+
+    .tool-page #platformBlock .decoded-card,
+    .tool-page .radio-primary,
+    .tool-page .radio-support-card,
+    .tool-page .platform-doc-link,
+    .tool-page .radio-secondary-summary,
+    .tool-page .terrain-disclosure > summary {
+      padding: 0.88rem 0.95rem !important;
+      min-height: 0 !important;
+    }
+
+    .tool-page .radio-primary-main,
+    .tool-page .radio-support-main {
+      font-size: clamp(1.25rem, 6vw, 1.55rem) !important;
+      line-height: 1.18 !important;
+      word-break: normal !important;
+      overflow-wrap: anywhere !important;
+    }
+
+    .tool-page .platform-docs-actions {
+      gap: 0.7rem !important;
+    }
+
+    .tool-page .platform-doc-link-title {
+      font-size: 1.15rem !important;
+    }
+
+    .tool-page .taf-meta-card,
+    .tool-page .taf-visual-block,
+    .tool-page .taf-phase-card,
+    .tool-page .taf-visual-card {
+      padding: 0.95rem !important;
+      border-radius: 16px !important;
+    }
+
+    .tool-page .nearby-block {
+      padding: 1rem !important;
+    }
+
+    .tool-page .nearby-block h2 {
+      font-size: clamp(2rem, 9vw, 2.55rem) !important;
+    }
+
+    .tool-page .nearby-btn {
+      width: 100% !important;
+      min-height: 52px !important;
+      justify-content: center !important;
+      font-size: 1rem !important;
     }
   }
 
@@ -15223,6 +15782,274 @@ function renderUlmNearbyItem(item) {
       min-height: 42px !important;
     }
   }
+
+
+  /* ==========================================================
+     NESDZ — Operational compact pass v2
+     NOTAM plus sobres + CTA terrains proches plus évident.
+     Passe CSS/JS ciblée : aucun parsing météo/TAF/terrain modifié.
+     ========================================================== */
+
+  .tool-page .notam-cockpit-block .notam-item {
+    background: linear-gradient(180deg, rgba(10, 22, 40, 0.92), rgba(7, 17, 31, 0.96)) !important;
+    border-color: rgba(120, 170, 210, 0.18) !important;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.025) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-item::before {
+    display: none !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-item:hover,
+  .tool-page .notam-cockpit-block .notam-item:focus-within,
+  .tool-page .notam-cockpit-block .notam-item.is-open {
+    border-color: rgba(140, 205, 255, 0.28) !important;
+    box-shadow: inset 0 0 0 1px rgba(125, 205, 255, 0.08) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-item-icon {
+    color: rgba(170, 198, 220, 0.78) !important;
+    background: rgba(13, 31, 52, 0.72) !important;
+    border-color: rgba(135, 180, 220, 0.22) !important;
+    box-shadow: none !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-tag {
+    color: rgba(196, 211, 228, 0.82) !important;
+    background: rgba(140, 160, 185, 0.14) !important;
+    border-color: rgba(170, 190, 215, 0.14) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-level {
+    background: rgba(135, 155, 178, 0.14) !important;
+    border-color: rgba(170, 190, 215, 0.16) !important;
+    color: rgba(224, 234, 246, 0.88) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-level--important {
+    color: #ffd7d7 !important;
+    background: rgba(228, 92, 98, 0.22) !important;
+    border-color: rgba(255, 132, 138, 0.38) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-level--moderate {
+    color: rgba(232, 220, 198, 0.9) !important;
+    background: rgba(160, 132, 72, 0.14) !important;
+    border-color: rgba(210, 180, 120, 0.2) !important;
+  }
+
+  .tool-page .notam-cockpit-block .notam-item-action {
+    color: rgba(216, 235, 250, 0.88) !important;
+    background: rgba(32, 70, 104, 0.56) !important;
+    border-color: rgba(120, 180, 230, 0.28) !important;
+    box-shadow: none !important;
+  }
+
+  .tool-page .notam-sofia-card {
+    background: rgba(10, 32, 52, 0.82) !important;
+    border-color: rgba(115, 190, 235, 0.22) !important;
+    box-shadow: none !important;
+  }
+
+  .tool-page .notam-sofia-link,
+  .tool-page .notam-assisted-link {
+    box-shadow: none !important;
+  }
+
+  .tool-page .nearby-btn {
+    background: linear-gradient(180deg, rgba(60, 175, 230, 0.96), rgba(31, 116, 172, 0.94)) !important;
+    border-color: rgba(185, 238, 255, 0.9) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.12) inset, 0 10px 24px rgba(24, 157, 220, 0.18) !important;
+  }
+
+  .tool-page .nearby-btn::after {
+    content: "›";
+    margin-left: 0.55rem;
+    font-size: 1.15em;
+    line-height: 1;
+  }
+
+  .tool-page .nearby-btn:hover,
+  .tool-page .nearby-btn:focus-visible {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 760px) {
+    .tool-page h1 {
+      font-size: clamp(2.65rem, 12vw, 3.85rem) !important;
+      line-height: 0.98 !important;
+      margin-bottom: 1rem !important;
+    }
+
+    .tool-page .tool-block {
+      margin-top: 0.95rem !important;
+      padding: 1rem !important;
+      border-radius: 22px !important;
+    }
+
+    .tool-page .decoded-card {
+      padding: 0.9rem 0.95rem !important;
+      border-radius: 15px !important;
+      min-height: 0 !important;
+    }
+
+    .tool-page .decoded-grid {
+      gap: 0.72rem !important;
+    }
+
+    .tool-page .terrain-visual-card {
+      padding: 1rem !important;
+    }
+
+    .tool-page .terrain-visual-head {
+      gap: 0.65rem !important;
+    }
+
+    .tool-page .terrain-visual-meta {
+      align-self: flex-start !important;
+      font-size: 0.82rem !important;
+      padding: 0.38rem 0.58rem !important;
+      box-shadow: none !important;
+    }
+
+    .tool-page .terrain-runway-summary,
+    .tool-page .terrain-wind-metric,
+    .tool-page .terrain-visual-stats .decoded-card,
+    .tool-page .terrain-visual-card .decoded-card {
+      min-height: 0 !important;
+      padding: 0.82rem 0.9rem !important;
+    }
+
+    .tool-page .notam-cockpit-block {
+      padding: 0.95rem !important;
+    }
+
+    .tool-page .notam-cockpit-head {
+      gap: 0.65rem !important;
+      margin-bottom: 0.75rem !important;
+    }
+
+    .tool-page .notam-title-row {
+      gap: 0.45rem !important;
+    }
+
+    .tool-page .notam-title-row h2 {
+      font-size: clamp(1.9rem, 9vw, 2.45rem) !important;
+    }
+
+    .tool-page .notam-note {
+      font-size: 0.96rem !important;
+      line-height: 1.35 !important;
+    }
+
+    .tool-page .notam-source-link {
+      width: fit-content !important;
+      min-height: 36px !important;
+      padding: 0.45rem 0.7rem !important;
+      font-size: 0.86rem !important;
+    }
+
+    .tool-page .notam-cockpit-grid {
+      gap: 0.7rem !important;
+    }
+
+    .tool-page .notam-item-trigger {
+      padding: 0.84rem 0.85rem !important;
+      gap: 0.72rem !important;
+      align-items: center !important;
+    }
+
+    .tool-page .notam-item-icon {
+      width: 38px !important;
+      height: 38px !important;
+      min-width: 38px !important;
+    }
+
+    .tool-page .notam-item-main strong {
+      font-size: 1.02rem !important;
+      line-height: 1.13 !important;
+    }
+
+    .tool-page .notam-item-period {
+      font-size: 0.88rem !important;
+      line-height: 1.28 !important;
+    }
+
+    .tool-page .notam-sofia-card {
+      padding: 0.95rem !important;
+      gap: 0.75rem !important;
+    }
+
+    .tool-page .notam-sofia-main strong {
+      font-size: 1.02rem !important;
+    }
+
+    .tool-page .notam-sofia-link {
+      min-height: 42px !important;
+      padding: 0.7rem 0.85rem !important;
+      font-size: 0.92rem !important;
+    }
+
+    .tool-page .notam-all-link {
+      min-height: 48px !important;
+      padding: 0.75rem 0.9rem !important;
+      font-size: 0.98rem !important;
+      border-color: rgba(115, 180, 230, 0.32) !important;
+      background: rgba(15, 38, 62, 0.9) !important;
+    }
+
+    .tool-page #platformBlock .decoded-card,
+    .tool-page .radio-primary,
+    .tool-page .radio-support-card,
+    .tool-page .platform-doc-link,
+    .tool-page .radio-secondary-summary,
+    .tool-page .terrain-disclosure > summary {
+      padding: 0.88rem 0.95rem !important;
+      min-height: 0 !important;
+    }
+
+    .tool-page .radio-primary-main,
+    .tool-page .radio-support-main {
+      font-size: clamp(1.25rem, 6vw, 1.55rem) !important;
+      line-height: 1.18 !important;
+      word-break: normal !important;
+      overflow-wrap: anywhere !important;
+    }
+
+    .tool-page .platform-docs-actions {
+      gap: 0.7rem !important;
+    }
+
+    .tool-page .platform-doc-link-title {
+      font-size: 1.15rem !important;
+    }
+
+    .tool-page .taf-meta-card,
+    .tool-page .taf-visual-block,
+    .tool-page .taf-phase-card,
+    .tool-page .taf-visual-card {
+      padding: 0.95rem !important;
+      border-radius: 16px !important;
+    }
+
+    .tool-page .nearby-block {
+      padding: 1rem !important;
+    }
+
+    .tool-page .nearby-block h2 {
+      font-size: clamp(2rem, 9vw, 2.55rem) !important;
+    }
+
+    .tool-page .nearby-btn {
+      width: 100% !important;
+      min-height: 52px !important;
+      justify-content: center !important;
+      font-size: 1rem !important;
+    }
+  }
+
 </style>
 
 </BaseLayout>
