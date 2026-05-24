@@ -5505,15 +5505,37 @@ function renderUlmNearbyItem(item) {
 
     function renderNotamCockpit(items, meta = {}) {
       const activeItems = Array.isArray(items) ? items : [];
-      const importantCount = activeItems.filter((item) => item.level === "important").length;
-      const visibleItems = activeItems.slice(0, 3);
       const total = Number.isFinite(Number(meta.total)) ? Number(meta.total) : activeItems.length;
       const fetchedAt = meta.fetchedAt ? formatNotamFetchedAt(meta.fetchedAt) : "";
 
+      function getNotamPriorityRank(item = {}) {
+        const level = String(item.level || "info").toLowerCase();
+        const category = String(item.category || item.categoryLabel || "").toLowerCase();
+        const title = String(item.title || "").toLowerCase();
+        const line = String(item.line || item.brief || "").toLowerCase();
+        const joined = `${category} ${title} ${line}`;
+
+        if (level === "important") return 1;
+        if (level === "moderate") return 2;
+        if (/piste|runway|rwy|taxiway|twy|obstacle|radio|nav|ils|vor|dme|atis|twr|service|travaux|fermeture|indisponible|hors service/.test(joined)) return 2;
+        if (/procédure|procedure|aip|iac|sid|star|rnp|rnav/.test(joined)) return 3;
+        return 4;
+      }
+
+      const sortedItems = [...activeItems].sort((a, b) => getNotamPriorityRank(a) - getNotamPriorityRank(b));
+      const priorityItems = sortedItems.filter((item) => getNotamPriorityRank(item) <= 2);
+      const importantCount = priorityItems.length;
+      const visibleItems = (priorityItems.length ? priorityItems : sortedItems).slice(0, 3);
+      const hiddenCount = Math.max(0, sortedItems.length - visibleItems.length);
+
       setNotamHeader({
         active: `${total} actif${total > 1 ? "s" : ""}`,
-        important: `${importantCount} prioritaire${importantCount > 1 ? "s" : ""}`,
-        status: `Lecture rapide des NOTAM actifs${fetchedAt ? ` · ${fetchedAt}` : ""}. Détail et texte officiel disponibles au toucher.`,
+        important: importantCount
+          ? `${importantCount} à vérifier${importantCount > 1 ? "" : ""}`
+          : "Lecture normale",
+        status: priorityItems.length
+          ? `Affichage prioritaire des NOTAM à vérifier avant vol${fetchedAt ? ` · ${fetchedAt}` : ""}. Les autres restent disponibles via “Voir tous”.`
+          : `Aucun NOTAM prioritaire détecté automatiquement${fetchedAt ? ` · ${fetchedAt}` : ""}. Voir le détail et SOFIA avant le vol.`,
       });
 
       if (!visibleItems.length) {
@@ -5546,11 +5568,11 @@ function renderUlmNearbyItem(item) {
         }
 
         if (notamAllBtn) {
-          notamAllBtn.hidden = activeItems.length <= 3;
+          notamAllBtn.hidden = hiddenCount <= 0;
           notamAllBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
           notamAllBtn.innerHTML = expanded
-            ? `Réduire les NOTAM <span aria-hidden="true">›</span>`
-            : `Voir tous les NOTAM (${activeItems.length}) <span aria-hidden="true">›</span>`;
+            ? `Réduire aux NOTAM prioritaires <span aria-hidden="true">›</span>`
+            : `Voir tous les NOTAM (${sortedItems.length}) <span aria-hidden="true">›</span>`;
         }
 
         initNotamCockpitInteractions();
@@ -5561,7 +5583,7 @@ function renderUlmNearbyItem(item) {
       if (notamAllBtn) {
         notamAllBtn.onclick = () => {
           const alreadyExpanded = notamAllBtn.getAttribute("aria-expanded") === "true";
-          paintNotamGrid(alreadyExpanded ? visibleItems : activeItems, !alreadyExpanded);
+          paintNotamGrid(alreadyExpanded ? visibleItems : sortedItems, !alreadyExpanded);
         };
       }
     }
