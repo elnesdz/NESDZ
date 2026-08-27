@@ -427,25 +427,53 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const platformVacBtn = document.getElementById("platformVacBtn");
     const platformAipBtn = document.getElementById("platformAipBtn");
 
+    function buildApiError(service, response) {
+      const error = new Error(`${service} HTTP ${response.status}`);
+      error.service = service;
+      error.status = response.status;
+      return error;
+    }
+
     async function getMetar(icao) {
-      const fetchOptions = { headers: { 'Referer': window.location.origin } };
-      const response = await fetch(`${WORKER_URL}?icao=${icao}`, fetchOptions);
-      if (!response.ok) throw new Error(`Failed to fetch METAR with status: ${response.status}`);
+      const response = await fetch(`${WORKER_URL}?icao=${encodeURIComponent(icao)}`, {
+        method: 'GET',
+        mode: 'cors',
+        credentials: 'omit',
+        cache: 'no-store',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!response.ok) throw buildApiError('METAR', response);
       return await response.json();
     }
     
     async function getTaf(icao) {
-      const fetchOptions = { headers: { 'Referer': window.location.origin } };
-      const response = await fetch(`${WORKER_URL}?icao=${icao}&report=taf`, fetchOptions);
-      if (!response.ok) throw new Error(`Failed to fetch TAF with status: ${response.status}`);
+      const response = await fetch(`${WORKER_URL}?icao=${encodeURIComponent(icao)}&report=taf`, {
+        method: 'GET',
+        mode: 'cors',
+        credentials: 'omit',
+        cache: 'no-store',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!response.ok) throw buildApiError('TAF', response);
       return await response.json();
     }
     
     async function getNotams(icao) {
-      const fetchOptions = { headers: { 'Referer': window.location.origin } };
-      const response = await fetch(`${NOTAM_WORKER_URL}?icao=${icao}`, fetchOptions);
-      if (!response.ok) throw new Error(`Failed to fetch NOTAMs with status: ${response.status}`);
-      return await response.json();
+      // Ne jamais envoyer manuellement l'en-tête Referer : le navigateur le gère lui-même.
+      // Certains navigateurs ignorent cet en-tête lorsqu'il est défini en JavaScript.
+      const response = await fetch(`${NOTAM_WORKER_URL}?icao=${encodeURIComponent(icao)}`, {
+        method: 'GET',
+        mode: 'cors',
+        credentials: 'omit',
+        cache: 'no-store',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!response.ok) throw buildApiError('NOTAM', response);
+      const payload = await response.json();
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.notams)) return payload.notams;
+      return [];
     }
     
     function haversine(lat1, lon1, lat2, lon2) {
@@ -1033,31 +1061,69 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         currentMagneticVariation = 0;
         resetPlatformBlock();
       }
-      try {
-        const [metarData, tafData, notamData] = await Promise.all([getMetar(icao), getTaf(icao), getNotams(icao)]);
-        if (metarData.error || !metarData.data || metarData.data.length === 0) {
+      // Les trois services sont volontairement indépendants.
+      // Un échec NOTAM (ex. HTTP 403) ne doit jamais faire disparaître le METAR et le TAF.
+      const [metarResult, tafResult, notamResult] = await Promise.allSettled([
+        getMetar(icao),
+        getTaf(icao),
+        getNotams(icao)
+      ]);
+
+      // --- METAR ---
+      if (metarResult.status === 'fulfilled') {
+        const metarData = metarResult.value;
+        if (metarData?.error || !metarData?.data || metarData.data.length === 0) {
           await handleWeatherFallback(icao);
         } else {
           parseMetar(metarData.data[0], currentMagneticVariation, icao);
         }
-        if (tafData.error || !tafData.data || tafData.data.length === 0) {
+      } else {
+        console.error('Erreur METAR :', metarResult.reason);
+        statusValue.textContent = "METAR indisponible";
+        statusValue.className = "cat-badge cat-badge--unknown";
+        metarOutput.textContent = "Impossible de charger le METAR pour le moment.";
+        weatherFreshnessNote.textContent = "Le service météo n’a pas répondu. Réessayez dans quelques instants.";
+        weatherFreshnessNote.hidden = false;
+      }
+
+      // --- TAF ---
+      if (tafResult.status === 'fulfilled') {
+        const tafData = tafResult.value;
+        if (tafData?.error || !tafData?.data || tafData.data.length === 0) {
           tafOutput.textContent = "Aucun TAF officiel pour ce terrain.";
           tafSummaryValue.textContent = "Données indisponibles";
         } else {
           parseTaf(tafData.data[0], currentMagneticVariation);
         }
+      } else {
+        console.error('Erreur TAF :', tafResult.reason);
+        tafOutput.textContent = "Impossible de charger le TAF pour le moment.";
+        tafSummaryValue.textContent = "Service TAF indisponible";
+        forecastFreshnessNote.textContent = "Le service TAF n’a pas répondu. Le METAR peut rester disponible indépendamment.";
+        forecastFreshnessNote.hidden = false;
+      }
+
+      // --- NOTAM ---
+      if (notamResult.status === 'fulfilled') {
+        const notamData = notamResult.value;
         if (notamData && notamData.length > 0) {
           currentNotamData = notamData;
           renderNotamCockpit(notamData);
         } else {
-          notamStatusText.textContent = "Aucun NOTAM trouvé pour ce terrain.";
+          currentNotamData = [];
+          notamStatusText.textContent = "Aucun NOTAM retourné pour ce terrain.";
         }
-      } catch (error) {
-        console.error("Error fetching weather data:", error);
-        statusValue.textContent = "Erreur de connexion";
-        metarOutput.textContent = "Impossible de charger les données météo.";
-        tafOutput.textContent = "Impossible de charger les prévisions.";
-        notamStatusText.textContent = "Impossible de charger les NOTAM.";
+      } else {
+        const error = notamResult.reason;
+        console.error('Erreur NOTAM :', error);
+        currentNotamData = [];
+        notamActiveCount.textContent = "—";
+        notamImportantCount.hidden = true;
+        if (error?.status === 403) {
+          notamStatusText.textContent = "Service NOTAM refusé par le proxy (HTTP 403). METAR et TAF restent disponibles. Utilisez SOFIA comme référence officielle en attendant la correction du Worker.";
+        } else {
+          notamStatusText.textContent = "Service NOTAM temporairement indisponible. Utilisez SOFIA comme référence officielle.";
+        }
       }
     }
     
