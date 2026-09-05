@@ -1,7 +1,13 @@
 name: Build Astro (dist)
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -30,3 +36,5 @@ jobs:
         with:
           name: dist
           path: dist
+          if-no-files-found: error
+          retention-days: 14
