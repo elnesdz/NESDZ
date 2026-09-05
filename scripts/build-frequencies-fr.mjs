@@ -84,6 +84,10 @@ function toNumberOrNull(value = "") {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function isPlausibleFrequencyMhz(value) {
+  return Number.isFinite(value) && value >= 100 && value <= 500;
+}
+
 function getWeatherCode(airport) {
   const ident = normalizeCode(airport.ident);
   if (/^[A-Z]{4}$/.test(ident)) return ident;
@@ -202,7 +206,7 @@ async function main() {
     if (!airport) continue;
 
     const frequencyMhz = toNumberOrNull(row.frequency_mhz);
-    if (frequencyMhz == null) continue;
+    if (!isPlausibleFrequencyMhz(frequencyMhz)) continue;
 
     const frequency = {
       airport_ident: airport.ident,

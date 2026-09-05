@@ -26,7 +26,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               <input
                 id="icaoInput"
                 placeholder="Ex : LFQQ ou Lille"
-                value="LFQQ"
+                value=""
                 inputmode="text"
                 autocomplete="off"
                 autocapitalize="none"
@@ -519,6 +519,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
   </section>
 
   <script>
+    import { formatAwcVisibility } from "../../lib/aviation-weather.mjs";
+
     const WORKER_URL = "https://metar-proxy-nesdz.elnesdz.workers.dev/";
     const NOTAM_WORKER_URL = "https://notam-proxy-nesdz.elnesdz.workers.dev/";
     const AIRPORTS_FR_URL = "/data/airports-fr-full.json";
@@ -528,6 +530,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const FREQUENCIES_URL = "/data/frequencies-fr-merged.json";
     const WEATHER_REFERENCE_MAX_KM = 50 * 1.852;
     const LOCATION_ENTRY_RADIUS_KM = 120;
+    const WEATHER_TIMEOUT_MS = 15000;
+    const NOTAM_TIMEOUT_MS = 12000;
+    const RUNWAY_WIND_ANALYSIS_ENABLED = false;
 
     const SIA_VAC_AD_BASE_URL = "/docs/sia/vac/ad/";
     const SIA_AIP_AD_BASE_URL = "/docs/sia/aip-ad/";
@@ -655,11 +660,42 @@ let ulmDetailsPromise = null;
 
     let currentWindSpeed = null;
     let currentWindVariable = false;
+    let briefingRequestSequence = 0;
+    let activeBriefingRequest = null;
 
     let searchIndexCache = null;
     let searchIndexPromise = null;
     let currentSearchResults = [];
     let searchHideTimer = null;
+
+    function startBriefingRequest(icao) {
+      activeBriefingRequest?.weatherController.abort();
+      activeBriefingRequest?.notamController.abort();
+
+      const request = {
+        id: ++briefingRequestSequence,
+        icao,
+        weatherController: new AbortController(),
+        notamController: new AbortController(),
+      };
+
+      activeBriefingRequest = request;
+      return request;
+    }
+
+    function isCurrentBriefingRequest(request) {
+      return Boolean(
+        request &&
+        activeBriefingRequest === request &&
+        normalizeCode(icaoInput?.value) === request.icao
+      );
+    }
+
+    function isAbortError(error) {
+      return error instanceof DOMException
+        ? error.name === "AbortError"
+        : error?.name === "AbortError";
+    }
 
     function resetDecoded() {
       statusValue.textContent = "Aucune donnée";
@@ -920,9 +956,7 @@ let ulmDetailsPromise = null;
     }
 
     function formatVisibility(visib) {
-      if (visib == null) return "—";
-      if (Number(visib) >= 10) return "10 km ou plus";
-      return `${visib} km`;
+      return formatAwcVisibility(visib);
     }
 
     function buildCloudCode(item) {
@@ -2196,7 +2230,14 @@ let ulmDetailsPromise = null;
               })
               .filter(Boolean);
 
-            const ulmEntries = ulmBases.map(buildUlmSearchEntry).filter(Boolean);
+            const airportCodes = new Set(
+              airportEntries.map((entry) => entry.targetCode)
+            );
+            const ulmEntries = ulmBases
+              .map(buildUlmSearchEntry)
+              .filter(
+                (entry) => entry && !airportCodes.has(entry.targetCode)
+              );
 
             searchIndexCache = [...airportEntries, ...ulmEntries];
             return searchIndexCache;
@@ -2987,6 +3028,22 @@ function normalizeUlmDetailsRecord(item) {
       }
 
       platformWindCard.hidden = false;
+
+      if (!RUNWAY_WIND_ANALYSIS_ENABLED) {
+        platformWindMeta.textContent = "Calcul suspendu par sécurité";
+        platformWindVisual.innerHTML = `
+          <div class="terrain-wind-safety-notice" role="status">
+            <strong>Analyse automatique vent / piste temporairement suspendue</strong>
+            <p>
+              Le vent METAR est exprimé par rapport au nord vrai, tandis que les
+              désignations de piste sont magnétiques. Consulte la VAC, le vent local
+              et les informations officielles avant de choisir une piste.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
       platformWindMeta.textContent = getWindMetaLabel();
 
       const bestWind = getBestWindAlignedHeading(runways);
@@ -4488,13 +4545,14 @@ TAF voisin indisponible sur ce terrain de référence.`;
       return map;
     }
 
-async function fetchWeatherSnapshot(icao) {
+async function fetchWeatherSnapshot(icao, signal = null) {
   const normalized = normalizeCode(icao);
   if (!normalized) return null;
 
   try {
     const res = await fetch(
-      `${WORKER_URL}?icao=${encodeURIComponent(normalized)}`
+      `${WORKER_URL}?icao=${encodeURIComponent(normalized)}`,
+      signal ? { signal } : undefined
     );
 
     if (!res.ok) return null;
@@ -4522,6 +4580,7 @@ async function fetchWeatherSnapshot(icao) {
       altim: item.altim ?? null,
     };
   } catch (error) {
+    if (isAbortError(error)) throw error;
     console.error(error);
     return null;
   }
@@ -4590,7 +4649,8 @@ async function fetchWeatherSnapshot(icao) {
     async function findNearbyWeatherReferences(
       targetCode,
       matchedAirport,
-      matchedUlm
+      matchedUlm,
+      signal = null
     ) {
       const center = getWeatherReferenceCenter(matchedAirport, matchedUlm);
       if (!center) return [];
@@ -4611,26 +4671,37 @@ async function fetchWeatherSnapshot(icao) {
           }))
           .filter((item) => item.distanceKm <= WEATHER_REFERENCE_MAX_KM)
           .sort((a, b) => a.distanceKm - b.distanceKm)
-          .slice(0, 12);
+          .slice(0, 6);
 
         if (nearbyCandidates.length === 0) return [];
 
-        const candidateResults = await Promise.all(
-          nearbyCandidates.map(async (item) => {
-            const snapshot = await fetchWeatherSnapshot(item.airport.weatherCode);
+        const references = [];
+        for (let offset = 0; offset < nearbyCandidates.length; offset += 3) {
+          const batch = nearbyCandidates.slice(offset, offset + 3);
+          const batchResults = await Promise.all(
+            batch.map(async (item) => {
+              const snapshot = await fetchWeatherSnapshot(
+                item.airport.weatherCode,
+                signal
+              );
 
-            return snapshot
-              ? {
-                  airport: item.airport,
-                  distanceKm: item.distanceKm,
-                  snapshot,
-                }
-              : null;
-          })
-        );
+              return snapshot
+                ? {
+                    airport: item.airport,
+                    distanceKm: item.distanceKm,
+                    snapshot,
+                  }
+                : null;
+            })
+          );
 
-        return candidateResults.filter(Boolean).slice(0, 3);
+          references.push(...batchResults.filter(Boolean));
+          if (references.length >= 3) break;
+        }
+
+        return references.slice(0, 3);
       } catch (error) {
+        if (isAbortError(error)) throw error;
         console.error(error);
         return [];
       }
@@ -4640,13 +4711,21 @@ async function fetchWeatherSnapshot(icao) {
       targetCode,
       matchedAirport,
       matchedUlm,
-      precomputedReferences = null
+      precomputedReferences = null,
+      request = null
     ) {
       if (!weatherRefsBlock || !weatherRefsList) return;
 
       const references =
         precomputedReferences ||
-        (await findNearbyWeatherReferences(targetCode, matchedAirport, matchedUlm));
+        (await findNearbyWeatherReferences(
+          targetCode,
+          matchedAirport,
+          matchedUlm,
+          request?.weatherController.signal || null
+        ));
+
+      if (request && !isCurrentBriefingRequest(request)) return;
 
       if (!references || references.length === 0) {
         showWeatherReferencesMessage(
@@ -4706,6 +4785,7 @@ async function fetchWeatherSnapshot(icao) {
     }
 
 async function applyMissingLocalWeatherState({
+  request,
   icao,
   matchedAirport,
   matchedUlm,
@@ -4714,12 +4794,19 @@ async function applyMissingLocalWeatherState({
   metarMessage,
   tafMessage,
   emptyStatusMessage,
+  skipWeatherReferences = false,
 }) {
-  const references = await findNearbyWeatherReferences(
-    icao,
-    matchedAirport,
-    matchedUlm
-  );
+  const references = skipWeatherReferences
+    ? []
+    : await findNearbyWeatherReferences(
+        icao,
+        matchedAirport,
+        matchedUlm,
+        request?.weatherController.signal || null
+      );
+
+  if (request && !isCurrentBriefingRequest(request)) return;
+
   const primaryReference = references[0] || null;
 
   resetDecoded();
@@ -4731,6 +4818,12 @@ async function applyMissingLocalWeatherState({
 
   if (primaryReference) {
     statusValue.textContent = formatNeighborStatus(primaryReference);
+
+    const referenceCode = normalizeCode(primaryReference.airport?.weatherCode);
+    const referenceDistance = formatDistanceLabel(primaryReference.distanceKm);
+    const referenceLabel = `Réf. ${referenceCode || "voisine"}${
+      referenceDistance ? ` · ${referenceDistance}` : ""
+    }`;
 
     currentWindSpeed = Number.isFinite(Number(primaryReference.snapshot?.wspd))
       ? Number(primaryReference.snapshot?.wspd)
@@ -4744,28 +4837,28 @@ async function applyMissingLocalWeatherState({
           ? Number(primaryReference.snapshot?.wdir)
           : null;
 
-    windValue.textContent = formatWind(
+    windValue.textContent = `${referenceLabel} · ${formatWind(
       primaryReference.snapshot?.wdir,
       primaryReference.snapshot?.wspd
-    );
-    visibilityValue.textContent = formatVisibility(
+    )}`;
+    visibilityValue.textContent = `${referenceLabel} · ${formatVisibility(
       primaryReference.snapshot?.visib
-    );
-    cloudsValue.textContent = formatClouds(primaryReference.snapshot);
+    )}`;
+    cloudsValue.textContent = `${referenceLabel} · ${formatClouds(primaryReference.snapshot)}`;
     if (cloudsMeta) {
       const detail = formatCloudsMeta(primaryReference.snapshot);
-      cloudsMeta.textContent = detail;
+      cloudsMeta.textContent = detail ? `${referenceLabel} · ${detail}` : "";
       cloudsMeta.hidden = !detail;
     }
-    tempValue.textContent = formatTemp(
+    tempValue.textContent = `${referenceLabel} · ${formatTemp(
       primaryReference.snapshot?.temp,
       primaryReference.snapshot?.dewp
-    );
-    pressureValue.textContent = formatPressure(
+    )}`;
+    pressureValue.textContent = `${referenceLabel} · ${formatPressure(
       primaryReference.snapshot?.altim
-    );
+    )}`;
 
-    fltCatValue.textContent = formatNeighborFlightCategory(primaryReference);
+    fltCatValue.textContent = `${referenceLabel} · ${formatNeighborFlightCategory(primaryReference)}`;
 
     metarOutput.textContent = buildNeighborMetarOutput(
       primaryReference,
@@ -4811,9 +4904,9 @@ async function applyMissingLocalWeatherState({
     icao,
     matchedAirport,
     matchedUlm,
-    references
+    references,
+    request
   );
-  await prefetchNearbySummary();
 }
 
     async function resolveNearbyCenter() {
@@ -4964,18 +5057,25 @@ function renderUlmNearbyItem(item) {
 
     async function loadMetar() {
       const icao = normalizeCode(icaoInput?.value);
+      const request = startBriefingRequest(icao);
 
+      resetDecoded();
       resetWeatherReferences();
+      resetNearbyPanel();
 
       if (!icao) {
         syncIcaoInUrl("");
         metarOutput.textContent = "Entre un terrain, une ville ou un code OACI.";
         tafOutput.textContent = "Entre un terrain, une ville ou un code OACI.";
-        resetDecoded();
+        renderNotamUnavailable(
+          "Aucun terrain sélectionné",
+          "Entre un code OACI pour afficher les NOTAM."
+        );
         return;
       }
 
-      resetNearbyPanel();
+      syncIcaoInUrl(icao);
+      void loadNotams(icao, request);
 
       metarOutput.textContent = "Chargement...";
       tafOutput.textContent = "Chargement...";
@@ -5006,20 +5106,41 @@ function renderUlmNearbyItem(item) {
       tafSummaryValue.textContent = "Chargement...";
       clearTafDecoded();
 
-      const matchedAirport = await findAnyAirportByCode(icao);
-      const matchedUlm = await findUlmByCode(icao);
-      const matchedUlmDetails = await findUlmDetailsByCode(icao);
-      const matchedFrequency = await findFrequencyByCode(icao);
+      const localDataResults = await Promise.allSettled([
+          findAnyAirportByCode(icao),
+          findUlmByCode(icao),
+          findUlmDetailsByCode(icao),
+          findFrequencyByCode(icao),
+        ]);
 
-      syncIcaoInUrl(icao);
+      if (!isCurrentBriefingRequest(request)) return;
+
+      localDataResults.forEach((result) => {
+        if (result.status === "rejected") console.error(result.reason);
+      });
+      const [matchedAirport, matchedUlm, matchedUlmDetails, matchedFrequency] =
+        localDataResults.map((result) =>
+          result.status === "fulfilled" ? result.value : null
+        );
+
       renderPlatformBlock(matchedAirport, matchedUlm, matchedUlmDetails);
-      loadNotams(icao);
+
+      let weatherTimedOut = false;
+      const weatherTimeoutId = window.setTimeout(() => {
+        weatherTimedOut = true;
+        request.weatherController.abort();
+      }, WEATHER_TIMEOUT_MS);
 
       try {
-        const res = await fetch(`${WORKER_URL}?icao=${encodeURIComponent(icao)}`);
+        const res = await fetch(`${WORKER_URL}?icao=${encodeURIComponent(icao)}`, {
+          signal: request.weatherController.signal,
+        });
+
+        if (!isCurrentBriefingRequest(request)) return;
 
         if (!res.ok) {
           await applyMissingLocalWeatherState({
+            request,
             icao,
             matchedAirport,
             matchedUlm,
@@ -5035,9 +5156,11 @@ function renderUlmNearbyItem(item) {
         }
 
         const data = await res.json();
+        if (!isCurrentBriefingRequest(request)) return;
 
         if (!Array.isArray(data) || data.length === 0) {
           await applyMissingLocalWeatherState({
+            request,
             icao,
             matchedAirport,
             matchedUlm,
@@ -5055,6 +5178,7 @@ function renderUlmNearbyItem(item) {
 
         if (!item || typeof item !== "object") {
           await applyMissingLocalWeatherState({
+            request,
             icao,
             matchedAirport,
             matchedUlm,
@@ -5069,6 +5193,7 @@ function renderUlmNearbyItem(item) {
 
         if (!item.rawOb) {
           await applyMissingLocalWeatherState({
+            request,
             icao,
             matchedAirport,
             matchedUlm,
@@ -5084,6 +5209,8 @@ function renderUlmNearbyItem(item) {
           });
           return;
         }
+
+        if (!isCurrentBriefingRequest(request)) return;
 
         metarOutput.textContent = item.rawOb || "METAR brut indisponible";
         tafOutput.textContent =
@@ -5128,9 +5255,12 @@ function renderUlmNearbyItem(item) {
           rawMetar: item.rawOb || "",
           rawTaf: item.taf || "",
         });
-        await prefetchNearbySummary();
       } catch (error) {
+        if (!isCurrentBriefingRequest(request)) return;
+        if (isAbortError(error) && !weatherTimedOut) return;
+
         await applyMissingLocalWeatherState({
+          request,
           icao,
           matchedAirport,
           matchedUlm,
@@ -5141,8 +5271,11 @@ function renderUlmNearbyItem(item) {
           tafMessage:
             `Impossible de joindre la prévision pour ${icao} pour le moment.`,
           emptyStatusMessage: "⚠️ Service météo indisponible",
+          skipWeatherReferences: true,
         });
-        console.error(error);
+        if (!isAbortError(error)) console.error(error);
+      } finally {
+        window.clearTimeout(weatherTimeoutId);
       }
     }
 
@@ -5350,16 +5483,6 @@ function renderUlmNearbyItem(item) {
       }
     }
 
-    async function prefetchNearbySummary() {
-      const enteredCode = normalizeCode(icaoInput?.value);
-      if (!enteredCode || nearbyLoaded) return;
-      try {
-        await getLocation(false);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-
     updateNearbyButton();
 
     platformVacBtn?.addEventListener("click", () => {
@@ -5484,7 +5607,20 @@ function renderUlmNearbyItem(item) {
       }
     }
 
-    async function loadNotams(icao) {
+    function getNotamUnavailableMessage(status) {
+      if (status === 403) {
+        return "Accès à la source NOTAM indisponible. Consulte SOFIA-Briefing avant le vol.";
+      }
+      if (status === 429) {
+        return "Limite temporaire du service NOTAM atteinte. Réessaie plus tard et consulte SOFIA-Briefing.";
+      }
+      if (status >= 500) {
+        return "Le service NOTAM est momentanément indisponible. Consulte SOFIA-Briefing avant le vol.";
+      }
+      return "Les NOTAM ne peuvent pas être affichés actuellement. Consulte SOFIA-Briefing avant le vol.";
+    }
+
+    async function loadNotams(icao, request = null) {
       const code = normalizeCode(icao);
       if (!isValidWeatherCode(code)) {
         renderNotamUnavailable("Aucun terrain sélectionné", "Entre un code OACI pour afficher les NOTAM.");
@@ -5516,16 +5652,25 @@ function renderUlmNearbyItem(item) {
         `;
       }
 
+      let notamTimedOut = false;
+      const notamTimeoutId = window.setTimeout(() => {
+        notamTimedOut = true;
+        request?.notamController.abort();
+      }, NOTAM_TIMEOUT_MS);
+
       try {
         const response = await fetch(`${NOTAM_WORKER_URL}?icao=${encodeURIComponent(code)}`, {
           headers: { Accept: "application/json" },
+          signal: request?.notamController.signal,
         });
         const data = await response.json().catch(() => null);
+
+        if (request && !isCurrentBriefingRequest(request)) return;
 
         if (!response.ok || !data?.ok) {
           renderNotamUnavailable(
             `NOTAM ${code} indisponibles`,
-            data?.error || `Service NOTAM indisponible (${response.status}).`
+            getNotamUnavailableMessage(response.status)
           );
           return;
         }
@@ -5534,8 +5679,16 @@ function renderUlmNearbyItem(item) {
         const decoded = rows.map((row, index) => decodeAutorouterNotam(row, index, code));
         renderNotamCockpit(decoded, data);
       } catch (error) {
-        console.error("Erreur NOTAM", error);
-        renderNotamUnavailable(`NOTAM ${code} indisponibles`, "Impossible de joindre le proxy NOTAM.");
+        if (request && !isCurrentBriefingRequest(request)) return;
+        if (!isAbortError(error)) console.error("Erreur NOTAM", error);
+        renderNotamUnavailable(
+          `NOTAM ${code} indisponibles`,
+          notamTimedOut
+            ? "Le service NOTAM n’a pas répondu à temps. Consulte SOFIA-Briefing avant le vol."
+            : "Impossible de joindre le service NOTAM. Consulte SOFIA-Briefing avant le vol."
+        );
+      } finally {
+        window.clearTimeout(notamTimeoutId);
       }
     }
 
@@ -6491,6 +6644,31 @@ function renderUlmNearbyItem(item) {
   </script>
 
   <style is:global>
+    .tool-page [hidden] {
+      display: none !important;
+    }
+
+    .tool-page .terrain-wind-safety-notice {
+      display: grid;
+      gap: 10px;
+      padding: 18px;
+      border: 1px solid rgba(245, 180, 65, 0.42);
+      border-radius: 14px;
+      background: rgba(245, 180, 65, 0.1);
+      color: #eef7ff;
+    }
+
+    .tool-page .terrain-wind-safety-notice strong {
+      color: #ffd993;
+      font-size: 1rem;
+    }
+
+    .tool-page .terrain-wind-safety-notice p {
+      margin: 0;
+      color: #dbe6ef;
+      line-height: 1.55;
+    }
+
     .tool-page {
       width: min(calc(100% - 26px), 1220px);
       max-width: 1220px;

@@ -79,23 +79,15 @@ def iter_link_values(row):
 
 
 def extract_bracket_airport_ident(text):
-    text = normalize_space(text)
+    text = normalize_code(text)
     match = re.search(r"\[([A-Z0-9]{2})\]\[([A-Z0-9]{2})\]", text)
     if match:
         return f"{normalize_code(match.group(1))}{normalize_code(match.group(2))}"
     return ""
 
 
-def extract_four_letter_ident(text):
-    text = normalize_code(text)
-    match = re.search(r"\b([A-Z]{4})\b", text)
-    if match:
-        return match.group(1)
-    return ""
-
-
 def extract_two_letter_ad_code(text):
-    text = normalize_space(text)
+    text = normalize_code(text)
     match = re.search(r"\[[A-Z0-9]{2}\]\[([A-Z0-9]{2})\]", text)
     if match:
         return normalize_code(match.group(1))
@@ -112,6 +104,7 @@ def first_non_empty(*values):
 
 def build_ad_index(ad_rows):
     index = {}
+    records_by_short_code = {}
 
     for row in ad_rows:
         ad_code = normalize_code(
@@ -125,15 +118,12 @@ def build_ad_index(ad_rows):
             continue
 
         airport_ident = ""
-        for value in row.values():
-            airport_ident = (
-                extract_bracket_airport_ident(value)
-                or extract_four_letter_ident(value)
-            )
+        for value in iter_link_values(row):
+            airport_ident = extract_bracket_airport_ident(value)
             if airport_ident:
                 break
 
-        index[ad_code] = {
+        record = {
             "ad_code": ad_code,
             "airport_ident": airport_ident,
             "airport_name": first_non_empty(
@@ -151,22 +141,23 @@ def build_ad_index(ad_rows):
             ),
         }
 
+        if airport_ident:
+            index[airport_ident] = record
+        records_by_short_code.setdefault(ad_code, []).append(record)
+
+    # AdCode ne contient que les deux derniers caractères et peut donc être
+    # partagé par plusieurs préfixes (par exemple LFxx et FMxx). On ne conserve
+    # ce raccourci que lorsqu'il est réellement non ambigu.
+    for ad_code, records in records_by_short_code.items():
+        if len(records) == 1:
+            index[ad_code] = records[0]
+
     return index
 
 
 def extract_service_airport_ident(service_row, ad_index):
     for value in iter_link_values(service_row):
         ident = extract_bracket_airport_ident(value)
-        if ident:
-            return ident
-
-    for candidate in [
-        service_row.get("IndicLieu"),
-        service_row.get("IndicService"),
-        service_row.get("Service"),
-        *service_row.values(),
-    ]:
-        ident = extract_four_letter_ident(candidate)
         if ident:
             return ident
 
@@ -501,8 +492,7 @@ def main():
             continue
 
         airport_ident = service["airport_ident"]
-        ad_code = airport_ident[2:] if len(airport_ident) == 4 else ""
-        ad_info = ad_index.get(ad_code, {})
+        ad_info = ad_index.get(airport_ident, {})
 
         frequency_entry = {
             "frequency_type": normalize_frequency_type(
