@@ -1,7 +1,7 @@
 ---
 import "../styles/global.css";
 
-const { title, description, image, canonical } = Astro.props;
+const { title, description, image, canonical, robots } = Astro.props;
 
 const siteTitle = title
   ? `${title} · NESDZ`
@@ -42,6 +42,7 @@ const ogType = isArticlePage ? "article" : "website";
 
     <title>{siteTitle}</title>
     <meta name="description" content={siteDescription} />
+    {robots && <meta name="robots" content={robots} />}
     <meta name="theme-color" content="#0b1118" />
 
     <link rel="canonical" href={canonicalURL.href} />
