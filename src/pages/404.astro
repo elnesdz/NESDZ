@@ -1,0 +1,71 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Page introuvable"
+  description="Cette page n’existe pas ou a été déplacée."
+  robots="noindex, follow"
+>
+  <section class="container error-page" aria-labelledby="error-title">
+    <div class="card">
+      <div class="pad error-page-content">
+        <span class="error-code" aria-hidden="true">404</span>
+        <h1 id="error-title">Page introuvable</h1>
+        <p>
+          Le lien est peut-être ancien ou incomplet. Tu peux revenir à l’accueil
+          ou ouvrir directement le briefing de vol.
+        </p>
+        <div class="error-actions">
+          <a class="btn" href="/">Retour à l’accueil</a>
+          <a class="btn error-primary" href="/outils/">Ouvrir le briefing vol</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .error-page {
+    padding: clamp(42px, 9vw, 96px) 0;
+  }
+
+  .error-page-content {
+    text-align: center;
+  }
+
+  .error-code {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--accent-soft);
+    font: 900 clamp(3rem, 10vw, 6rem) / 1 var(--mono);
+    letter-spacing: -.08em;
+  }
+
+  .error-page h1 {
+    font-size: clamp(2rem, 5vw, 3.4rem);
+  }
+
+  .error-page p {
+    max-width: 58ch;
+    margin: 0 auto 24px;
+  }
+
+  .error-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .error-primary {
+    border-color: rgba(127, 220, 255, .42);
+    background: rgba(33, 183, 255, .16);
+  }
+
+  @media (max-width: 560px) {
+    .error-actions .btn {
+      width: 100%;
+    }
+  }
+</style>
