@@ -815,18 +815,6 @@
         "frequency_type": "approach",
         "label": "COGNAC APP",
         "description": "COGNAC APP",
-        "frequency_mhz": 29.372
-      },
-      {
-        "airport_ident": "LFBG",
-        "weather_code": "LFBG",
-        "airport_name": "Cognac-Châteaubernard (BA 709) Air Base",
-        "airport_type": "medium_airport",
-        "municipality": "Cognac/Châteaubernard",
-        "region": "FR-NAQ",
-        "frequency_type": "approach",
-        "label": "COGNAC APP",
-        "description": "COGNAC APP",
         "frequency_mhz": 122.55
       },
       {
@@ -3445,18 +3433,6 @@
         "municipality": "Bastia",
         "region": "FR-COR",
         "frequency_type": "approach",
-        "label": "BASTIA APP",
-        "description": "BASTIA APP",
-        "frequency_mhz": 37.85
-      },
-      {
-        "airport_ident": "LFKB",
-        "weather_code": "LFKB",
-        "airport_name": "Bastia-Poretta International airport",
-        "airport_type": "large_airport",
-        "municipality": "Bastia",
-        "region": "FR-COR",
-        "frequency_type": "approach",
         "label": "BASTIA RADAR APP",
         "description": "BASTIA RADAR APP",
         "frequency_mhz": 123.825
@@ -3750,18 +3726,6 @@
         "label": "TWR",
         "description": "TWR",
         "frequency_mhz": 118.35
-      },
-      {
-        "airport_ident": "LFKS",
-        "weather_code": "LFKS",
-        "airport_name": "Solenzara (BA 126) Air Base",
-        "airport_type": "medium_airport",
-        "municipality": "Solenzara",
-        "region": "FR-COR",
-        "frequency_type": "approach",
-        "label": "APP",
-        "description": "APP",
-        "frequency_mhz": 33.9
       },
       {
         "airport_ident": "LFKS",
@@ -5103,18 +5067,6 @@
         "frequency_type": "approach",
         "label": "ISTRES APP",
         "description": "ISTRES APP",
-        "frequency_mhz": 28.252
-      },
-      {
-        "airport_ident": "LFMI",
-        "weather_code": "LFMI",
-        "airport_name": "Istres-Le Tubé Air Base",
-        "airport_type": "medium_airport",
-        "municipality": "Istres, Bouches-du-Rhône",
-        "region": "FR-PAC",
-        "frequency_type": "approach",
-        "label": "ISTRES APP",
-        "description": "ISTRES APP",
         "frequency_mhz": 120.35
       },
       {
@@ -5128,18 +5080,6 @@
         "label": "ISTRES GND",
         "description": "ISTRES GND",
         "frequency_mhz": 121.85
-      },
-      {
-        "airport_ident": "LFMI",
-        "weather_code": "LFMI",
-        "airport_name": "Istres-Le Tubé Air Base",
-        "airport_type": "medium_airport",
-        "municipality": "Istres, Bouches-du-Rhône",
-        "region": "FR-PAC",
-        "frequency_type": "other",
-        "label": "RIVERIA OPS",
-        "description": "RIVERIA OPS",
-        "frequency_mhz": 25.725
       },
       {
         "airport_ident": "LFMI",
@@ -5836,18 +5776,6 @@
         "label": "APP",
         "description": "APP",
         "frequency_mhz": 135.15
-      },
-      {
-        "airport_ident": "LFMY",
-        "weather_code": "LFMY",
-        "airport_name": "Salon-de-Provence (BA 701) Air Base",
-        "airport_type": "medium_airport",
-        "municipality": "Salon",
-        "region": "FR-PAC",
-        "frequency_type": "departure",
-        "label": "DEP",
-        "description": "DEP",
-        "frequency_mhz": 25.955
       }
     ],
     "primary_frequency": {
@@ -6157,31 +6085,7 @@
         "frequency_type": "approach",
         "label": "BRICY APP",
         "description": "BRICY APP",
-        "frequency_mhz": 37.057
-      },
-      {
-        "airport_ident": "LFOC",
-        "weather_code": "LFOC",
-        "airport_name": "Châteaudun Airfield",
-        "airport_type": "medium_airport",
-        "municipality": "Châteaudun, Eure-et-Loir",
-        "region": "FR-CVL",
-        "frequency_type": "approach",
-        "label": "BRICY APP",
-        "description": "BRICY APP",
         "frequency_mhz": 122.7
-      },
-      {
-        "airport_ident": "LFOC",
-        "weather_code": "LFOC",
-        "airport_name": "Châteaudun Airfield",
-        "airport_type": "medium_airport",
-        "municipality": "Châteaudun, Eure-et-Loir",
-        "region": "FR-CVL",
-        "frequency_type": "other",
-        "label": "GCA",
-        "description": "GCA",
-        "frequency_mhz": 37.492
       },
       {
         "airport_ident": "LFOC",
@@ -6700,18 +6604,6 @@
         "label": "TOURS INFO",
         "description": "TOURS INFO",
         "frequency_mhz": 118.3
-      },
-      {
-        "airport_ident": "LFOT",
-        "weather_code": "LFOT",
-        "airport_name": "Tours Val de Loire Airport",
-        "airport_type": "medium_airport",
-        "municipality": "Tours, Indre-et-Loire",
-        "region": "FR-CVL",
-        "frequency_type": "approach",
-        "label": "TOURS APP",
-        "description": "TOURS APP",
-        "frequency_mhz": 37.925
       },
       {
         "airport_ident": "LFOT",
@@ -7767,18 +7659,6 @@
         "frequency_type": "approach",
         "label": "VILLA APP/DEP",
         "description": "VILLA APP/DEP",
-        "frequency_mhz": 26.59
-      },
-      {
-        "airport_ident": "LFPV",
-        "weather_code": "LFPV",
-        "airport_name": "Vélizy-Villacoublay Air Base",
-        "airport_type": "medium_airport",
-        "municipality": "Vélizy-Villacoublay, Yvelines",
-        "region": "FR-IDF",
-        "frequency_type": "approach",
-        "label": "VILLA APP/DEP",
-        "description": "VILLA APP/DEP",
         "frequency_mhz": 119.425
       },
       {
@@ -8795,18 +8675,6 @@
         "frequency_type": "approach",
         "label": "LORIENT APP",
         "description": "LORIENT APP",
-        "frequency_mhz": 36.23
-      },
-      {
-        "airport_ident": "LFRH",
-        "weather_code": "LFRH",
-        "airport_name": "Lorient South Brittany (Bretagne Sud) Airport",
-        "airport_type": "medium_airport",
-        "municipality": "Lorient/Lann/Bihoué",
-        "region": "FR-BRE",
-        "frequency_type": "approach",
-        "label": "LORIENT APP",
-        "description": "LORIENT APP",
         "frequency_mhz": 123
       },
       {
@@ -9803,18 +9671,6 @@
         "frequency_type": "approach",
         "label": "ST DIZIER APP",
         "description": "ST DIZIER APP",
-        "frequency_mhz": 24.46
-      },
-      {
-        "airport_ident": "LFSI",
-        "weather_code": "LFSI",
-        "airport_name": "Saint-Dizier – Robinson Air Base",
-        "airport_type": "medium_airport",
-        "municipality": "Saint-Dizier",
-        "region": "FR-GES",
-        "frequency_type": "approach",
-        "label": "ST DIZIER APP",
-        "description": "ST DIZIER APP",
         "frequency_mhz": 142.45
       },
       {
@@ -10024,18 +9880,6 @@
         "label": "TWR",
         "description": "TWR",
         "frequency_mhz": 122.1
-      },
-      {
-        "airport_ident": "LFSO",
-        "weather_code": "LFSO",
-        "airport_name": "Nancy-Ochey (BA 133) Air Base",
-        "airport_type": "medium_airport",
-        "municipality": "Thuilley-aux-Groseilles",
-        "region": "FR-GES",
-        "frequency_type": "approach",
-        "label": "APP",
-        "description": "APP",
-        "frequency_mhz": 36.23
       },
       {
         "airport_ident": "LFSO",
@@ -10280,18 +10124,6 @@
         "label": "LUXEUIL APP",
         "description": "LUXEUIL APP",
         "frequency_mhz": 129.925
-      },
-      {
-        "airport_ident": "LFSX",
-        "weather_code": "LFSX",
-        "airport_name": "Luxeuil-Saint-Sauveur (BA 116) Air Base",
-        "airport_type": "medium_airport",
-        "municipality": "Saint-Sauveur",
-        "region": "FR-BFC",
-        "frequency_type": "other",
-        "label": "LUXEUIL ARR",
-        "description": "LUXEUIL ARR",
-        "frequency_mhz": 39.702
       }
     ],
     "primary_frequency": {
@@ -10396,18 +10228,6 @@
         "label": "HYERES ATIS",
         "description": "HYERES ATIS",
         "frequency_mhz": 129.65
-      },
-      {
-        "airport_ident": "LFTH",
-        "weather_code": "LFTH",
-        "airport_name": "Toulon-Hyères Airport",
-        "airport_type": "medium_airport",
-        "municipality": "Hyères, Var",
-        "region": "FR-PAC",
-        "frequency_type": "other",
-        "label": "HYERES RDR",
-        "description": "HYERES RDR",
-        "frequency_mhz": 36.255
       }
     ],
     "primary_frequency": {

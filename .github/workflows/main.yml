@@ -18,9 +18,11 @@ jobs:
           node-version: 22
 
       - name: Install deps
-        run: npm install
+        run: npm ci
 
       - name: Build
+        env:
+          ASTRO_TELEMETRY_DISABLED: "1"
         run: npm run build
 
       - name: Upload dist

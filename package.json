@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "test": "node --test && python3 -m unittest discover -s tests -p 'test_*.py'"
   },
   "dependencies": {
     "astro": "^4.16.0"
