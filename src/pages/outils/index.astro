@@ -33,6 +33,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                 spellcheck="false"
                 enterkeyhint="search"
                 aria-label="Terrain, code OACI ou ville"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-haspopup="listbox"
+                aria-controls="searchSuggestions"
+                aria-expanded="false"
               />
               <div
                 id="searchSuggestions"
@@ -41,7 +46,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
                 aria-label="Suggestions de recherche"
                 hidden
               ></div>
-              <p id="searchFeedback" class="tool-search-feedback" hidden></p>
+              <p
+                id="searchFeedback"
+                class="tool-search-feedback"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+                hidden
+              ></p>
             </div>
             <div class="tool-entry-actions">
               <button
@@ -61,15 +73,19 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             </div>
           </div>
 
-          <p class="tool-entry-help tool-entry-help--reference">
-            Pour la préparation du vol, les services officiels en vigueur restent la référence.
-          </p>
+          <aside class="briefing-safety-notice" role="note" aria-label="Limites d’utilisation de NESDZ">
+            <strong>Aide à la préparation uniquement</strong>
+            <span>
+              NESDZ ne remplace ni les documents officiels, ni le PIB SOFIA, ni la décision du pilote.
+              Ne l’utilise pas comme moyen de navigation en vol.
+            </span>
+          </aside>
         </div>
 
         <div class="briefing-context-bar" aria-label="Contexte du briefing" aria-live="polite">
           <div class="briefing-context-airport">
-            <span id="briefingContextIcao" class="briefing-context-code">LFQQ</span>
-            <strong id="briefingContextName">Terrain en attente</strong>
+            <span id="briefingContextIcao" class="briefing-context-code">—</span>
+            <strong id="briefingContextName">Aucun terrain sélectionné</strong>
           </div>
           <div class="briefing-context-cell">
             <span>Météo</span>
@@ -176,11 +192,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
               <span class="notam-kicker">Informations opérationnelles</span>
               <div class="notam-title-row">
                 <h2 id="notamCockpitTitle">NOTAM</h2>
-                <span id="notamActiveCount" class="notam-count-badge">Chargement</span>
+                <span id="notamActiveCount" class="notam-count-badge">—</span>
                 <span id="notamImportantCount" class="notam-count-badge notam-count-badge--important">—</span>
               </div>
               <p class="notam-note">
-                <span id="notamStatusText">Connexion NOTAM en attente. Le texte officiel et les services officiels restent prioritaires.</span>
+                <span id="notamStatusText">Sélectionne un terrain pour afficher les NOTAM. Le briefing officiel SOFIA reste prioritaire.</span>
               </p>
             </div>
 
@@ -194,17 +210,23 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             </a>
           </div>
 
-          <div id="notamCockpitGrid" class="notam-cockpit-grid" aria-label="NOTAM actifs">
-            <article class="notam-item notam-item--info notam-item--loading" aria-live="polite">
+          <div
+            id="notamCockpitGrid"
+            class="notam-cockpit-grid"
+            aria-label="NOTAM actifs"
+            aria-live="polite"
+            aria-busy="false"
+          >
+            <article class="notam-item notam-item--info notam-item--empty">
               <div class="notam-item-trigger notam-item-trigger--static">
                 <span class="notam-item-icon notam-item-icon--activity" aria-hidden="true">⌁</span>
                 <span class="notam-item-main">
                   <span class="notam-item-topline">
-                    <span class="notam-level notam-level--info">Connexion</span>
-                    <span class="notam-tag">Autorouter</span>
+                    <span class="notam-level notam-level--info">Info</span>
+                    <span class="notam-tag">NOTAM</span>
                   </span>
-                  <strong>Chargement des NOTAM…</strong>
-                  <span class="notam-item-period">Source technique : Autorouter / EAD</span>
+                  <strong>Aucun terrain sélectionné</strong>
+                  <span class="notam-item-period">Entre un code OACI pour afficher les NOTAM.</span>
                 </span>
               </div>
             </article>
@@ -666,6 +688,7 @@ let ulmDetailsPromise = null;
     let searchIndexCache = null;
     let searchIndexPromise = null;
     let currentSearchResults = [];
+    let activeSearchResultIndex = -1;
     let searchHideTimer = null;
 
     function startBriefingRequest(icao) {
@@ -2367,9 +2390,29 @@ let ulmDetailsPromise = null;
 
     function clearSearchSuggestions() {
       currentSearchResults = [];
+      activeSearchResultIndex = -1;
+      icaoInput?.setAttribute("aria-expanded", "false");
+      icaoInput?.removeAttribute("aria-activedescendant");
       if (!searchSuggestions) return;
       searchSuggestions.hidden = true;
       searchSuggestions.innerHTML = "";
+    }
+
+    function setActiveSearchSuggestion(index) {
+      if (!searchSuggestions || !icaoInput || !currentSearchResults.length) return;
+
+      const options = Array.from(searchSuggestions.querySelectorAll('[role="option"]'));
+      const nextIndex = (index + options.length) % options.length;
+      activeSearchResultIndex = nextIndex;
+
+      options.forEach((option, optionIndex) => {
+        option.setAttribute("aria-selected", optionIndex === nextIndex ? "true" : "false");
+      });
+
+      const activeOption = options[nextIndex];
+      if (!activeOption?.id) return;
+      icaoInput.setAttribute("aria-activedescendant", activeOption.id);
+      activeOption.scrollIntoView({ block: "nearest" });
     }
 
     function applySearchSelection(selection) {
@@ -2390,14 +2433,20 @@ let ulmDetailsPromise = null;
         return;
       }
 
+      icaoInput?.setAttribute("aria-expanded", "true");
       searchSuggestions.hidden = false;
       searchSuggestions.innerHTML = "";
 
-      currentSearchResults.forEach((item) => {
+      activeSearchResultIndex = -1;
+      icaoInput?.removeAttribute("aria-activedescendant");
+
+      currentSearchResults.forEach((item, index) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "tool-search-suggestion";
+        button.id = `searchSuggestion-${index}`;
         button.setAttribute("role", "option");
+        button.setAttribute("aria-selected", "false");
 
         const kindLabel = item.kind === "airport" ? "Aérodrome" : "ULM";
         const metaLine = item.typeLabel
@@ -2458,13 +2507,7 @@ let ulmDetailsPromise = null;
       clearSearchFeedback();
 
       if (!rawQuery) {
-        clearSearchSuggestions();
-        syncIcaoInUrl("");
-        metarOutput.textContent = "Entre un terrain, une ville ou un code OACI.";
-        tafOutput.textContent = "Entre un terrain, une ville ou un code OACI.";
-        resetDecoded();
-        renderNotamUnavailable("Aucun terrain sélectionné", "Entre un code OACI pour afficher les NOTAM.");
-        return;
+        return loadMetar();
       }
 
       const normalizedQuery = normalizeCode(rawQuery);
@@ -5532,8 +5575,28 @@ function renderUlmNearbyItem(item) {
     });
 
     icaoInput?.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowDown" && currentSearchResults.length) {
+        event.preventDefault();
+        setActiveSearchSuggestion(activeSearchResultIndex + 1);
+        return;
+      }
+
+      if (event.key === "ArrowUp" && currentSearchResults.length) {
+        event.preventDefault();
+        setActiveSearchSuggestion(
+          activeSearchResultIndex < 0
+            ? currentSearchResults.length - 1
+            : activeSearchResultIndex - 1
+        );
+        return;
+      }
+
       if (event.key === "Enter") {
         event.preventDefault();
+        if (activeSearchResultIndex >= 0 && currentSearchResults[activeSearchResultIndex]) {
+          applySearchSelection(currentSearchResults[activeSearchResultIndex]);
+          return;
+        }
         submitSearch();
       }
 
@@ -5556,9 +5619,7 @@ function renderUlmNearbyItem(item) {
       icaoInput.value = initialIcao;
     }
 
-    if (icaoInput?.value) {
-      loadMetar();
-    }
+    loadMetar();
 
 
     function renderSofiaCardHtml() {
@@ -5588,6 +5649,7 @@ function renderUlmNearbyItem(item) {
       });
       if (notamDetailDock) notamDetailDock.innerHTML = "";
       if (notamCockpitGrid) {
+        notamCockpitGrid.setAttribute("aria-busy", "false");
         notamCockpitGrid.innerHTML = `
           <article class="notam-item notam-item--info notam-item--empty">
             <div class="notam-item-trigger notam-item-trigger--static">
@@ -5598,7 +5660,7 @@ function renderUlmNearbyItem(item) {
                   <span class="notam-tag">NOTAM</span>
                 </span>
                 <strong>${escapeHtml(title)}</strong>
-                <span class="notam-item-period">Source technique momentanément indisponible.</span>
+                <span class="notam-item-period">${escapeHtml(message)}</span>
               </span>
             </div>
           </article>
@@ -5634,6 +5696,7 @@ function renderUlmNearbyItem(item) {
       });
       if (notamDetailDock) notamDetailDock.innerHTML = "";
       if (notamCockpitGrid) {
+        notamCockpitGrid.setAttribute("aria-busy", "true");
         notamCockpitGrid.innerHTML = `
           <article class="notam-item notam-item--info notam-item--loading">
             <div class="notam-item-trigger notam-item-trigger--static">
@@ -5693,6 +5756,7 @@ function renderUlmNearbyItem(item) {
     }
 
     function renderNotamCockpit(items, meta = {}) {
+      notamCockpitGrid?.setAttribute("aria-busy", "false");
       const activeItems = Array.isArray(items) ? items : [];
       const total = Number.isFinite(Number(meta.total)) ? Number(meta.total) : activeItems.length;
       const fetchedAt = meta.fetchedAt ? formatNotamFetchedAt(meta.fetchedAt) : "";
@@ -14360,10 +14424,21 @@ function renderUlmNearbyItem(item) {
     };
 
     const syncBriefingContext = () => {
-      const icao = String(sourceIcao?.value || "LFQQ").trim().toUpperCase();
-      contextIcao.textContent = /^[A-Z0-9]{3,6}$/.test(icao) ? icao : "—";
+      const icao = String(sourceIcao?.value || "").trim().toUpperCase();
+      const contextCode = /^[A-Z0-9]{3,6}$/.test(icao) ? icao : "";
+      contextIcao.textContent = contextCode || "—";
+
+      if (!contextCode) {
+        contextName.textContent = "Aucun terrain sélectionné";
+        contextCategory.textContent = "—";
+        contextCategory.dataset.tone = "neutral";
+        contextWind.textContent = "—";
+        contextFreshness.textContent = "—";
+        return;
+      }
+
       const rawContextName = clean(sourceName?.textContent, "Terrain en attente");
-      const escapedIcao = contextIcao.textContent.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const escapedIcao = contextCode.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       contextName.textContent = rawContextName
         .replace(new RegExp(`\\s*\\(${escapedIcao}\\)`, "gi"), "")
         .replace(/\s{2,}/g, " ")
@@ -14475,10 +14550,32 @@ function renderUlmNearbyItem(item) {
     line-height: 1.25;
   }
 
-  /* duplicated global regulatory sentence is visually removed here;
-     NOTAM/SOFIA and the sources strip keep the official-reference context. */
-  .nesdz-premium-ui .tool-page .tool-entry-help--reference {
-    display: none;
+  .nesdz-premium-ui .tool-page .briefing-safety-notice {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 5px 9px;
+    align-items: baseline;
+    margin-top: 7px;
+    padding: 7px 9px;
+    border: 1px solid rgba(242, 185, 75, .28);
+    border-radius: 7px;
+    color: rgba(232, 239, 249, .82);
+    background: rgba(82, 55, 9, .18);
+    font-size: .68rem;
+    line-height: 1.35;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-safety-notice strong {
+    color: #ffd987;
+    font-size: .66rem;
+    font-weight: 900;
+    letter-spacing: .025em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-safety-notice span {
+    color: inherit;
   }
 
   .nesdz-premium-ui .tool-page .tool-row {
@@ -15766,6 +15863,16 @@ function renderUlmNearbyItem(item) {
   }
 
   @media (max-width: 760px) {
+    .nesdz-premium-ui .tool-page .briefing-safety-notice {
+      grid-template-columns: 1fr;
+      gap: 2px;
+      font-size: .72rem;
+    }
+
+    .nesdz-premium-ui .tool-page .briefing-safety-notice strong {
+      white-space: normal;
+    }
+
     .nesdz-premium-ui .tool-page {
       width: min(calc(100% - 8px), 1320px);
       padding-top: 4px !important;

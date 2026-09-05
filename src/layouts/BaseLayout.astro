@@ -61,6 +61,7 @@ const ogType = isArticlePage ? "article" : "website";
   </head>
 
   <body class={`nesdz-premium-ui ${pathname.startsWith("/outils/") || pathname === "/outils" ? "nesdz-route-outils" : ""}`}>
+    <a class="skip-link" href="#main-content">Aller au contenu principal</a>
     <header class="nav">
       <div class="container nav-inner">
         <a class="brand" href="/" aria-label="Accueil NESDZ">
@@ -92,7 +93,7 @@ const ogType = isArticlePage ? "article" : "website";
       </div>
     </header>
 
-    <main>
+    <main id="main-content" tabindex="-1">
       <slot />
     </main>
 
@@ -109,6 +110,26 @@ const ogType = isArticlePage ? "article" : "website";
     </footer>
 
     <style>
+      .skip-link {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
+        padding: 10px 14px;
+        border-radius: 10px;
+        color: #03101d;
+        background: #b8e7ff;
+        font-weight: 800;
+        transform: translateY(calc(-100% - 20px));
+        transition: transform .18s ease;
+      }
+
+      .skip-link:focus {
+        outline: 3px solid #ffffff;
+        outline-offset: 3px;
+        transform: translateY(0);
+      }
+
       .nav-inner {
         display: grid;
         grid-template-columns: auto minmax(250px, 1fr) auto;
