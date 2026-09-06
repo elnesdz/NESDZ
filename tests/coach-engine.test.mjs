@@ -156,6 +156,7 @@ test("coach page exposes accessible training controls and an honest disclaimer",
   assert.match(page, /RÉPONSE ATTENDUE/);
   assert.match(page, /MÉTHODE ET RAISONNEMENT/);
   assert.match(page, /id="print-results"/);
+  assert.match(page, /<style is:global>/);
   assert.match(home, /href="\/coach\/"/);
   assert.match(layout, />Coach théorique</);
   assert.match(quality, /non agréé et non homologué par la DGAC/);
