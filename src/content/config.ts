@@ -144,6 +144,7 @@ const models = defineCollection({
     limitLoadPositiveG: z.number().positive().optional(),
     limitLoadNegativeG: z.number().negative().optional(),
     editorialStatus: z.enum(['en-cours', 'enrichie', 'a-completer']).optional(),
+    catalogBatch: z.string().optional(),
     tags: tagsSchema('model', MODEL_TAG_KEYS),
     heroImage: z.string().optional(),
     youtube: z
@@ -152,6 +153,7 @@ const models = defineCollection({
         title: z.string().optional(),
       })
       .optional(),
+    youtubeSearchQuery: z.string().optional(),
     links: z
       .array(
         z.object({
