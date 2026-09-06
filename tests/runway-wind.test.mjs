@@ -70,3 +70,17 @@ test("briefing exposes an accessible manual runway selector", async () => {
   assert.doesNotMatch(source, /crosswind\s*>=\s*12/);
   assert.match(source, /ne désigne jamais la piste en service/);
 });
+
+test("French airports prefer the detailed France dataset before world fallback", async () => {
+  const source = await readFile(toolsPageUrl, "utf8");
+  const localLookup = source.match(
+    /async function findAirportByCode[\s\S]*?async function findWorldAirportByCode/
+  )?.[0] || "";
+
+  assert.match(localLookup, /await loadAirports\(\)/);
+  assert.doesNotMatch(localLookup, /await loadWorldAirports\(\)/);
+  assert.match(
+    source,
+    /const localAirport = await findAirportByCode\(code\);[\s\S]*?if \(localAirport\) return localAirport;[\s\S]*?return findWorldAirportByCode\(code\);/
+  );
+});
