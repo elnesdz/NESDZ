@@ -542,6 +542,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
   <script>
     import { formatAwcVisibility } from "../../lib/aviation-weather.mjs";
+    import {
+      calculateWindComponents,
+      chooseBestRunwayAxis,
+    } from "../../lib/runway-wind.mjs";
 
     const WORKER_URL = "https://metar-proxy-nesdz.elnesdz.workers.dev/";
     const NOTAM_WORKER_URL = "https://notam-proxy-nesdz.elnesdz.workers.dev/";
@@ -554,7 +558,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const LOCATION_ENTRY_RADIUS_KM = 120;
     const WEATHER_TIMEOUT_MS = 15000;
     const NOTAM_TIMEOUT_MS = 12000;
-    const RUNWAY_WIND_ANALYSIS_ENABLED = false;
 
     const SIA_VAC_AD_BASE_URL = "/docs/sia/vac/ad/";
     const SIA_AIP_AD_BASE_URL = "/docs/sia/aip-ad/";
@@ -681,7 +684,11 @@ let ulmDetailsPromise = null;
     let nearbyOpen = false;
 
     let currentWindSpeed = null;
+    let currentWindGust = null;
     let currentWindVariable = false;
+    let currentWindSourceLabel = "";
+    let currentRunwayAxisKey = null;
+    let currentRunwayAxisManual = false;
     let briefingRequestSequence = 0;
     let activeBriefingRequest = null;
 
@@ -765,7 +772,11 @@ let ulmDetailsPromise = null;
       hideWeatherFreshnessNotes();
       currentWindDirection = null;
       currentWindSpeed = null;
+      currentWindGust = null;
       currentWindVariable = false;
+      currentWindSourceLabel = "";
+      currentRunwayAxisKey = null;
+      currentRunwayAxisManual = false;
       resetPlatformBlock();
     }
 
@@ -965,16 +976,19 @@ let ulmDetailsPromise = null;
       return Number.isFinite(Number(speed)) && Number(speed) === 0;
     }
 
-    function formatWind(dir, speed) {
+    function formatWind(dir, speed, gust = null) {
       if (speed == null && dir == null) return "—";
       if (isCalmWind(speed)) return "0 kt";
+      const gustLabel = Number.isFinite(Number(gust)) && Number(gust) > Number(speed)
+        ? `, rafales ${Math.round(Number(gust))} kt`
+        : "";
       if (String(dir || "").trim().toUpperCase() === "VRB" && speed != null) {
-        return `Variable à ${speed} kt`;
+        return `Variable à ${speed} kt${gustLabel}`;
       }
       if (speed != null && dir != null && Number.isFinite(Number(dir))) {
-        return `${String(Math.round(Number(dir))).padStart(3, "0")}° à ${speed} kt`;
+        return `${String(Math.round(Number(dir))).padStart(3, "0")}° à ${speed} kt${gustLabel}`;
       }
-      if (speed != null) return `${speed} kt`;
+      if (speed != null) return `${speed} kt${gustLabel}`;
       return "—";
     }
 
@@ -2893,6 +2907,7 @@ function normalizeUlmDetailsRecord(item) {
     }
 
     function normalizeHeadingDegrees(value) {
+      if (value === "" || value == null) return null;
       const parsed = Number(value);
       if (!Number.isFinite(parsed)) return null;
       const normalized = ((parsed % 360) + 360) % 360;
@@ -2950,14 +2965,22 @@ function normalizeUlmDetailsRecord(item) {
         .map((runway) => {
           const startLabel = String(runway?.le_ident || "").trim().toUpperCase();
           const endLabel = String(runway?.he_ident || "").trim().toUpperCase();
-          const angleDeg = headingFromRunwayLabel(startLabel);
-          if (!startLabel || !endLabel || angleDeg == null) return null;
+          const designatorHeading = headingFromRunwayLabel(startLabel);
+          const publishedStartHeading = normalizeHeadingDegrees(runway?.le_heading_degT);
+          const publishedEndHeading = normalizeHeadingDegrees(runway?.he_heading_degT);
+          const startHeadingDeg = publishedStartHeading ?? designatorHeading;
+          const endHeadingDeg = publishedEndHeading ?? reciprocalHeading(startHeadingDeg);
+          if (!startLabel || !endLabel || startHeadingDeg == null || endHeadingDeg == null) return null;
           return {
             key: `${startLabel}/${endLabel}`,
             startLabel,
             endLabel,
-            angleDeg,
-            reciprocalDeg: reciprocalHeading(angleDeg),
+            angleDeg: startHeadingDeg,
+            reciprocalDeg: endHeadingDeg,
+            startHeadingDeg,
+            endHeadingDeg,
+            startHeadingBasis: publishedStartHeading == null ? "designator" : "true",
+            endHeadingBasis: publishedEndHeading == null ? "designator" : "true",
             lengthScore: Number(runway?.length_ft) || 0,
             preferredHeadingDeg: null,
             source: "airport",
@@ -2981,6 +3004,10 @@ function normalizeUlmDetailsRecord(item) {
             endLabel: pair.endLabel,
             angleDeg: pair.angleDeg,
             reciprocalDeg: reciprocalHeading(pair.angleDeg),
+            startHeadingDeg: pair.angleDeg,
+            endHeadingDeg: reciprocalHeading(pair.angleDeg),
+            startHeadingBasis: "designator",
+            endHeadingBasis: "designator",
             lengthScore: Number(runway?.length_m) || 0,
             preferredHeadingDeg: preferredHeadingFromRaw(runway?.preferred_orientation_raw),
             source: "ulm",
@@ -2997,18 +3024,42 @@ function normalizeUlmDetailsRecord(item) {
       return buildUlmRunwayVisuals(matchedUlmDetails);
     }
 
+    function buildRunwayAxisOptions(runways) {
+      return runways.flatMap((runway) => [
+        {
+          key: `${runway.key}:start`,
+          runwayKey: runway.key,
+          runway,
+          label: runway.startLabel,
+          oppositeLabel: runway.endLabel,
+          headingDeg: runway.startHeadingDeg,
+          headingBasis: runway.startHeadingBasis,
+        },
+        {
+          key: `${runway.key}:end`,
+          runwayKey: runway.key,
+          runway,
+          label: runway.endLabel,
+          oppositeLabel: runway.startLabel,
+          headingDeg: runway.endHeadingDeg,
+          headingBasis: runway.endHeadingBasis,
+        },
+      ]).filter((axis) => Number.isFinite(axis.headingDeg));
+    }
+
     function getWindMetaLabel() {
+      const sourceSuffix = currentWindSourceLabel ? ` · ${currentWindSourceLabel}` : "";
       if (isCalmWind(currentWindSpeed)) {
-        return "0 kt";
+        return `0 kt${sourceSuffix}`;
       }
       if (currentWindVariable && Number.isFinite(currentWindSpeed)) {
-        return `Vent variable · ${currentWindSpeed} kt`;
+        return `Vent variable · ${currentWindSpeed}${Number.isFinite(currentWindGust) ? `G${currentWindGust}` : ""} kt${sourceSuffix}`;
       }
       if (Number.isFinite(currentWindDirection) && Number.isFinite(currentWindSpeed)) {
-        return `Vent ${String(Math.round(currentWindDirection)).padStart(3, "0")}° · ${currentWindSpeed} kt`;
+        return `Vent ${String(Math.round(currentWindDirection)).padStart(3, "0")}° · ${currentWindSpeed}${Number.isFinite(currentWindGust) ? `G${currentWindGust}` : ""} kt${sourceSuffix}`;
       }
       if (Number.isFinite(currentWindSpeed)) {
-        return `${currentWindSpeed} kt`;
+        return `${currentWindSpeed} kt${sourceSuffix}`;
       }
       return "Vent indisponible";
     }
@@ -3019,35 +3070,6 @@ function normalizeUlmDetailsRecord(item) {
         x: cx + Math.sin(rad) * radius,
         y: cy - Math.cos(rad) * radius,
       };
-    }
-
-    function smallestAngularDiff(a, b) {
-      const diff = Math.abs(a - b) % 360;
-      return diff > 180 ? 360 - diff : diff;
-    }
-
-    function getBestWindAlignedHeading(runways) {
-      if (
-        !Array.isArray(runways) ||
-        !runways.length ||
-        !Number.isFinite(currentWindDirection) ||
-        isCalmWind(currentWindSpeed)
-      ) {
-        return null;
-      }
-
-      let best = null;
-      for (const runway of runways) {
-        const candidates = [runway.angleDeg, runway.reciprocalDeg].filter((v) => Number.isFinite(v));
-        for (const candidate of candidates) {
-          const score = smallestAngularDiff(candidate, currentWindDirection);
-          if (!best || score < best.score) {
-            best = { score, headingDeg: candidate, runwayKey: runway.key };
-          }
-        }
-      }
-
-      return best;
     }
 
     function escapeHtml(value) {
@@ -3071,52 +3093,37 @@ function normalizeUlmDetailsRecord(item) {
       }
 
       platformWindCard.hidden = false;
-
-      if (!RUNWAY_WIND_ANALYSIS_ENABLED) {
-        platformWindMeta.textContent = "Calcul suspendu par sécurité";
-        platformWindVisual.innerHTML = `
-          <div class="terrain-wind-safety-notice" role="status">
-            <strong>Analyse automatique vent / piste temporairement suspendue</strong>
-            <p>
-              Le vent METAR est exprimé par rapport au nord vrai, tandis que les
-              désignations de piste sont magnétiques. Consulte la VAC, le vent local
-              et les informations officielles avant de choisir une piste.
-            </p>
-          </div>
-        `;
-        return;
-      }
-
       platformWindMeta.textContent = getWindMetaLabel();
 
-      const bestWind = getBestWindAlignedHeading(runways);
-      const bestRunway = bestWind
-        ? runways.find((runway) => runway.key === bestWind.runwayKey)
-        : runways[0];
-
-      const bestHeading = bestWind?.headingDeg ?? bestRunway?.angleDeg ?? null;
-      const oppositeHeading =
-        Number.isFinite(bestHeading) ? reciprocalHeading(bestHeading) : null;
-
-      const preferredRunwayLabel = bestRunway
-        ? `${bestRunway.startLabel}/${bestRunway.endLabel}`
-        : "—";
-
-      const preferredAxisLabel = Number.isFinite(bestHeading)
-        ? String(Math.round(bestHeading / 10)).padStart(2, "0")
-        : "—";
-
+      const axes = buildRunwayAxisOptions(runways);
       const windAvailable = Number.isFinite(currentWindDirection) && Number.isFinite(currentWindSpeed);
       const calm = isCalmWind(currentWindSpeed);
       const variable = currentWindVariable && Number.isFinite(currentWindSpeed);
+      const recommendation = windAvailable && !calm
+        ? chooseBestRunwayAxis(axes, currentWindDirection, currentWindSpeed)
+        : null;
+      const requestedAxis = axes.find((axis) => axis.key === currentRunwayAxisKey) || null;
+
+      if (currentRunwayAxisManual && !requestedAxis) {
+        currentRunwayAxisManual = false;
+        currentRunwayAxisKey = null;
+      }
+
+      const selectedAxis = currentRunwayAxisManual && requestedAxis
+        ? requestedAxis
+        : recommendation?.axis || axes[0];
+      const bestRunway = selectedAxis?.runway || runways[0];
+      const bestHeading = selectedAxis?.headingDeg ?? bestRunway?.angleDeg ?? null;
+      const oppositeHeading =
+        Number.isFinite(bestHeading) ? reciprocalHeading(bestHeading) : null;
 
       let component = {
         headwind: null,
         crosswind: null,
+        gustHeadwind: null,
+        gustCrosswind: null,
         crossSide: "—",
         angle: null,
-        runwayLabel: preferredRunwayLabel,
-        axisLabel: preferredAxisLabel,
         status: "Données vent indisponibles",
         tone: "neutral",
       };
@@ -3132,21 +3139,40 @@ function normalizeUlmDetailsRecord(item) {
           tone: "ok",
         };
       } else if (windAvailable && Number.isFinite(bestHeading)) {
-        const signedRelative = ((currentWindDirection - bestHeading + 540) % 360) - 180;
-        const angle = Math.abs(signedRelative);
-        const headwind = Math.round(Math.cos((angle * Math.PI) / 180) * currentWindSpeed);
-        const crosswind = Math.round(Math.abs(Math.sin((angle * Math.PI) / 180) * currentWindSpeed));
-        const crossSide = crosswind === 0 ? "dans l’axe" : signedRelative > 0 ? "de droite" : "de gauche";
-        const tone = headwind < 0 ? "warn" : crosswind >= 12 ? "caution" : "ok";
+        const steadyComponents = calculateWindComponents({
+          windDirectionDeg: currentWindDirection,
+          windSpeedKt: currentWindSpeed,
+          runwayHeadingDeg: bestHeading,
+        });
+        const gustComponents = Number.isFinite(currentWindGust) && currentWindGust > currentWindSpeed
+          ? calculateWindComponents({
+              windDirectionDeg: currentWindDirection,
+              windSpeedKt: currentWindGust,
+              runwayHeadingDeg: bestHeading,
+            })
+          : null;
+        const headwind = roundWindComponent(steadyComponents?.headwindKt ?? 0);
+        const crosswind = roundWindComponent(steadyComponents?.crosswindKt ?? 0);
+        const crossSide = steadyComponents?.crosswindSide === "right"
+          ? "de droite"
+          : steadyComponents?.crosswindSide === "left"
+            ? "de gauche"
+            : "dans l’axe";
 
         component = {
           ...component,
           headwind,
           crosswind,
+          gustHeadwind: gustComponents ? roundWindComponent(gustComponents.headwindKt) : null,
+          gustCrosswind: gustComponents ? roundWindComponent(gustComponents.crosswindKt) : null,
           crossSide,
-          angle: Math.round(angle),
-          status: headwind < 0 ? "Vent arrière sur cet axe" : "Axe le plus favorable au vent",
-          tone,
+          angle: Math.round(steadyComponents?.angleDeg ?? 0),
+          status: headwind < 0
+            ? "Vent arrière sur l’axe choisi"
+            : currentRunwayAxisManual
+              ? "Axe choisi manuellement"
+              : "Axe suggéré selon le vent METAR — à confirmer",
+          tone: headwind < 0 ? "warn" : "ok",
         };
       } else if (variable) {
         component = {
@@ -3171,12 +3197,27 @@ function normalizeUlmDetailsRecord(item) {
 
       function formatHeadingLabel(degrees) {
         if (!Number.isFinite(degrees)) return "—";
-        return `${String(Math.round(degrees)).padStart(3, "0")}°`;
+        const normalized = normalizeHeadingDegrees(degrees);
+        const rounded = Math.round(normalized ?? 0);
+        const display = rounded === 0 ? 360 : rounded;
+        return `${String(display).padStart(3, "0")}°`;
+      }
+
+      function formatAxisHeading(axis) {
+        if (!axis || !Number.isFinite(axis.headingDeg)) return "—";
+        return axis.headingBasis === "true"
+          ? `${formatHeadingLabel(axis.headingDeg)} vrai`
+          : `≈ ${formatHeadingLabel(axis.headingDeg)} désignation`;
       }
 
       function formatComponentValue(value, empty = "—") {
         if (!Number.isFinite(value)) return empty;
         return `${Math.abs(value)} kt`;
+      }
+
+      function roundWindComponent(value) {
+        const numeric = Number(value);
+        return Math.round(numeric + Math.sign(numeric || 1) * 1e-9);
       }
 
       function getHeadwindLabel(value) {
@@ -3185,16 +3226,7 @@ function normalizeUlmDetailsRecord(item) {
         return `${value} kt face`;
       }
 
-      function getRunwayEndLabel(runway, heading) {
-        if (!runway || !Number.isFinite(heading)) return "—";
-        return smallestAngularDiff(runway.angleDeg, heading) < 1
-          ? runway.startLabel
-          : runway.endLabel;
-      }
-
-      const selectedEndLabel = getRunwayEndLabel(bestRunway, bestHeading);
-      const selectedOppositeLabel = getRunwayEndLabel(bestRunway, oppositeHeading);
-
+      const selectedEndLabel = selectedAxis?.label || "—";
       const tickMarkup = Array.from({ length: 72 }, (_, index) => {
         const heading = index * 5;
         const major = heading % 30 === 0;
@@ -3220,12 +3252,12 @@ function normalizeUlmDetailsRecord(item) {
         return `<text x="${pos.x.toFixed(1)}" y="${pos.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="rgba(126,220,255,.96)" font-size="22" font-weight="950">${cardinal.label}</text>`;
       }).join("");
 
-      const runwayMarkup = runways.map((runway, index) => {
+      const runwayMarkup = runways.map((runway) => {
         const isBest = bestRunway && runway.key === bestRunway.key;
-        const start = headingToPoint(cx, cy, isBest ? runwayLength : runwayLength - 18, runway.angleDeg);
-        const end = headingToPoint(cx, cy, isBest ? runwayLength : runwayLength - 18, runway.reciprocalDeg);
-        const labelStart = headingToPoint(cx, cy, isBest ? runwayLength + 28 : runwayLength + 18, runway.angleDeg);
-        const labelEnd = headingToPoint(cx, cy, isBest ? runwayLength + 28 : runwayLength + 18, runway.reciprocalDeg);
+        const start = headingToPoint(cx, cy, isBest ? runwayLength : runwayLength - 18, runway.startHeadingDeg);
+        const end = headingToPoint(cx, cy, isBest ? runwayLength : runwayLength - 18, runway.endHeadingDeg);
+        const labelStart = headingToPoint(cx, cy, isBest ? runwayLength + 28 : runwayLength + 18, runway.startHeadingDeg);
+        const labelEnd = headingToPoint(cx, cy, isBest ? runwayLength + 28 : runwayLength + 18, runway.endHeadingDeg);
         const opacity = isBest ? "1" : "0.40";
         const strokeWidth = isBest ? 15 : 6;
         const glowWidth = isBest ? 31 : 13;
@@ -3240,6 +3272,13 @@ function normalizeUlmDetailsRecord(item) {
           </g>
         `;
       }).join("");
+
+      const selectedThreshold = Number.isFinite(oppositeHeading)
+        ? headingToPoint(cx, cy, runwayLength + 28, oppositeHeading)
+        : null;
+      const selectedAxisMarkup = selectedThreshold
+        ? `<circle cx="${selectedThreshold.x.toFixed(1)}" cy="${selectedThreshold.y.toFixed(1)}" r="25" fill="none" stroke="#52d9ff" stroke-width="3.5" />`
+        : "";
 
       let windMarkup = "";
       if (calm) {
@@ -3265,35 +3304,39 @@ function normalizeUlmDetailsRecord(item) {
         `;
       }
 
-      const runwayTable = runways.map((runway) => {
-        const headings = [runway.angleDeg, runway.reciprocalDeg].filter((v) => Number.isFinite(v));
-        const bestForRunway = headings
-          .map((heading) => {
-            if (!windAvailable || isCalmWind(currentWindSpeed)) return { heading, headwind: null, crosswind: null, diff: null };
-            const diff = smallestAngularDiff(heading, currentWindDirection);
-            return {
-              heading,
-              headwind: Math.round(Math.cos((diff * Math.PI) / 180) * currentWindSpeed),
-              crosswind: Math.round(Math.abs(Math.sin((diff * Math.PI) / 180) * currentWindSpeed)),
-              diff: Math.round(diff),
-            };
-          })
-          .sort((a, b) => {
-            if (a.headwind === null || b.headwind === null) return 0;
-            return b.headwind - a.headwind;
-          })[0];
+      const axisButtons = axes.map((axis) => {
+        const isSelected = axis.key === selectedAxis?.key;
+        const isRecommended = axis.key === recommendation?.axis?.key;
+        return `
+          <button
+            type="button"
+            class="terrain-axis-button${isSelected ? " is-selected" : ""}${isRecommended ? " is-recommended" : ""}"
+            data-runway-axis-key="${svgText(axis.key)}"
+            aria-pressed="${isSelected ? "true" : "false"}"
+            aria-label="Analyser l’axe ${svgText(axis.label)}, cap ${svgText(formatAxisHeading(axis))}"
+          >
+            <strong>${svgText(axis.label)}</strong>
+            <span>${svgText(formatAxisHeading(axis))}</span>
+            ${isRecommended ? `<small>Suggestion vent</small>` : ""}
+          </button>
+        `;
+      }).join("");
 
+      const runwayTable = runways.map((runway) => {
+        const runwayAxes = axes.filter((axis) => axis.runwayKey === runway.key);
+        const bestForRunway = windAvailable && !calm
+          ? chooseBestRunwayAxis(runwayAxes, currentWindDirection, currentWindSpeed)
+          : null;
+        const displayAxis = bestForRunway?.axis || runwayAxes[0];
+        const calculated = bestForRunway?.components || null;
         const isSelected = bestRunway && runway.key === bestRunway.key;
-        const axisLabel = Number.isFinite(bestForRunway?.heading)
-          ? String(Math.round(bestForRunway.heading / 10)).padStart(2, "0")
-          : runway.startLabel;
 
         return `
           <li class="${isSelected ? "is-selected" : ""}">
             <span class="runway-list-axis">${svgText(runway.startLabel)}/${svgText(runway.endLabel)}</span>
-            <span>${axisLabel}</span>
-            <strong>${bestForRunway?.headwind === null ? "—" : getHeadwindLabel(bestForRunway.headwind)}</strong>
-            <span>${bestForRunway?.crosswind === null ? "—" : `${bestForRunway.crosswind} kt travers`}</span>
+            <span>axe ${svgText(displayAxis?.label || "—")}</span>
+            <strong>${calculated ? getHeadwindLabel(roundWindComponent(calculated.headwindKt)) : "—"}</strong>
+            <span>${calculated ? `${roundWindComponent(calculated.crosswindKt)} kt travers` : "—"}</span>
           </li>
         `;
       }).join("");
@@ -3301,10 +3344,21 @@ function normalizeUlmDetailsRecord(item) {
       const windLabel = calm
         ? "000° / 0 kt"
         : windAvailable
-          ? `${String(Math.round(currentWindDirection)).padStart(3, "0")}° / ${Math.round(currentWindSpeed)} kt`
+          ? `${String(Math.round(currentWindDirection)).padStart(3, "0")}° / ${Math.round(currentWindSpeed)}${Number.isFinite(currentWindGust) ? `G${Math.round(currentWindGust)}` : ""} kt`
           : variable
-            ? `VRB / ${Math.round(currentWindSpeed)} kt`
+            ? `VRB / ${Math.round(currentWindSpeed)}${Number.isFinite(currentWindGust) ? `G${Math.round(currentWindGust)}` : ""} kt`
             : "—";
+
+      const headingBasisNote = selectedAxis?.headingBasis === "true"
+        ? "Cap de piste vrai : calcul cohérent avec la direction vraie du METAR."
+        : "Estimation basée sur la désignation arrondie de piste : vérifier la VAC, la manche à air et les consignes locales.";
+
+      const gustHeadwindLabel = Number.isFinite(component.gustHeadwind)
+        ? `Rafale : ${getHeadwindLabel(component.gustHeadwind)}`
+        : "";
+      const gustCrosswindLabel = Number.isFinite(component.gustCrosswind)
+        ? `Rafale : ${formatComponentValue(component.gustCrosswind)}`
+        : "À comparer aux limites appareil et pilote";
 
       const headwindClass = component.headwind < 0 ? "is-tailwind" : "is-headwind";
       const componentToneClass = `is-${component.tone}`;
@@ -3313,27 +3367,20 @@ function normalizeUlmDetailsRecord(item) {
         <div class="terrain-wind-pro ${componentToneClass}">
           <div class="terrain-wind-main">
             <div class="terrain-wind-rose-wrap">
-              <svg viewBox="0 0 540 540" role="img" aria-label="Rose des vents, axe de piste et direction du vent" class="terrain-visual-svg terrain-wind-rose">
+              <svg viewBox="0 0 540 540" role="img" aria-label="Axe ${svgText(selectedEndLabel)} au cap ${svgText(formatHeadingLabel(bestHeading))}. Le vent vient ${windAvailable ? `du ${svgText(formatHeadingLabel(currentWindDirection))}` : "d’une direction indisponible"}." class="terrain-visual-svg terrain-wind-rose">
                 <defs>
                   <radialGradient id="nesdzRoseBg" cx="50%" cy="50%" r="70%">
                     <stop offset="0%" stop-color="rgba(42,105,150,.28)" />
                     <stop offset="58%" stop-color="rgba(9,23,43,.45)" />
                     <stop offset="100%" stop-color="rgba(4,10,20,.08)" />
                   </radialGradient>
-                  <filter id="nesdzSoftGlow" x="-30%" y="-30%" width="160%" height="160%">
-                    <feGaussianBlur stdDeviation="5" result="blur" />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
                   <marker id="nesdzWindArrow" markerWidth="18" markerHeight="18" refX="14" refY="9" orient="auto" markerUnits="userSpaceOnUse">
                     <path d="M0,1 L17,9 L0,17 L5.5,9 z" fill="#ffb86c" />
                   </marker>
                 </defs>
 
                 <rect x="1" y="1" width="538" height="538" rx="42" fill="rgba(4,12,24,.54)" stroke="rgba(127,220,255,.13)" />
-                <circle cx="${cx}" cy="${cy}" r="${outerRadius + 34}" fill="url(#nesdzRoseBg)" filter="url(#nesdzSoftGlow)" />
+                <circle cx="${cx}" cy="${cy}" r="${outerRadius + 34}" fill="url(#nesdzRoseBg)" />
                 <circle cx="${cx}" cy="${cy}" r="${outerRadius}" fill="none" stroke="rgba(218,239,255,.18)" stroke-width="2.2" />
                 <circle cx="${cx}" cy="${cy}" r="${outerRadius - 48}" fill="none" stroke="rgba(218,239,255,.08)" stroke-width="1.2" stroke-dasharray="6 12" />
                 <line x1="${cx}" y1="${cy - outerRadius}" x2="${cx}" y2="${cy + outerRadius}" stroke="rgba(220,240,255,.08)" />
@@ -3342,6 +3389,7 @@ function normalizeUlmDetailsRecord(item) {
                 ${compassNumbers}
                 ${cardinalLabels}
                 ${runwayMarkup}
+                ${selectedAxisMarkup}
                 ${windMarkup}
                 <circle cx="${cx}" cy="${cy}" r="8" fill="rgba(255,255,255,.12)" stroke="rgba(235,247,255,.28)" />
                 <circle cx="${cx}" cy="${cy}" r="3.5" fill="rgba(255,255,255,.92)" />
@@ -3355,24 +3403,34 @@ function normalizeUlmDetailsRecord(item) {
               </div>
 
               <div class="terrain-wind-primary">
-                <span>Vent METAR</span>
+                <span>Vent METAR — vient du</span>
                 <strong>${svgText(windLabel)}</strong>
+              </div>
+
+              <div class="terrain-axis-selector">
+                <div class="terrain-axis-selector-head">
+                  <span>Choisir l’axe à analyser</span>
+                  <small>${currentRunwayAxisManual ? "Sélection manuelle" : recommendation ? "Suggestion automatique" : "Sélection libre"}</small>
+                </div>
+                <div class="terrain-axis-options" role="group" aria-label="Choisir un axe de piste">
+                  ${axisButtons}
+                </div>
               </div>
 
               <div class="terrain-wind-metrics">
                 <div class="terrain-wind-metric">
-                  <span>Axe retenu</span>
-                  <strong>${svgText(selectedEndLabel)} <small>${svgText(formatHeadingLabel(bestHeading))}</small></strong>
+                  <span>Axe analysé</span>
+                  <strong>${svgText(selectedEndLabel)} <small>${svgText(formatAxisHeading(selectedAxis))}</small></strong>
                 </div>
 
                 <div class="terrain-wind-metric ${headwindClass}">
-                  <span>Composante</span>
-                  <strong>${svgText(getHeadwindLabel(component.headwind))}</strong>
+                  <span>Face / arrière</span>
+                  <strong>${svgText(getHeadwindLabel(component.headwind))}<small>${svgText(gustHeadwindLabel)}</small></strong>
                 </div>
 
-                <div class="terrain-wind-metric">
+                <div class="terrain-wind-metric is-crosswind">
                   <span>Vent de travers</span>
-                  <strong>${svgText(formatComponentValue(component.crosswind))} <small>${svgText(component.crossSide)}</small></strong>
+                  <strong>${svgText(formatComponentValue(component.crosswind))} <small>${svgText(component.crossSide)}${gustCrosswindLabel ? ` · ${svgText(gustCrosswindLabel)}` : ""}</small></strong>
                 </div>
 
                 <div class="terrain-wind-metric">
@@ -3386,12 +3444,27 @@ function normalizeUlmDetailsRecord(item) {
               </ul>
 
               <p class="terrain-wind-footnote">
-                L’axe mis en évidence correspond à la meilleure composante de face calculée. Il ne désigne pas la piste en service : décision pilote, trafic, consignes terrain et documents officiels restent prioritaires.
+                <strong>${svgText(headingBasisNote)}</strong>
+                L’axe suggéré ou choisi ne désigne jamais la piste en service. Confirmer avec la VAC, la manche à air, le trafic, les consignes terrain et les informations officielles.
               </p>
             </div>
           </div>
         </div>
       `;
+
+      platformWindVisual.querySelectorAll("[data-runway-axis-key]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const nextKey = button.getAttribute("data-runway-axis-key");
+          if (!nextKey || nextKey === currentRunwayAxisKey && currentRunwayAxisManual) return;
+          currentRunwayAxisKey = nextKey;
+          currentRunwayAxisManual = true;
+          renderTerrainWindCard(matchedAirport, matchedUlmDetails);
+          const selectedButton = Array.from(
+            platformWindVisual.querySelectorAll("[data-runway-axis-key]")
+          ).find((candidate) => candidate.getAttribute("data-runway-axis-key") === nextKey);
+          selectedButton?.focus();
+        });
+      });
     }
 
 
@@ -4867,10 +4940,15 @@ async function applyMissingLocalWeatherState({
     const referenceLabel = `Réf. ${referenceCode || "voisine"}${
       referenceDistance ? ` · ${referenceDistance}` : ""
     }`;
+    currentWindSourceLabel = referenceLabel;
 
     currentWindSpeed = Number.isFinite(Number(primaryReference.snapshot?.wspd))
       ? Number(primaryReference.snapshot?.wspd)
       : null;
+    currentWindGust = Number.isFinite(Number(primaryReference.snapshot?.wgst)) &&
+      Number(primaryReference.snapshot?.wgst) > Number(currentWindSpeed)
+        ? Number(primaryReference.snapshot?.wgst)
+        : null;
     currentWindVariable =
       String(primaryReference.snapshot?.wdir || "").trim().toUpperCase() === "VRB";
     currentWindDirection =
@@ -4882,7 +4960,8 @@ async function applyMissingLocalWeatherState({
 
     windValue.textContent = `${referenceLabel} · ${formatWind(
       primaryReference.snapshot?.wdir,
-      primaryReference.snapshot?.wspd
+      primaryReference.snapshot?.wspd,
+      primaryReference.snapshot?.wgst
     )}`;
     visibilityValue.textContent = `${referenceLabel} · ${formatVisibility(
       primaryReference.snapshot?.visib
@@ -4938,7 +5017,9 @@ async function applyMissingLocalWeatherState({
     hideWeatherFreshnessNotes();
     currentWindDirection = null;
     currentWindSpeed = null;
+    currentWindGust = null;
     currentWindVariable = false;
+    currentWindSourceLabel = "";
   }
 
   renderTerrainWindCard(matchedAirport, matchedUlmDetails);
@@ -5268,6 +5349,9 @@ function renderUlmNearbyItem(item) {
         currentWindSpeed = Number.isFinite(Number(item.wspd))
           ? Number(item.wspd)
           : null;
+        currentWindGust = Number.isFinite(Number(item.wgst)) && Number(item.wgst) > Number(currentWindSpeed)
+          ? Number(item.wgst)
+          : null;
         currentWindVariable = String(item.wdir || "").trim().toUpperCase() === "VRB";
         currentWindDirection =
           isCalmWind(currentWindSpeed) || currentWindVariable
@@ -5275,8 +5359,9 @@ function renderUlmNearbyItem(item) {
             : Number.isFinite(Number(item.wdir))
               ? Number(item.wdir)
               : null;
+        currentWindSourceLabel = `METAR ${normalizeCode(item.icaoId || icao) || icao}`;
 
-        windValue.textContent = formatWind(item.wdir, item.wspd);
+        windValue.textContent = formatWind(item.wdir, item.wspd, item.wgst);
         visibilityValue.textContent = formatVisibility(item.visib);
         cloudsValue.textContent = formatClouds(item);
         if (cloudsMeta) {
@@ -5641,7 +5726,11 @@ function renderUlmNearbyItem(item) {
       if (notamStatusText && status) notamStatusText.textContent = status;
     }
 
-    function renderNotamUnavailable(title = "NOTAM indisponibles", message = "Impossible de charger les NOTAM pour le moment.") {
+    function renderNotamUnavailable(
+      title = "NOTAM indisponibles",
+      message = "Impossible de charger les NOTAM pour le moment.",
+      retryCode = ""
+    ) {
       setNotamHeader({
         active: "—",
         important: "—",
@@ -5661,11 +5750,23 @@ function renderUlmNearbyItem(item) {
                 </span>
                 <strong>${escapeHtml(title)}</strong>
                 <span class="notam-item-period">${escapeHtml(message)}</span>
+                ${retryCode ? `<button type="button" class="notam-retry-button" data-notam-retry="${escapeHtml(retryCode)}">Réessayer maintenant</button>` : ""}
               </span>
             </div>
           </article>
           ${renderSofiaCardHtml()}
         `;
+
+        const retryButton = notamCockpitGrid.querySelector("[data-notam-retry]");
+        retryButton?.addEventListener("click", () => {
+          const code = normalizeCode(retryButton.getAttribute("data-notam-retry"));
+          if (!isValidWeatherCode(code) || normalizeCode(icaoInput?.value) !== code) return;
+          const activeRequest = activeBriefingRequest?.icao === code
+            ? activeBriefingRequest
+            : null;
+          if (activeRequest) activeRequest.notamController = new AbortController();
+          void loadNotams(code, activeRequest);
+        });
       }
     }
 
@@ -5716,24 +5817,30 @@ function renderUlmNearbyItem(item) {
       }
 
       let notamTimedOut = false;
+      const notamController = request?.notamController || new AbortController();
       const notamTimeoutId = window.setTimeout(() => {
         notamTimedOut = true;
-        request?.notamController.abort();
+        notamController.abort();
       }, NOTAM_TIMEOUT_MS);
 
       try {
         const response = await fetch(`${NOTAM_WORKER_URL}?icao=${encodeURIComponent(code)}`, {
           headers: { Accept: "application/json" },
-          signal: request?.notamController.signal,
+          signal: notamController.signal,
         });
         const data = await response.json().catch(() => null);
 
-        if (request && !isCurrentBriefingRequest(request)) return;
+        if (
+          request
+            ? !isCurrentBriefingRequest(request)
+            : normalizeCode(icaoInput?.value) !== code
+        ) return;
 
         if (!response.ok || !data?.ok) {
           renderNotamUnavailable(
             `NOTAM ${code} indisponibles`,
-            getNotamUnavailableMessage(response.status)
+            getNotamUnavailableMessage(response.status),
+            code
           );
           return;
         }
@@ -5742,13 +5849,18 @@ function renderUlmNearbyItem(item) {
         const decoded = rows.map((row, index) => decodeAutorouterNotam(row, index, code));
         renderNotamCockpit(decoded, data);
       } catch (error) {
-        if (request && !isCurrentBriefingRequest(request)) return;
+        if (
+          request
+            ? !isCurrentBriefingRequest(request)
+            : normalizeCode(icaoInput?.value) !== code
+        ) return;
         if (!isAbortError(error)) console.error("Erreur NOTAM", error);
         renderNotamUnavailable(
           `NOTAM ${code} indisponibles`,
           notamTimedOut
             ? "Le service NOTAM n’a pas répondu à temps. Consulte SOFIA-Briefing avant le vol."
-            : "Impossible de joindre le service NOTAM. Consulte SOFIA-Briefing avant le vol."
+            : "Impossible de joindre le service NOTAM. Consulte SOFIA-Briefing avant le vol.",
+          code
         );
       } finally {
         window.clearTimeout(notamTimeoutId);
@@ -13854,6 +13966,193 @@ function renderUlmNearbyItem(item) {
     }
   }
 
+  /* Cockpit vent/piste — finition mate, contraste soleil et commandes tactiles. */
+  .nesdz-premium-ui .tool-page .terrain-visual-card--briefing {
+    border-color: #255b75;
+    background: #030b16;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 14px 34px rgba(0,0,0,.28);
+  }
+
+  .nesdz-premium-ui .terrain-wind-pro {
+    border-color: #244e67;
+    background: #020914;
+    box-shadow: inset 0 0 0 1px rgba(126,220,255,.035);
+  }
+
+  .nesdz-premium-ui .terrain-wind-pro::before {
+    opacity: .18;
+  }
+
+  .nesdz-premium-ui .terrain-wind-rose-wrap {
+    border-color: #1e4259;
+    background: #02070e;
+    box-shadow: inset 0 0 48px rgba(0,0,0,.48);
+  }
+
+  .nesdz-premium-ui .terrain-wind-status,
+  .nesdz-premium-ui .terrain-wind-primary,
+  .nesdz-premium-ui .terrain-wind-metric,
+  .nesdz-premium-ui .terrain-runway-list,
+  .nesdz-premium-ui .terrain-wind-footnote,
+  .nesdz-premium-ui .terrain-axis-selector {
+    border-color: #23465d;
+    background: #071524;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+  }
+
+  .nesdz-premium-ui .terrain-axis-selector {
+    padding: 9px;
+    border: 1px solid #23465d;
+    border-radius: 9px;
+  }
+
+  .nesdz-premium-ui .terrain-axis-selector-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .nesdz-premium-ui .terrain-axis-selector-head > span {
+    color: #8de4ff;
+    font-size: .61rem;
+    font-weight: 950;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+  }
+
+  .nesdz-premium-ui .terrain-axis-selector-head > small {
+    color: #b7c8d8;
+    font-size: .64rem;
+    font-weight: 800;
+  }
+
+  .nesdz-premium-ui .terrain-axis-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+    gap: 7px;
+  }
+
+  .nesdz-premium-ui .terrain-axis-button {
+    position: relative;
+    min-width: 0;
+    min-height: 54px;
+    padding: 8px 9px;
+    border: 1px solid #31536a;
+    border-radius: 8px;
+    color: #f5fbff;
+    background: #0a1b2c;
+    text-align: left;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .nesdz-premium-ui .terrain-axis-button:hover {
+    border-color: #5fcdeb;
+    background: #0b2437;
+  }
+
+  .nesdz-premium-ui .terrain-axis-button:focus-visible {
+    outline: 3px solid #ffd166;
+    outline-offset: 2px;
+  }
+
+  .nesdz-premium-ui .terrain-axis-button.is-selected {
+    border-color: #65ddff;
+    background: #0b3148;
+    box-shadow: inset 4px 0 0 #65ddff;
+  }
+
+  .nesdz-premium-ui .terrain-axis-button strong,
+  .nesdz-premium-ui .terrain-axis-button span,
+  .nesdz-premium-ui .terrain-axis-button small {
+    display: block;
+  }
+
+  .nesdz-premium-ui .terrain-axis-button strong {
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 1.08rem;
+    line-height: 1;
+  }
+
+  .nesdz-premium-ui .terrain-axis-button span {
+    margin-top: 5px;
+    color: #b8ccdc;
+    font-size: .6rem;
+    font-weight: 800;
+  }
+
+  .nesdz-premium-ui .terrain-axis-button small {
+    margin-top: 5px;
+    color: #71efb0;
+    font-size: .57rem;
+    font-weight: 950;
+    letter-spacing: .035em;
+    text-transform: uppercase;
+  }
+
+  .nesdz-premium-ui .terrain-wind-metric.is-crosswind strong {
+    color: #ffd166;
+  }
+
+  .nesdz-premium-ui .terrain-wind-metric.is-tailwind strong {
+    color: #ff8b7e;
+    text-shadow: none;
+  }
+
+  .nesdz-premium-ui .terrain-wind-primary strong {
+    color: #ffc271;
+    text-shadow: none;
+  }
+
+  .nesdz-premium-ui .terrain-wind-footnote strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #dcecf7;
+  }
+
+  @media (min-width: 981px) {
+    .nesdz-premium-ui .terrain-axis-selector {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .nesdz-premium-ui .terrain-axis-options {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .nesdz-premium-ui .terrain-axis-button {
+      min-height: 58px;
+    }
+
+    .nesdz-premium-ui .terrain-axis-selector-head {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 3px;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .nesdz-premium-ui .terrain-wind-pro,
+    .nesdz-premium-ui .terrain-wind-rose-wrap,
+    .nesdz-premium-ui .terrain-axis-selector,
+    .nesdz-premium-ui .terrain-wind-metric {
+      border-color: #78ddff;
+    }
+
+    .nesdz-premium-ui .terrain-axis-button {
+      border-color: #a7cce0;
+    }
+
+    .nesdz-premium-ui .terrain-axis-button.is-selected {
+      border-color: #fff;
+      box-shadow: inset 5px 0 0 #65ddff;
+    }
+  }
+
 </style>
 
 
@@ -16744,6 +17043,61 @@ function renderUlmNearbyItem(item) {
     .nesdz-premium-ui .tool-page .airport-nearby-action {
       font-size: .7rem;
     }
+  }
+
+  /* Final cockpit overrides: matte surfaces remain authoritative after PASS 19. */
+  .nesdz-premium-ui .tool-page .terrain-visual-card--briefing {
+    border-color: #255b75;
+    background: #030b16;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 14px 34px rgba(0,0,0,.28);
+  }
+
+  .nesdz-premium-ui .terrain-wind-pro {
+    border-color: #244e67;
+    background: #020914;
+    box-shadow: inset 0 0 0 1px rgba(126,220,255,.035);
+  }
+
+  .nesdz-premium-ui .terrain-wind-rose-wrap {
+    border-color: #1e4259;
+    background: #02070e;
+    box-shadow: inset 0 0 48px rgba(0,0,0,.48);
+  }
+
+  .nesdz-premium-ui .terrain-wind-status,
+  .nesdz-premium-ui .terrain-wind-primary,
+  .nesdz-premium-ui .terrain-wind-metric,
+  .nesdz-premium-ui .terrain-runway-list,
+  .nesdz-premium-ui .terrain-wind-footnote,
+  .nesdz-premium-ui .terrain-axis-selector {
+    border-color: #23465d;
+    background: #071524;
+  }
+
+  .nesdz-premium-ui .terrain-visual-card--briefing .terrain-visual-meta {
+    max-width: min(100%, 430px);
+    white-space: normal;
+    text-align: right;
+  }
+
+  .nesdz-premium-ui .tool-page .notam-retry-button {
+    width: fit-content;
+    min-height: 44px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    border: 1px solid #6fdcff;
+    border-radius: 8px;
+    color: #f7fcff;
+    background: #0b3148;
+    font: inherit;
+    font-size: .72rem;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .nesdz-premium-ui .tool-page .notam-retry-button:focus-visible {
+    outline: 3px solid #ffd166;
+    outline-offset: 2px;
   }
 
 </style>
