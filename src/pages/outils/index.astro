@@ -2038,7 +2038,7 @@ let ulmDetailsPromise = null;
       if (!normalized) return null;
 
       try {
-        const airports = await loadWorldAirports();
+        const airports = await loadAirports();
         return (
           airports.find((airport) => airport.weatherCode === normalized) || null
         );
