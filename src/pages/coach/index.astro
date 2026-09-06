@@ -741,7 +741,7 @@ const questionCounts = getQuestionCounts();
     renderDashboard();
   </script>
 
-  <style>
+  <style is:global>
     .coach-shell { padding: 34px 0 80px; }
     .coach-shell [hidden] { display: none !important; }
     .coach-hero,
@@ -961,7 +961,7 @@ const questionCounts = getQuestionCounts();
       .coach-result-gauge { width: 145px; }
     }
     @media print {
-      :global(header), :global(footer), .coach-hero, .coach-safety-note, .coach-dashboard, .coach-modes, .coach-themes, .coach-result-actions { display: none !important; }
+      header, footer, .coach-hero, .coach-safety-note, .coach-dashboard, .coach-modes, .coach-themes, .coach-result-actions { display: none !important; }
       .coach-shell, .coach-results { padding: 0; background: #fff; color: #111; }
       .coach-results { display: block; border: 0; box-shadow: none; }
       .coach-result-gauge { width: 120px; margin-bottom: 18px; }
