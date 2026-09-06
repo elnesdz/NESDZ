@@ -25,12 +25,19 @@ const modelsData = entries.map((e) => ({
   engine: e.data.engine ?? "",
   cruiseKmh: e.data.cruiseKmh ?? null,
   mtowKg: e.data.mtowKg ?? null,
-  image: e.data.heroImage ?? "/logo.png",
+  image: e.data.heroImage ?? null,
   tags: e.data.tags ?? [],
   editorialStatus: e.data.editorialStatus ?? null,
 }));
 
 const categories = Array.from(new Set(modelsData.map((d) => d.category))).sort();
+const manufacturers = Array.from(
+  new Set(
+    modelsData
+      .map((d) => d.manufacturer)
+      .filter((value) => value && value !== "—")
+  )
+).sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }));
 
 const explorerTags = MODEL_TAGS
   .map((tag) => {
@@ -65,14 +72,14 @@ const explorerTags = MODEL_TAGS
   <section class="container" style="padding: 10px 0 26px;">
     <div class="card">
       <div class="pad">
-        <div class="grid grid-3" style="align-items:end;">
+        <div class="models-filter-grid">
           <div class="stack" style="gap:8px;">
-            <label style="color:var(--muted);font-size:12px;">Recherche</label>
-            <input id="q" class="btn" style="width:100%;text-align:left;" placeholder="Nom, constructeur, moteur, tags…" />
+            <label for="q" style="color:var(--muted);font-size:12px;">Recherche</label>
+            <input id="q" type="search" autocomplete="off" class="btn" style="width:100%;text-align:left;" placeholder="Nom, constructeur, moteur, tags…" />
           </div>
 
           <div class="stack" style="gap:8px;">
-            <label style="color:var(--muted);font-size:12px;">Catégorie</label>
+            <label for="cat" style="color:var(--muted);font-size:12px;">Catégorie</label>
             <select id="cat" class="btn" style="width:100%;text-align:left;">
               <option value="">Toutes</option>
               {categories.map((c) => <option value={c}>{c}</option>)}
@@ -80,7 +87,15 @@ const explorerTags = MODEL_TAGS
           </div>
 
           <div class="stack" style="gap:8px;">
-            <label style="color:var(--muted);font-size:12px;">Places</label>
+            <label for="manufacturer" style="color:var(--muted);font-size:12px;">Constructeur</label>
+            <select id="manufacturer" class="btn" style="width:100%;text-align:left;">
+              <option value="">Tous</option>
+              {manufacturers.map((manufacturer) => <option value={manufacturer}>{manufacturer}</option>)}
+            </select>
+          </div>
+
+          <div class="stack" style="gap:8px;">
+            <label for="seats" style="color:var(--muted);font-size:12px;">Places</label>
             <select id="seats" class="btn" style="width:100%;text-align:left;">
               <option value="">Toutes</option>
               <option value="1">1</option>
@@ -93,7 +108,7 @@ const explorerTags = MODEL_TAGS
         <hr class="sep" />
 
         <div class="row" style="justify-content:space-between;flex-wrap:wrap;">
-          <span class="pill">Résultats : <strong id="count" style="color:var(--text);">0</strong></span>
+          <span class="pill">Résultats : <strong id="count" aria-live="polite" style="color:var(--text);">0</strong></span>
           <button class="btn" id="reset" type="button">Réinitialiser</button>
         </div>
 
@@ -134,7 +149,7 @@ const explorerTags = MODEL_TAGS
 
   <script type="module" define:vars={{ models: modelsData }}>
     const $ = (s) => document.querySelector(s);
-    const q = $("#q"), cat = $("#cat"), seats = $("#seats"), list = $("#list"), count = $("#count"), reset = $("#reset");
+    const q = $("#q"), cat = $("#cat"), manufacturer = $("#manufacturer"), seats = $("#seats"), list = $("#list"), count = $("#count"), reset = $("#reset");
 
     const normalize = (s) =>
       (s ?? "")
@@ -175,7 +190,9 @@ const explorerTags = MODEL_TAGS
       a.innerHTML = `
         <div class="model-index-grid">
           <div class="model-index-media">
-            <img class="thumb model-index-thumb" src="${m.image}" alt="${m.name}" loading="lazy" />
+            ${m.image
+              ? `<img class="thumb model-index-thumb" src="${m.image}" alt="${m.name}" loading="lazy" />`
+              : `<div class="model-index-placeholder" aria-hidden="true"><span>NESDZ</span><strong>${m.category}</strong></div>`}
           </div>
 
           <div class="model-index-body">
@@ -207,10 +224,12 @@ const explorerTags = MODEL_TAGS
     const render = () => {
       const nq = normalize(q.value);
       const c = cat.value;
+      const maker = manufacturer.value;
       const s = seats.value ? Number(seats.value) : null;
 
       const filtered = models.filter((m) => {
         if (c && m.category !== c) return false;
+        if (maker && m.manufacturer !== maker) return false;
         if (s && m.seats !== s) return false;
         if (!nq) return true;
         const hay = normalize([m.name, m.manufacturer, m.engine, ...(m.tags || [])].join(" "));
@@ -222,10 +241,11 @@ const explorerTags = MODEL_TAGS
       count.textContent = String(filtered.length);
     };
 
-    [q, cat, seats].forEach((el) => el.addEventListener("input", render));
+    [q, cat, manufacturer, seats].forEach((el) => el.addEventListener("input", render));
     reset.addEventListener("click", () => {
       q.value = "";
       cat.value = "";
+      manufacturer.value = "";
       seats.value = "";
       render();
     });
@@ -234,6 +254,13 @@ const explorerTags = MODEL_TAGS
   </script>
 
   <style is:global>
+    .models-filter-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(150px, 1fr));
+      gap: 14px;
+      align-items: end;
+    }
+
     .models-index-list .model-index-item {
       display: block;
       text-decoration: none;
@@ -258,6 +285,32 @@ const explorerTags = MODEL_TAGS
       object-fit: cover;
       border-radius: 18px;
       display: block;
+    }
+
+    .models-index-list .model-index-placeholder {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      display: grid;
+      place-content: center;
+      gap: 6px;
+      border: 1px solid rgba(111, 220, 255, 0.18);
+      border-radius: 18px;
+      color: #dff7ff;
+      background:
+        linear-gradient(135deg, rgba(58, 190, 255, 0.12), transparent 52%),
+        #071522;
+      text-align: center;
+    }
+
+    .models-index-list .model-index-placeholder span {
+      color: #72d9ff;
+      font-size: 0.67rem;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+    }
+
+    .models-index-list .model-index-placeholder strong {
+      font-size: 0.82rem;
     }
 
     .models-index-list .model-index-body {
@@ -295,6 +348,10 @@ const explorerTags = MODEL_TAGS
     }
 
     @media (max-width: 720px) {
+      .models-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .models-index-list .model-index-grid {
         grid-template-columns: 1fr;
       }
@@ -320,6 +377,12 @@ const explorerTags = MODEL_TAGS
 
       .models-index-list .model-index-status {
         white-space: normal;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .models-filter-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>

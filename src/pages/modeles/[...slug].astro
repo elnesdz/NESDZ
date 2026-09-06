@@ -66,6 +66,10 @@ const youtubeId = d.youtube?.url
     })()
   : null;
 
+const youtubeSearchQuery =
+  d.youtubeSearchQuery ?? `${d.manufacturer ?? "ULM"} ${d.name} essai en vol`;
+const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(youtubeSearchQuery)}`;
+
 // URL absolue du site
 const SITE = "https://nesdz.com";
 const canonicalUrl = `${SITE}/modeles/${entry.slug}/`;
@@ -212,7 +216,7 @@ const nextModel =
 
           <div class="card" style="box-shadow:none;">
             <div class="pad">
-              <h2>Vidéo</h2>
+              <h2>Vidéos</h2>
               {youtubeId ? (
                 <div style="position:relative;padding-top:56.25%;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.03);">
                   <iframe
@@ -225,8 +229,27 @@ const nextModel =
                   ></iframe>
                 </div>
               ) : (
-                <p>Ajoute une URL YouTube dans la fiche pour afficher la vidéo ici.</p>
+                <div class="model-video-discovery">
+                  <span class="model-video-discovery__icon" aria-hidden="true">▶</span>
+                  <div>
+                    <strong>Découvrir ce modèle en vidéo</strong>
+                    <p>
+                      Ouvre une recherche YouTube ciblée sur ce modèle. Vérifie toujours
+                      l’auteur, la version présentée et la date de publication.
+                    </p>
+                  </div>
+                </div>
               )}
+
+              <a
+                class="btn model-youtube-link"
+                href={youtubeSearchUrl}
+                rel="noopener noreferrer nofollow"
+                target="_blank"
+                aria-label={`Rechercher des vidéos YouTube sur ${d.name}`}
+              >
+                ▶ Voir les vidéos sur YouTube
+              </a>
 
               <hr class="sep" />
               <h3>Liens</h3>
@@ -401,6 +424,42 @@ const nextModel =
   .explore-card__meta {
     margin-top: 8px;
     line-height: 1.55;
+  }
+
+  .model-video-discovery {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 14px;
+    border: 1px solid rgba(255, 101, 101, 0.24);
+    border-radius: 16px;
+    background: rgba(255, 70, 70, 0.055);
+  }
+
+  .model-video-discovery__icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    color: #fff;
+    background: #d92f2f;
+    box-shadow: 0 7px 18px rgba(217, 47, 47, 0.25);
+  }
+
+  .model-video-discovery p {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .model-youtube-link {
+    width: 100%;
+    justify-content: center;
+    margin-top: 12px;
+    border-color: rgba(255, 101, 101, 0.34);
   }
 </style>
 </BaseLayout>
