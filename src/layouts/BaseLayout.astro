@@ -87,6 +87,7 @@ const ogType = isArticlePage ? "article" : "website";
           <nav class="navlinks" aria-label="Navigation principale">
             <a href="/" class={pathname === "/" ? "is-current" : ""}>Accueil</a>
             <a href="/modeles/" class={pathname.startsWith("/modeles/") || pathname === "/modeles" ? "is-current" : ""}>Annuaire ULM</a>
+            <a href="/coach/" class={pathname.startsWith("/coach/") || pathname === "/coach" ? "is-current" : ""}>Coach théorique</a>
             <a href="/edito/" class={pathname.startsWith("/edito/") || pathname === "/edito" ? "is-current" : ""}>Édito</a>
             <a href="/a-propos/" class={pathname.startsWith("/a-propos/") || pathname === "/a-propos" ? "is-current" : ""}>À propos</a>
           </nav>

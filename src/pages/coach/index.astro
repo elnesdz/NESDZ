@@ -1,0 +1,787 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import {
+  ALGORITHMIC_VARIANTS,
+  EXAM_RULES,
+  THEMES,
+  getQuestionCounts,
+} from "../../lib/coach-engine.mjs";
+
+const questionCounts = getQuestionCounts();
+---
+
+<BaseLayout
+  title="Coach théorique ULM"
+  description="Entraînement au théorique commun ULM : QCM expliqués, navigation calculée, examen blanc et suivi de progression."
+>
+  <section class="coach-shell">
+    <div class="container">
+      <header class="coach-hero">
+        <div class="coach-hero-copy">
+          <div class="coach-eyebrow"><span aria-hidden="true">●</span> NESDZ TRAINING SYSTEM</div>
+          <h1>Coach théorique ULM</h1>
+          <p>
+            Révisez intelligemment, comprenez vos erreurs et entraînez-vous sur des
+            scénarios de navigation renouvelés à chaque session.
+          </p>
+          <div class="coach-hero-actions">
+            <button class="coach-btn coach-btn--primary" type="button" data-start="quick">
+              Lancer une série rapide
+              <span>15 questions</span>
+            </button>
+            <button class="coach-btn" type="button" data-start="exam">
+              Examen blanc
+              <span>{EXAM_RULES.questionCount} questions · {EXAM_RULES.durationMinutes} min</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="coach-radar" aria-hidden="true">
+          <div class="coach-radar-grid">
+            <span class="coach-radar-sweep"></span>
+            <span class="coach-radar-point coach-radar-point--1"></span>
+            <span class="coach-radar-point coach-radar-point--2"></span>
+            <span class="coach-radar-point coach-radar-point--3"></span>
+          </div>
+          <div class="coach-radar-readout">
+            <span>OBJECTIF</span>
+            <strong>{EXAM_RULES.passingPercent}%</strong>
+            <small>SEUIL EXAMEN</small>
+          </div>
+        </div>
+      </header>
+
+      <aside class="coach-safety-note" aria-label="Limites de l’outil">
+        <strong>Outil d’entraînement indépendant.</strong>
+        <span>
+          Les questions sont originales et adossées au programme officiel. Elles ne constituent
+          ni la banque réelle de la DGAC, ni un substitut à une formation avec instructeur.
+        </span>
+      </aside>
+
+      <section class="coach-dashboard" aria-labelledby="dashboard-title">
+        <div class="coach-section-heading">
+          <div>
+            <span class="coach-section-code">PROGRESSION LOCALE</span>
+            <h2 id="dashboard-title">Votre tableau de bord</h2>
+          </div>
+          <button class="coach-link-button" id="reset-progress" type="button">Effacer ma progression</button>
+        </div>
+
+        <div class="coach-kpis">
+          <article>
+            <span>Maîtrise globale</span>
+            <strong id="kpi-score">—</strong>
+            <small id="kpi-score-detail">Commencez une première série</small>
+          </article>
+          <article>
+            <span>Questions traitées</span>
+            <strong id="kpi-answered">0</strong>
+            <small>enregistrées sur cet appareil</small>
+          </article>
+          <article>
+            <span>Meilleure série</span>
+            <strong id="kpi-streak">0</strong>
+            <small>bonnes réponses consécutives</small>
+          </article>
+          <article class="coach-kpi-focus">
+            <span>Axe conseillé</span>
+            <strong id="kpi-focus">Diagnostic</strong>
+            <small id="kpi-focus-detail">Une série mixte évaluera vos acquis</small>
+          </article>
+        </div>
+
+        <div class="coach-mastery" id="mastery-list" aria-live="polite"></div>
+      </section>
+
+      <section class="coach-modes" aria-labelledby="modes-title">
+        <div class="coach-section-heading">
+          <div>
+            <span class="coach-section-code">MODES D’ENTRAÎNEMENT</span>
+            <h2 id="modes-title">Choisissez votre mission</h2>
+          </div>
+          <span class="coach-data-badge">{ALGORITHMIC_VARIANTS.toLocaleString("fr-FR")}+ variantes calculées</span>
+        </div>
+
+        <div class="coach-mode-grid">
+          <button type="button" class="coach-mode-card coach-mode-card--nav" data-start="navigation">
+            <span class="coach-mode-icon">NAV</span>
+            <span class="coach-mode-copy">
+              <strong>Navigation illimitée</strong>
+              <small>Vent, dérive, caps, échelles, temps et conversions</small>
+            </span>
+            <span class="coach-mode-status">GÉNÉRATIF</span>
+          </button>
+          <button type="button" class="coach-mode-card" data-start="quick">
+            <span class="coach-mode-icon">MIX</span>
+            <span class="coach-mode-copy">
+              <strong>Série rapide</strong>
+              <small>15 questions équilibrées avec correction immédiate</small>
+            </span>
+            <span class="coach-mode-status">15 Q</span>
+          </button>
+          <button type="button" class="coach-mode-card coach-mode-card--exam" data-start="exam">
+            <span class="coach-mode-icon">EXAM</span>
+            <span class="coach-mode-copy">
+              <strong>Examen blanc</strong>
+              <small>60 questions, 90 minutes et corrections à la fin</small>
+            </span>
+            <span class="coach-mode-status">75% REQUIS</span>
+          </button>
+          <button type="button" class="coach-mode-card" data-start="mistakes" id="mistakes-mode">
+            <span class="coach-mode-icon">RETRY</span>
+            <span class="coach-mode-copy">
+              <strong>Revoir mes erreurs</strong>
+              <small id="mistakes-copy">Aucune erreur enregistrée</small>
+            </span>
+            <span class="coach-mode-status" id="mistakes-count">0 Q</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="coach-themes" aria-labelledby="themes-title">
+        <div class="coach-section-heading">
+          <div>
+            <span class="coach-section-code">PROGRAMME THÉORIQUE COMMUN</span>
+            <h2 id="themes-title">Travailler un thème précis</h2>
+          </div>
+          <a class="coach-source-link" href="https://www.legifrance.gouv.fr/loda/id/JORFTEXT000000401045/" target="_blank" rel="noopener noreferrer">
+            Voir le programme officiel ↗
+          </a>
+        </div>
+
+        <div class="coach-theme-grid">
+          {THEMES.map((theme) => (
+            <button
+              type="button"
+              class={`coach-theme-card coach-theme-card--${theme.color}`}
+              data-theme={theme.id}
+              data-start="theme"
+            >
+              <span class="coach-theme-code">{theme.icon}</span>
+              <span class="coach-theme-name">{theme.label}</span>
+              <span class="coach-theme-meta">
+                {questionCounts[theme.id]} questions sourcées
+                {(theme.id === "navigation" || theme.id === "performances") && " + exercices calculés"}
+              </span>
+              <span class="coach-theme-progress" data-theme-progress={theme.id}>Non commencé</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section class="coach-quiz" id="quiz-panel" hidden aria-labelledby="question-title">
+        <div class="coach-quiz-topbar">
+          <div class="coach-quiz-mode">
+            <span id="quiz-mode-code">TRAINING</span>
+            <strong id="quiz-mode-label">Série rapide</strong>
+          </div>
+          <div class="coach-quiz-instruments">
+            <div>
+              <span>QUESTION</span>
+              <strong><span id="question-index">1</span>/<span id="question-total">15</span></strong>
+            </div>
+            <div id="timer-instrument" hidden>
+              <span>CHRONO</span>
+              <strong id="exam-timer">90:00</strong>
+            </div>
+            <button type="button" id="quit-session">Quitter</button>
+          </div>
+        </div>
+
+        <div class="coach-progress-track" aria-hidden="true"><span id="quiz-progress"></span></div>
+
+        <div class="coach-question-layout">
+          <aside class="coach-question-context" id="question-visual" aria-label="Données de l’exercice"></aside>
+
+          <article class="coach-question-card">
+            <div class="coach-question-meta">
+              <span id="question-theme">Navigation</span>
+              <span id="question-difficulty">Niveau 2</span>
+              <span id="question-generated" hidden>VARIANTE CALCULÉE</span>
+            </div>
+            <h2 id="question-title" tabindex="-1">Question</h2>
+
+            <div class="coach-options" id="answer-options" role="group" aria-labelledby="question-title"></div>
+
+            <div class="coach-question-actions">
+              <button class="coach-hint-button" type="button" id="show-hint" aria-expanded="false" aria-controls="question-hint">
+                Afficher un indice
+              </button>
+              <button class="coach-btn coach-btn--primary coach-next" type="button" id="next-question" disabled>
+                Question suivante
+              </button>
+            </div>
+
+            <p class="coach-hint" id="question-hint" hidden></p>
+            <div class="coach-feedback" id="question-feedback" hidden aria-live="polite"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="coach-results" id="results-panel" hidden aria-labelledby="results-title">
+        <div class="coach-result-gauge" id="result-gauge" aria-hidden="true">
+          <div><strong id="result-percent">0%</strong><span>RÉSULTAT</span></div>
+        </div>
+        <div class="coach-result-copy">
+          <span class="coach-section-code" id="result-code">SESSION TERMINÉE</span>
+          <h2 id="results-title" tabindex="-1">Votre débriefing</h2>
+          <p id="result-summary"></p>
+          <div class="coach-result-actions">
+            <button class="coach-btn coach-btn--primary" type="button" id="restart-session">Nouvelle série</button>
+            <button class="coach-btn" type="button" id="return-dashboard">Retour au tableau de bord</button>
+          </div>
+        </div>
+        <div class="coach-result-breakdown" id="result-breakdown"></div>
+        <details class="coach-review" id="review-errors">
+          <summary>Revoir les réponses à travailler</summary>
+          <div id="review-list"></div>
+        </details>
+      </section>
+
+      <noscript>
+        <p class="coach-safety-note">Le coach nécessite JavaScript pour calculer les exercices et mémoriser votre progression.</p>
+      </noscript>
+    </div>
+  </section>
+
+  <script>
+    import {
+      EXAM_RULES,
+      THEMES,
+      createSession,
+      formatHeading,
+    } from "../../lib/coach-engine.mjs";
+
+    const STORAGE_KEY = "nesdz-coach-progress-v1";
+    const letters = ["A", "B", "C", "D"];
+    const setupSections = [
+      document.querySelector(".coach-dashboard"),
+      document.querySelector(".coach-modes"),
+      document.querySelector(".coach-themes"),
+    ];
+    const quizPanel = document.querySelector("#quiz-panel");
+    const resultsPanel = document.querySelector("#results-panel");
+    const optionsNode = document.querySelector("#answer-options");
+    const feedbackNode = document.querySelector("#question-feedback");
+    const nextButton = document.querySelector("#next-question");
+    const hintButton = document.querySelector("#show-hint");
+    const hintNode = document.querySelector("#question-hint");
+    const themeById = Object.fromEntries(THEMES.map((theme) => [theme.id, theme]));
+
+    let progress = loadProgress();
+    let session = null;
+
+    function emptyProgress() {
+      return { answered: 0, correct: 0, streak: 0, bestStreak: 0, byTheme: {}, mistakes: [] };
+    }
+
+    function loadProgress() {
+      try {
+        return { ...emptyProgress(), ...JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") };
+      } catch {
+        return emptyProgress();
+      }
+    }
+
+    function saveProgress() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      renderDashboard();
+    }
+
+    function themeStats(themeId) {
+      return progress.byTheme?.[themeId] || { answered: 0, correct: 0 };
+    }
+
+    function percent(correct, answered) {
+      return answered ? Math.round((correct / answered) * 100) : 0;
+    }
+
+    function renderDashboard() {
+      const globalPercent = percent(progress.correct, progress.answered);
+      document.querySelector("#kpi-score").textContent = progress.answered ? `${globalPercent}%` : "—";
+      document.querySelector("#kpi-score-detail").textContent = progress.answered
+        ? `${progress.correct} bonnes réponses sur ${progress.answered}`
+        : "Commencez une première série";
+      document.querySelector("#kpi-answered").textContent = String(progress.answered);
+      document.querySelector("#kpi-streak").textContent = String(progress.bestStreak || 0);
+
+      const ranked = THEMES
+        .map((theme) => ({ theme, ...themeStats(theme.id) }))
+        .sort((a, b) => {
+          if (!a.answered && b.answered) return -1;
+          if (a.answered && !b.answered) return 1;
+          return percent(a.correct, a.answered) - percent(b.correct, b.answered);
+        });
+      const focus = ranked[0];
+      document.querySelector("#kpi-focus").textContent = focus?.answered ? focus.theme.short : "Diagnostic";
+      document.querySelector("#kpi-focus-detail").textContent = focus?.answered
+        ? `${percent(focus.correct, focus.answered)}% de réussite : thème prioritaire`
+        : "Une série mixte évaluera vos acquis";
+
+      document.querySelector("#mastery-list").innerHTML = THEMES.map((theme) => {
+        const stats = themeStats(theme.id);
+        const value = percent(stats.correct, stats.answered);
+        return `<div class="coach-mastery-row">
+          <span>${theme.short}</span>
+          <div role="progressbar" aria-label="Maîtrise ${theme.label}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${value}"><i style="width:${value}%"></i></div>
+          <strong>${stats.answered ? `${value}%` : "—"}</strong>
+        </div>`;
+      }).join("");
+
+      document.querySelectorAll("[data-theme-progress]").forEach((node) => {
+        const stats = themeStats(node.dataset.themeProgress);
+        node.textContent = stats.answered ? `${percent(stats.correct, stats.answered)}% · ${stats.answered} réponses` : "Non commencé";
+      });
+
+      const mistakes = progress.mistakes?.length || 0;
+      document.querySelector("#mistakes-count").textContent = `${mistakes} Q`;
+      document.querySelector("#mistakes-copy").textContent = mistakes
+        ? "Retravaillez les notions qui vous ont posé problème"
+        : "Aucune erreur enregistrée";
+      document.querySelector("#mistakes-mode").disabled = mistakes === 0;
+    }
+
+    function startSession(mode, theme = "all") {
+      let questions;
+      if (mode === "mistakes") {
+        questions = (progress.mistakes || []).slice(-20).reverse();
+        if (!questions.length) return;
+      } else {
+        questions = createSession({ mode, theme, seed: Date.now() });
+      }
+
+      session = {
+        mode,
+        theme,
+        questions,
+        index: 0,
+        answers: [],
+        score: 0,
+        startedAt: Date.now(),
+        secondsLeft: EXAM_RULES.durationMinutes * 60,
+        timer: null,
+      };
+
+      setupSections.forEach((section) => section.hidden = true);
+      resultsPanel.hidden = true;
+      quizPanel.hidden = false;
+      document.querySelector("#timer-instrument").hidden = mode !== "exam";
+      document.querySelector("#quiz-mode-code").textContent = mode === "exam" ? "EXAM MODE" : mode === "navigation" ? "NAV LAB" : "TRAINING";
+      document.querySelector("#quiz-mode-label").textContent = modeLabel(mode, theme);
+      document.querySelector("#question-total").textContent = String(questions.length);
+
+      if (mode === "exam") startTimer();
+      renderQuestion();
+      quizPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function modeLabel(mode, theme) {
+      if (mode === "exam") return "Examen blanc ULM";
+      if (mode === "navigation") return "Navigation illimitée";
+      if (mode === "mistakes") return "Révision des erreurs";
+      if (mode === "theme") return themeById[theme]?.label || "Entraînement thématique";
+      return "Série rapide";
+    }
+
+    function startTimer() {
+      updateTimer();
+      session.timer = window.setInterval(() => {
+        session.secondsLeft -= 1;
+        updateTimer();
+        if (session.secondsLeft <= 0) finishSession();
+      }, 1000);
+    }
+
+    function updateTimer() {
+      const minutes = Math.floor(session.secondsLeft / 60);
+      const seconds = session.secondsLeft % 60;
+      document.querySelector("#exam-timer").textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function renderQuestion() {
+      const question = session.questions[session.index];
+      const theme = themeById[question.theme] || { label: question.theme, short: question.theme };
+      document.querySelector("#question-index").textContent = String(session.index + 1);
+      document.querySelector("#quiz-progress").style.width = `${((session.index + 1) / session.questions.length) * 100}%`;
+      document.querySelector("#question-theme").textContent = theme.label;
+      document.querySelector("#question-difficulty").textContent = `Niveau ${question.difficulty}`;
+      document.querySelector("#question-generated").hidden = !question.generated;
+      document.querySelector("#question-title").textContent = question.prompt;
+      hintNode.textContent = question.hint;
+      hintNode.hidden = true;
+      hintButton.setAttribute("aria-expanded", "false");
+      hintButton.textContent = "Afficher un indice";
+      feedbackNode.hidden = true;
+      feedbackNode.innerHTML = "";
+      nextButton.disabled = true;
+      nextButton.textContent = session.index === session.questions.length - 1 ? "Voir le résultat" : "Question suivante";
+      renderVisual(question);
+
+      optionsNode.innerHTML = question.options.map((option, index) => `
+        <button type="button" class="coach-option" data-answer="${index}">
+          <span>${letters[index]}</span><strong>${escapeHtml(option)}</strong>
+        </button>
+      `).join("");
+      optionsNode.querySelectorAll("button").forEach((button) => button.addEventListener("click", () => answerQuestion(Number(button.dataset.answer))));
+      document.querySelector("#question-title").focus({ preventScroll: true });
+    }
+
+    function answerQuestion(selected) {
+      const question = session.questions[session.index];
+      const alreadyAnswered = session.answers[session.index] !== undefined;
+      if (alreadyAnswered && session.mode !== "exam") return;
+      session.answers[session.index] = selected;
+      nextButton.disabled = false;
+
+      const buttons = [...optionsNode.querySelectorAll("button")];
+      buttons.forEach((button) => button.classList.toggle("is-selected", Number(button.dataset.answer) === selected));
+
+      if (session.mode === "exam") return;
+
+      buttons.forEach((button) => button.disabled = true);
+      const isCorrect = selected === question.correct;
+      buttons[question.correct]?.classList.add("is-correct");
+      if (!isCorrect) buttons[selected]?.classList.add("is-wrong");
+      if (isCorrect) session.score += 1;
+      recordAnswer(question, isCorrect);
+      feedbackNode.className = `coach-feedback ${isCorrect ? "is-correct" : "is-wrong"}`;
+      feedbackNode.innerHTML = `<strong>${isCorrect ? "Bonne réponse" : "À retravailler"}</strong><p>${escapeHtml(question.explanation)}</p><a href="${question.source.url}" target="_blank" rel="noopener noreferrer">${escapeHtml(question.source.label)} ↗</a>`;
+      feedbackNode.hidden = false;
+    }
+
+    function recordAnswer(question, isCorrect) {
+      progress.answered += 1;
+      if (isCorrect) {
+        progress.correct += 1;
+        progress.streak = (progress.streak || 0) + 1;
+        progress.bestStreak = Math.max(progress.bestStreak || 0, progress.streak);
+        progress.mistakes = (progress.mistakes || []).filter((item) => item.id !== question.id);
+      } else {
+        progress.streak = 0;
+        const snapshot = JSON.parse(JSON.stringify(question));
+        progress.mistakes = [...(progress.mistakes || []).filter((item) => item.id !== question.id), snapshot].slice(-50);
+      }
+      const stats = themeStats(question.theme);
+      progress.byTheme[question.theme] = {
+        answered: stats.answered + 1,
+        correct: stats.correct + (isCorrect ? 1 : 0),
+      };
+      saveProgress();
+    }
+
+    function nextQuestion() {
+      if (session.answers[session.index] === undefined) return;
+      if (session.index >= session.questions.length - 1) {
+        finishSession();
+        return;
+      }
+      session.index += 1;
+      renderQuestion();
+    }
+
+    function finishSession() {
+      if (!session) return;
+      if (session.timer) window.clearInterval(session.timer);
+
+      if (session.mode === "exam") {
+        session.questions.forEach((question, index) => {
+          const isCorrect = session.answers[index] === question.correct;
+          if (isCorrect) session.score += 1;
+          recordAnswer(question, isCorrect);
+        });
+      }
+
+      const resultPercent = percent(session.score, session.questions.length);
+      quizPanel.hidden = true;
+      resultsPanel.hidden = false;
+      document.querySelector("#result-percent").textContent = `${resultPercent}%`;
+      const passed = resultPercent >= EXAM_RULES.passingPercent;
+      const gaugeColor = passed ? "#55ddb0" : "#f0b94d";
+      document.querySelector("#result-gauge").style.background = `conic-gradient(${gaugeColor} 0 ${resultPercent}%, #12223a ${resultPercent}% 100%)`;
+      document.querySelector("#result-code").textContent = session.mode === "exam"
+        ? passed ? "SEUIL ATTEINT" : "SEUIL À CONSOLIDER"
+        : "SESSION TERMINÉE";
+      document.querySelector("#result-summary").textContent = session.mode === "exam"
+        ? `${session.score} bonnes réponses sur ${session.questions.length}. ${passed ? "Vous atteignez le seuil réglementaire de 75 % sur cette simulation." : "Le seuil de 75 % n’est pas encore atteint : utilisez le débriefing pour cibler la prochaine série."}`
+        : `${session.score} bonnes réponses sur ${session.questions.length}. Le tableau ci-dessous montre les thèmes à consolider.`;
+      renderResults();
+      document.querySelector("#results-title").focus({ preventScroll: true });
+      resultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function renderResults() {
+      const byTheme = {};
+      session.questions.forEach((question, index) => {
+        const stats = byTheme[question.theme] || { answered: 0, correct: 0 };
+        stats.answered += 1;
+        if (session.answers[index] === question.correct) stats.correct += 1;
+        byTheme[question.theme] = stats;
+      });
+      document.querySelector("#result-breakdown").innerHTML = Object.entries(byTheme).map(([themeId, stats]) => {
+        const value = percent(stats.correct, stats.answered);
+        return `<div><span>${themeById[themeId]?.short || themeId}</span><strong>${value}%</strong><i><b style="width:${value}%"></b></i></div>`;
+      }).join("");
+
+      const errors = session.questions.filter((question, index) => session.answers[index] !== question.correct);
+      document.querySelector("#review-errors").hidden = errors.length === 0;
+      document.querySelector("#review-list").innerHTML = errors.map((question) => `
+        <article><strong>${escapeHtml(question.prompt)}</strong><p>${escapeHtml(question.explanation)}</p><a href="${question.source.url}" target="_blank" rel="noopener noreferrer">${escapeHtml(question.source.label)} ↗</a></article>
+      `).join("");
+    }
+
+    function renderVisual(question) {
+      const node = document.querySelector("#question-visual");
+      const visual = question.visual;
+      if (!visual) {
+        node.innerHTML = `<div class="coach-reference-panel"><span>MODULE</span><strong>${escapeHtml(themeById[question.theme]?.icon || "ULM")}</strong><small>Analysez chaque proposition avant de répondre.</small></div>`;
+        return;
+      }
+      if (visual.type === "wind") {
+        node.innerHTML = `<div class="coach-nav-dial">
+          <div class="coach-compass-ring"><span class="north">N</span><span class="east">E</span><span class="south">S</span><span class="west">W</span>
+            <i class="course-needle" style="transform:rotate(${visual.course}deg)"></i>
+            <i class="wind-needle" style="transform:rotate(${visual.windFrom + 180}deg)"></i>
+            <b></b>
+          </div>
+          <dl><div><dt>AXE</dt><dd>${formatHeading(visual.course)}</dd></div><div><dt>VENT</dt><dd>${formatHeading(visual.windFrom)} / ${visual.windSpeed} kt</dd></div></dl>
+        </div>`;
+        return;
+      }
+      const rows = visualRows(visual);
+      node.innerHTML = `<div class="coach-reference-panel"><span>DONNÉES DE VOL</span>${rows.map(([label, value]) => `<div><small>${label}</small><strong>${value}</strong></div>`).join("")}</div>`;
+    }
+
+    function visualRows(visual) {
+      if (visual.type === "scale") return [["ÉCHELLE", `1/${visual.scale.toLocaleString("fr-FR")}`], ["MESURE", `${visual.centimetres} cm`]];
+      if (visual.type === "route") return [["DISTANCE", `${visual.distance} NM`], ["VITESSE SOL", `${visual.groundspeed} kt`]];
+      if (visual.type === "fuel") return [["CONSOMMATION", `${visual.consumption} L/h`], ["VOL", `${visual.flightMinutes} min`], ["RÉSERVE", `${visual.reserveMinutes} min`]];
+      if (visual.type === "compass") return [["ROUTE VRAIE", formatHeading(visual.trueRoute)], ["DÉCLINAISON", `${visual.variation}° ${visual.direction}`]];
+      if (visual.type === "distance") return [["DISTANCE", `${visual.distanceNm} NM`], ["CONVERSION", "1 NM = 1,852 km"]];
+      return [["MODULE", "NAV"]];
+    }
+
+    function leaveSession() {
+      if (session?.timer) window.clearInterval(session.timer);
+      session = null;
+      quizPanel.hidden = true;
+      resultsPanel.hidden = true;
+      setupSections.forEach((section) => section.hidden = false);
+      renderDashboard();
+      document.querySelector(".coach-dashboard").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);
+    }
+
+    document.querySelectorAll("[data-start]").forEach((button) => button.addEventListener("click", () => startSession(button.dataset.start, button.dataset.theme || "all")));
+    nextButton.addEventListener("click", nextQuestion);
+    hintButton.addEventListener("click", () => {
+      const willOpen = hintNode.hidden;
+      hintNode.hidden = !willOpen;
+      hintButton.setAttribute("aria-expanded", String(willOpen));
+      hintButton.textContent = willOpen ? "Masquer l’indice" : "Afficher un indice";
+    });
+    document.querySelector("#quit-session").addEventListener("click", leaveSession);
+    document.querySelector("#return-dashboard").addEventListener("click", leaveSession);
+    document.querySelector("#restart-session").addEventListener("click", () => {
+      const { mode, theme } = session;
+      startSession(mode === "mistakes" ? "quick" : mode, theme);
+    });
+    document.querySelector("#reset-progress").addEventListener("click", () => {
+      if (!window.confirm("Effacer toute la progression et la liste des erreurs sur cet appareil ?")) return;
+      progress = emptyProgress();
+      saveProgress();
+    });
+    renderDashboard();
+  </script>
+
+  <style>
+    .coach-shell { padding: 34px 0 80px; }
+    .coach-shell [hidden] { display: none !important; }
+    .coach-hero,
+    .coach-dashboard,
+    .coach-modes,
+    .coach-themes,
+    .coach-quiz,
+    .coach-results {
+      border: 1px solid rgba(148, 211, 255, .14);
+      background: linear-gradient(180deg, rgba(11, 25, 46, .96), rgba(4, 11, 24, .98));
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .34), inset 0 1px 0 rgba(255, 255, 255, .04);
+      border-radius: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .coach-hero::before,
+    .coach-dashboard::before,
+    .coach-quiz::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: .22;
+      background-image: linear-gradient(rgba(112, 196, 255, .09) 1px, transparent 1px), linear-gradient(90deg, rgba(112, 196, 255, .09) 1px, transparent 1px);
+      background-size: 42px 42px;
+    }
+    .coach-hero { min-height: 430px; padding: 48px; display: grid; grid-template-columns: 1.3fr .7fr; align-items: center; gap: 42px; }
+    .coach-hero-copy, .coach-radar { position: relative; z-index: 1; }
+    .coach-eyebrow, .coach-section-code { color: #77d9ff; font: 800 .77rem/1.2 var(--mono); letter-spacing: .13em; }
+    .coach-eyebrow span { color: #43e2a0; text-shadow: 0 0 12px #43e2a0; }
+    .coach-hero h1 { margin-top: 15px; max-width: 750px; }
+    .coach-hero p { max-width: 690px; font-size: 1.12rem; color: rgba(232, 242, 255, .8); }
+    .coach-hero-actions, .coach-result-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+    .coach-btn { min-height: 60px; border-radius: 16px; border: 1px solid rgba(167, 215, 255, .22); padding: 11px 20px; color: #f7fbff; background: rgba(12, 31, 57, .88); font-weight: 800; cursor: pointer; display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center; box-shadow: inset 0 1px 0 rgba(255,255,255,.06); }
+    .coach-btn span { display: block; color: #9eb2cf; font: 600 .72rem/1.2 var(--mono); margin-top: 3px; }
+    .coach-btn:hover, .coach-btn:focus-visible { border-color: #73d6ff; box-shadow: 0 0 0 4px rgba(33,183,255,.13), 0 14px 32px rgba(0,0,0,.28); transform: translateY(-1px); }
+    .coach-btn--primary { background: linear-gradient(180deg, #55cdf8, #168fc8); border-color: #bcecff; color: #03111e; }
+    .coach-btn--primary span { color: rgba(2, 22, 35, .72); }
+    .coach-radar { display: flex; align-items: center; justify-content: center; min-height: 310px; }
+    .coach-radar-grid { position: absolute; width: 290px; aspect-ratio: 1; border-radius: 50%; border: 1px solid rgba(80, 226, 170, .32); background: repeating-radial-gradient(circle, transparent 0 41px, rgba(71,229,166,.12) 42px 43px), linear-gradient(90deg, transparent 49.7%, rgba(71,229,166,.17) 50%, transparent 50.3%), linear-gradient(transparent 49.7%, rgba(71,229,166,.17) 50%, transparent 50.3%), radial-gradient(circle, rgba(15,96,77,.36), rgba(3,20,27,.2)); box-shadow: inset 0 0 50px rgba(28,195,135,.1), 0 0 48px rgba(28,195,135,.08); }
+    .coach-radar-sweep { position: absolute; inset: 50% 50% 0 50%; transform-origin: 0 0; width: 48%; height: 1px; background: linear-gradient(90deg, #60f0b5, transparent); transform: rotate(-28deg); box-shadow: 0 0 15px #60f0b5; }
+    .coach-radar-point { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: #72f1bd; box-shadow: 0 0 13px #72f1bd; }
+    .coach-radar-point--1 { top: 24%; left: 58%; } .coach-radar-point--2 { top: 63%; left: 25%; } .coach-radar-point--3 { top: 72%; left: 67%; }
+    .coach-radar-readout { position: relative; z-index: 2; border: 1px solid rgba(116, 239, 190, .26); background: rgba(3, 18, 24, .78); padding: 15px 24px; border-radius: 14px; text-align: center; backdrop-filter: blur(8px); }
+    .coach-radar-readout span, .coach-radar-readout small { display: block; color: #91aeb4; font: 700 .65rem/1.2 var(--mono); letter-spacing: .12em; }
+    .coach-radar-readout strong { display: block; color: #6cf0b8; font: 850 2.4rem/1.1 var(--mono); }
+    .coach-safety-note { margin: 15px 0 28px; padding: 15px 19px; border-left: 3px solid #f0b94d; border-radius: 5px 14px 14px 5px; background: rgba(240,185,77,.08); color: #cdd9e9; display: flex; gap: 9px; flex-wrap: wrap; font-size: .9rem; }
+    .coach-safety-note strong { color: #ffd889; }
+    .coach-dashboard, .coach-modes, .coach-themes { padding: 30px; margin-top: 22px; }
+    .coach-section-heading { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 24px; }
+    .coach-section-heading h2 { margin: 6px 0 0; }
+    .coach-link-button, .coach-source-link { border: 0; background: transparent; color: #a9bdd5; font-size: .82rem; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+    .coach-kpis { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .coach-kpis article { padding: 19px; border-radius: 17px; border: 1px solid rgba(153,207,255,.1); background: rgba(7, 18, 35, .82); }
+    .coach-kpis span, .coach-kpis small { display: block; color: #92a4bd; font-size: .75rem; }
+    .coach-kpis strong { display: block; margin: 4px 0; color: #f7fbff; font: 850 1.75rem/1.1 var(--mono); }
+    .coach-kpi-focus strong { color: #ffcc71; font: 800 1.1rem/1.2 var(--sans); }
+    .coach-mastery { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px 24px; margin-top: 24px; }
+    .coach-mastery-row { display: grid; grid-template-columns: 125px 1fr 42px; align-items: center; gap: 10px; font-size: .78rem; }
+    .coach-mastery-row > span { color: #a8bad1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .coach-mastery-row > div { height: 6px; border-radius: 99px; background: #12213a; overflow: hidden; }
+    .coach-mastery-row i { height: 100%; display: block; background: linear-gradient(90deg, #159dd8, #68e4b0); }
+    .coach-mastery-row strong { text-align: right; color: #dbe8f8; font: 700 .75rem var(--mono); }
+    .coach-data-badge { padding: 8px 12px; border: 1px solid rgba(75,226,167,.24); color: #75eab9; background: rgba(39,195,139,.08); border-radius: 9px; font: 700 .72rem var(--mono); }
+    .coach-mode-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 13px; }
+    .coach-mode-card { min-height: 114px; padding: 18px; text-align: left; display: grid; grid-template-columns: 58px 1fr auto; align-items: center; gap: 15px; color: #f7fbff; border: 1px solid rgba(154,211,255,.13); border-radius: 18px; background: linear-gradient(135deg, rgba(12,31,57,.94), rgba(6,17,32,.96)); cursor: pointer; }
+    .coach-mode-card:hover, .coach-mode-card:focus-visible { border-color: rgba(112,217,255,.52); box-shadow: 0 0 0 4px rgba(33,183,255,.09); }
+    .coach-mode-card:disabled { cursor: not-allowed; opacity: .48; }
+    .coach-mode-icon, .coach-theme-code { display: grid; place-items: center; min-height: 48px; padding: 4px; border-radius: 12px; color: #7fddff; background: rgba(36,175,226,.1); border: 1px solid rgba(83,211,255,.2); font: 800 .66rem var(--mono); letter-spacing: .08em; }
+    .coach-mode-copy strong, .coach-mode-copy small { display: block; }
+    .coach-mode-copy strong { font-size: 1rem; }
+    .coach-mode-copy small { margin-top: 4px; color: #98aac2; }
+    .coach-mode-status { color: #91a8c1; font: 700 .65rem var(--mono); }
+    .coach-mode-card--nav .coach-mode-icon, .coach-mode-card--nav .coach-mode-status { color: #66ebb3; }
+    .coach-mode-card--exam .coach-mode-icon, .coach-mode-card--exam .coach-mode-status { color: #ffca69; }
+    .coach-theme-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .coach-theme-card { padding: 17px; min-height: 154px; text-align: left; display: flex; flex-direction: column; align-items: flex-start; color: #f5f9ff; border-radius: 18px; border: 1px solid rgba(160,213,255,.12); background: rgba(6,17,33,.9); cursor: pointer; }
+    .coach-theme-card:hover, .coach-theme-card:focus-visible { transform: translateY(-2px); border-color: var(--theme-color, #64d6ff); box-shadow: 0 13px 28px rgba(0,0,0,.22); }
+    .coach-theme-code { color: var(--theme-color, #64d6ff); border-color: color-mix(in srgb, var(--theme-color, #64d6ff) 35%, transparent); }
+    .coach-theme-name { margin-top: 14px; font-weight: 800; line-height: 1.2; }
+    .coach-theme-meta, .coach-theme-progress { color: #879ab3; font-size: .7rem; line-height: 1.35; margin-top: 5px; }
+    .coach-theme-progress { margin-top: auto; padding-top: 12px; color: var(--theme-color, #64d6ff); font-family: var(--mono); }
+    .coach-theme-card--cyan { --theme-color:#68d9ff; } .coach-theme-card--violet { --theme-color:#b799ff; } .coach-theme-card--blue { --theme-color:#77a9ff; } .coach-theme-card--amber { --theme-color:#ffc96b; } .coach-theme-card--green { --theme-color:#62e6aa; } .coach-theme-card--pink { --theme-color:#ff9fc3; } .coach-theme-card--orange { --theme-color:#ffad6b; } .coach-theme-card--red { --theme-color:#ff8585; }
+    .coach-quiz { margin-top: 20px; }
+    .coach-quiz-topbar { position: relative; z-index: 1; padding: 17px 24px; display: flex; justify-content: space-between; align-items: center; gap: 18px; background: rgba(5,13,26,.78); border-bottom: 1px solid rgba(151,210,255,.1); }
+    .coach-quiz-mode span, .coach-quiz-instruments span { display: block; color: #65d8ff; font: 700 .64rem var(--mono); letter-spacing: .1em; }
+    .coach-quiz-mode strong { display: block; margin-top: 2px; }
+    .coach-quiz-instruments { display: flex; align-items: center; gap: 24px; }
+    .coach-quiz-instruments > div { text-align: right; }
+    .coach-quiz-instruments strong { font: 800 1rem var(--mono); color: #fff; }
+    .coach-quiz-instruments button { color: #9bacc2; background: transparent; border: 1px solid rgba(160,210,255,.14); border-radius: 10px; padding: 8px 11px; cursor: pointer; }
+    .coach-progress-track { height: 4px; background: #0b1b31; }
+    .coach-progress-track span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #1eaff0, #5ce2ad); transition: width .2s ease; }
+    .coach-question-layout { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(240px, .68fr) minmax(0, 1.5fr); gap: 24px; padding: 28px; }
+    .coach-question-context { min-height: 340px; border: 1px solid rgba(146,211,255,.12); border-radius: 21px; background: radial-gradient(circle at 50% 20%, rgba(34,151,203,.12), transparent 55%), rgba(3,12,24,.82); display: grid; place-items: center; padding: 22px; }
+    .coach-reference-panel { width: 100%; display: grid; gap: 12px; }
+    .coach-reference-panel > span { color: #65d8ff; font: 700 .67rem var(--mono); letter-spacing: .12em; }
+    .coach-reference-panel > strong { font: 900 3.2rem var(--mono); color: #6bdcff; }
+    .coach-reference-panel > small { color: #9baec5; }
+    .coach-reference-panel > div { padding: 14px; background: #08172b; border: 1px solid rgba(150,211,255,.11); border-radius: 13px; }
+    .coach-reference-panel > div small, .coach-reference-panel > div strong { display: block; }
+    .coach-reference-panel > div small { color: #8297b1; font: 700 .64rem var(--mono); }
+    .coach-reference-panel > div strong { margin-top: 4px; color: #f5f9ff; font: 800 1.05rem var(--mono); }
+    .coach-nav-dial { width: min(100%, 300px); }
+    .coach-compass-ring { width: 100%; aspect-ratio: 1; position: relative; border-radius: 50%; border: 2px solid rgba(109,213,255,.32); background: repeating-conic-gradient(from -1deg, rgba(138,214,255,.38) 0 1deg, transparent 1deg 10deg), radial-gradient(circle, #0b1c32 0 66%, #061221 67%); box-shadow: inset 0 0 34px rgba(55,175,225,.15), 0 0 30px rgba(55,175,225,.08); }
+    .coach-compass-ring > span { position: absolute; color: #83dfff; font: 800 .75rem var(--mono); z-index: 3; }
+    .coach-compass-ring .north { top: 6px; left: 50%; transform: translateX(-50%); } .coach-compass-ring .south { bottom: 6px; left: 50%; transform: translateX(-50%); } .coach-compass-ring .east { right: 9px; top: 50%; transform: translateY(-50%); } .coach-compass-ring .west { left: 9px; top: 50%; transform: translateY(-50%); }
+    .course-needle, .wind-needle { position: absolute; left: calc(50% - 3px); bottom: 50%; width: 6px; height: 40%; transform-origin: 50% 100%; border-radius: 8px 8px 2px 2px; z-index: 2; }
+    .course-needle { background: #72dcff; box-shadow: 0 0 14px rgba(114,220,255,.55); }
+    .wind-needle { height: 34%; background: #ffb65e; box-shadow: 0 0 14px rgba(255,182,94,.55); clip-path: polygon(50% 0, 100% 18%, 65% 18%, 65% 100%, 35% 100%, 35% 18%, 0 18%); }
+    .coach-compass-ring b { position: absolute; z-index: 4; width: 14px; height: 14px; border-radius: 50%; background: #e9f8ff; left: calc(50% - 7px); top: calc(50% - 7px); box-shadow: 0 0 12px #b6eaff; }
+    .coach-nav-dial dl { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0 0; }
+    .coach-nav-dial dl div { background: #08172b; padding: 9px 11px; border-radius: 10px; }
+    .coach-nav-dial dt { color: #718aa8; font: 700 .59rem var(--mono); }
+    .coach-nav-dial dd { margin: 2px 0 0; font: 800 .8rem var(--mono); }
+    .coach-question-card { padding: 7px 6px; }
+    .coach-question-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .coach-question-meta span { padding: 6px 9px; border-radius: 7px; border: 1px solid rgba(118,213,255,.18); background: rgba(50,178,227,.08); color: #82dcff; font: 700 .64rem var(--mono); }
+    .coach-question-meta #question-generated { color: #65e9b2; border-color: rgba(77,225,168,.22); }
+    .coach-question-card h2 { font-size: clamp(1.4rem, 2.4vw, 2rem); line-height: 1.3; margin: 18px 0 24px; }
+    .coach-question-card h2:focus { outline: none; }
+    .coach-options { display: grid; gap: 10px; }
+    .coach-option { width: 100%; min-height: 66px; display: grid; grid-template-columns: 42px 1fr; align-items: center; gap: 12px; text-align: left; color: #edf5ff; border: 1px solid rgba(151,210,255,.14); border-radius: 15px; background: rgba(8,21,40,.86); padding: 10px 16px 10px 10px; cursor: pointer; }
+    .coach-option > span { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; color: #7edcff; border: 1px solid rgba(104,214,255,.24); background: rgba(46,173,223,.1); font: 800 .8rem var(--mono); }
+    .coach-option > strong { font-weight: 650; }
+    .coach-option:hover, .coach-option:focus-visible, .coach-option.is-selected { border-color: #68d6ff; background: rgba(21,75,108,.48); }
+    .coach-option.is-correct { border-color: #4de2a4; background: rgba(24,121,84,.28); }
+    .coach-option.is-wrong { border-color: #ff7f8e; background: rgba(137,42,57,.28); }
+    .coach-question-actions { margin-top: 18px; display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+    .coach-hint-button { color: #9db0c9; border: 0; background: transparent; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+    .coach-next { align-items: center; min-height: 52px; }
+    .coach-next:disabled { opacity: .42; cursor: not-allowed; }
+    .coach-hint { margin-top: 14px; padding: 13px 15px; border-left: 3px solid #6ed8ff; color: #bed0e5; background: rgba(39,153,204,.08); }
+    .coach-feedback { margin-top: 16px; padding: 16px; border-radius: 14px; border: 1px solid; }
+    .coach-feedback strong { display: block; margin-bottom: 5px; }
+    .coach-feedback p { margin: 0 0 7px; color: #c2d0e1; }
+    .coach-feedback a, .coach-review a { color: #8cddff; font-size: .77rem; text-decoration: underline; text-underline-offset: 3px; }
+    .coach-feedback.is-correct { border-color: rgba(72,225,163,.35); background: rgba(29,149,101,.11); } .coach-feedback.is-correct strong { color: #6de9b5; }
+    .coach-feedback.is-wrong { border-color: rgba(255,122,139,.35); background: rgba(162,46,63,.1); } .coach-feedback.is-wrong strong { color: #ff9aa6; }
+    .coach-results { margin-top: 22px; padding: 36px; display: grid; grid-template-columns: 180px 1fr 1fr; gap: 28px; align-items: center; }
+    .coach-result-gauge { width: 170px; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(#55ddb0 0 75%, #12223a 75%); padding: 10px; }
+    .coach-result-gauge > div { width: 100%; height: 100%; border-radius: 50%; background: #071426; display: grid; place-content: center; text-align: center; }
+    .coach-result-gauge strong { font: 900 2.3rem var(--mono); } .coach-result-gauge span { color: #7f94ae; font: 700 .62rem var(--mono); }
+    .coach-result-copy p { max-width: 570px; }
+    .coach-result-breakdown { display: grid; gap: 9px; }
+    .coach-result-breakdown > div { display: grid; grid-template-columns: 1fr auto; gap: 5px 10px; font-size: .78rem; }
+    .coach-result-breakdown span { color: #a3b4c9; } .coach-result-breakdown strong { font-family: var(--mono); }
+    .coach-result-breakdown i { grid-column: 1 / -1; height: 5px; background: #14243b; border-radius: 99px; overflow: hidden; }
+    .coach-result-breakdown b { display: block; height: 100%; background: #57dcb0; }
+    .coach-review { grid-column: 1 / -1; border-top: 1px solid rgba(157,214,255,.12); padding-top: 20px; }
+    .coach-review summary { cursor: pointer; font-weight: 800; }
+    .coach-review article { margin-top: 12px; padding: 14px; border-radius: 12px; background: rgba(8,20,38,.8); }
+    .coach-review article p { margin: 5px 0; }
+    @media (max-width: 980px) {
+      .coach-hero { grid-template-columns: 1fr; padding: 34px; }
+      .coach-radar { min-height: 280px; }
+      .coach-kpis, .coach-theme-grid { grid-template-columns: repeat(2, 1fr); }
+      .coach-question-layout { grid-template-columns: 1fr; }
+      .coach-question-context { min-height: auto; }
+      .coach-nav-dial { width: min(100%, 250px); padding: 10px 0; }
+      .coach-reference-panel { grid-template-columns: repeat(2, 1fr); }
+      .coach-reference-panel > span { grid-column: 1 / -1; }
+      .coach-results { grid-template-columns: 160px 1fr; }
+      .coach-result-breakdown { grid-column: 1 / -1; }
+    }
+    @media (max-width: 680px) {
+      .coach-shell { padding-top: 16px; }
+      .coach-hero, .coach-dashboard, .coach-modes, .coach-themes, .coach-results { padding: 22px 18px; border-radius: 21px; }
+      .coach-hero { min-height: 0; }
+      .coach-hero-actions .coach-btn { width: 100%; }
+      .coach-radar { min-height: 245px; transform: scale(.9); margin: -8px 0; }
+      .coach-section-heading { align-items: flex-start; flex-direction: column; }
+      .coach-kpis, .coach-mode-grid, .coach-theme-grid, .coach-mastery { grid-template-columns: 1fr; }
+      .coach-mastery-row { grid-template-columns: 110px 1fr 38px; }
+      .coach-mode-card { grid-template-columns: 52px 1fr; }
+      .coach-mode-status { grid-column: 2; }
+      .coach-quiz-topbar { align-items: flex-start; padding: 14px 16px; }
+      .coach-quiz-instruments { gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+      .coach-question-layout { padding: 18px 14px 24px; }
+      .coach-reference-panel { grid-template-columns: 1fr; }
+      .coach-question-actions { align-items: stretch; flex-direction: column; }
+      .coach-next { width: 100%; }
+      .coach-results { grid-template-columns: 1fr; text-align: left; }
+      .coach-result-gauge { width: 145px; }
+    }
+  </style>
+</BaseLayout>

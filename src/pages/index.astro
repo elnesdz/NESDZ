@@ -37,6 +37,40 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     </div>
   </section>
 
+  <section class="container home-coach-section" aria-labelledby="home-coach-title">
+    <article class="home-coach-card">
+      <div class="home-coach-copy">
+        <div class="home-coach-kicker"><span aria-hidden="true">●</span> NOUVEAU · COACH THÉORIQUE</div>
+        <h2 id="home-coach-title">Préparez le théorique ULM comme une mission.</h2>
+        <p>
+          QCM expliqués, navigation générée par calcul, examen blanc de 60 questions
+          et tableau de progression par thème.
+        </p>
+        <div class="home-coach-features" aria-label="Fonctionnalités du coach">
+          <span>40 questions sourcées</span>
+          <span>8 000+ variantes calculées</span>
+          <span>Progression locale</span>
+        </div>
+        <a class="btn home-coach-button" href="/coach/">
+          Ouvrir le coach théorique
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+      <div class="home-coach-instrument" aria-hidden="true">
+        <div class="home-coach-dial">
+          <span class="home-coach-dial-label">OBJECTIF</span>
+          <strong>75%</strong>
+          <small>SEUIL EXAMEN</small>
+          <i></i>
+        </div>
+        <div class="home-coach-readouts">
+          <span><small>MODE</small><strong>TRAINING</strong></span>
+          <span><small>MODULE</small><strong>NAV · MET · SERA</strong></span>
+        </div>
+      </div>
+    </article>
+  </section>
+
   <section class="container home-model-section">
     <div class="card">
       <div class="pad">
@@ -468,6 +502,182 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       min-width: 0;
     }
 
+    .home-coach-section {
+      margin-top: 6px;
+      margin-bottom: 28px;
+    }
+
+    .home-coach-card {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(260px, .65fr);
+      gap: 32px;
+      align-items: center;
+      padding: 34px 38px;
+      border-radius: 27px;
+      border: 1px solid rgba(104, 225, 178, .22);
+      background:
+        linear-gradient(rgba(99, 224, 181, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 224, 181, .035) 1px, transparent 1px),
+        radial-gradient(500px 250px at 88% 40%, rgba(47, 209, 150, .14), transparent 70%),
+        linear-gradient(135deg, rgba(8, 27, 45, .98), rgba(4, 13, 27, .98));
+      background-size: 38px 38px, 38px 38px, auto, auto;
+      box-shadow: 0 24px 60px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04);
+    }
+
+    .home-coach-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+      box-shadow: inset 0 0 60px rgba(31, 193, 139, .045);
+    }
+
+    .home-coach-copy,
+    .home-coach-instrument {
+      position: relative;
+      z-index: 1;
+    }
+
+    .home-coach-kicker {
+      color: #69e6b1;
+      font: 800 .74rem/1.2 var(--mono);
+      letter-spacing: .12em;
+    }
+
+    .home-coach-kicker span {
+      text-shadow: 0 0 10px #55e5a7;
+    }
+
+    .home-coach-copy h2 {
+      max-width: 690px;
+      margin-top: 11px;
+      font-size: clamp(1.8rem, 3.1vw, 2.75rem);
+    }
+
+    .home-coach-copy p {
+      max-width: 690px;
+      color: rgba(225, 238, 250, .75);
+    }
+
+    .home-coach-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 18px 0 22px;
+    }
+
+    .home-coach-features span {
+      padding: 7px 10px;
+      border: 1px solid rgba(103, 226, 177, .16);
+      border-radius: 8px;
+      color: #a8d9c8;
+      background: rgba(38, 159, 116, .08);
+      font: 700 .68rem/1.2 var(--mono);
+    }
+
+    .home-coach-button {
+      min-height: 55px;
+      width: fit-content;
+      color: #03150e;
+      background: linear-gradient(180deg, #78edbd, #35bc82);
+      border-color: #baffdc;
+    }
+
+    .home-coach-button:hover,
+    .home-coach-button:focus-visible {
+      color: #03150e;
+      border-color: #e2fff1;
+      background: linear-gradient(180deg, #8cf2c8, #3fc78c);
+      box-shadow: 0 0 0 4px rgba(69, 220, 160, .12), 0 16px 32px rgba(0,0,0,.28);
+    }
+
+    .home-coach-instrument {
+      display: grid;
+      place-items: center;
+      gap: 14px;
+    }
+
+    .home-coach-dial {
+      width: 210px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      position: relative;
+      border: 2px solid rgba(102, 234, 183, .28);
+      background:
+        repeating-conic-gradient(from 0deg, rgba(104, 234, 181, .46) 0 1deg, transparent 1deg 10deg),
+        radial-gradient(circle, #0a2530 0 61%, #06141f 62%);
+      box-shadow: inset 0 0 34px rgba(50, 210, 154, .13), 0 0 40px rgba(50, 210, 154, .08);
+    }
+
+    .home-coach-dial::before {
+      content: "";
+      position: absolute;
+      inset: 21px;
+      border-radius: 50%;
+      background: rgba(4, 19, 28, .92);
+      border: 1px solid rgba(111, 232, 186, .14);
+    }
+
+    .home-coach-dial > * {
+      position: relative;
+      z-index: 2;
+    }
+
+    .home-coach-dial-label,
+    .home-coach-dial small {
+      color: #86b6a6;
+      font: 700 .58rem/1.2 var(--mono);
+      letter-spacing: .1em;
+    }
+
+    .home-coach-dial strong {
+      color: #72edb9;
+      font: 900 2.55rem/1.1 var(--mono);
+      text-shadow: 0 0 22px rgba(91, 233, 178, .25);
+    }
+
+    .home-coach-dial i {
+      position: absolute;
+      width: 5px;
+      height: 66px;
+      left: calc(50% - 2px);
+      bottom: 50%;
+      z-index: 1;
+      transform: rotate(55deg);
+      transform-origin: 50% 100%;
+      background: linear-gradient(#ffc76e, transparent);
+      box-shadow: 0 0 12px rgba(255, 199, 110, .5);
+    }
+
+    .home-coach-readouts {
+      width: min(100%, 270px);
+      display: grid;
+      grid-template-columns: .8fr 1.2fr;
+      gap: 7px;
+    }
+
+    .home-coach-readouts span {
+      padding: 9px 10px;
+      border: 1px solid rgba(115, 226, 184, .12);
+      background: rgba(5, 21, 31, .82);
+      border-radius: 9px;
+    }
+
+    .home-coach-readouts small,
+    .home-coach-readouts strong {
+      display: block;
+      font-family: var(--mono);
+    }
+
+    .home-coach-readouts small { color: #708f8a; font-size: .55rem; }
+    .home-coach-readouts strong { color: #9ee3c9; font-size: .64rem; margin-top: 2px; }
+
     .home-model-topline {
       display: flex;
       justify-content: space-between;
@@ -540,6 +750,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       .home-model-grid {
         grid-template-columns: 1fr;
       }
+
+      .home-coach-card {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 720px) {
@@ -585,6 +799,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       .home-model-section .pad,
       .home-themes-section .pad {
         padding: 20px;
+      }
+
+      .home-coach-card {
+        padding: 24px 20px;
+      }
+
+      .home-coach-button {
+        width: 100%;
       }
 
       .home-model-card-inner {
