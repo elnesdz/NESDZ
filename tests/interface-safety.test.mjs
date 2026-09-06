@@ -38,6 +38,24 @@ test("site provides keyboard navigation and reduced-motion support", async () =>
   assert.match(styles, /prefers-reduced-motion: reduce/);
 });
 
+test("briefing tabs use distinct cockpit controls with a non-colour active state", async () => {
+  const source = await readFile(toolsPageUrl, "utf8");
+  const cockpitTabs = source.split("COCKPIT MODE SELECTOR")[1] ?? "";
+
+  for (const tab of ["metar", "taf", "notam", "terrain"]) {
+    assert.match(source, new RegExp(`data-briefing-tab="${tab}"`));
+  }
+
+  assert.match(cockpitTabs, /--tab-solid:\s*#58d5ff/);
+  assert.match(cockpitTabs, /--tab-solid:\s*#ab91ff/);
+  assert.match(cockpitTabs, /--tab-solid:\s*#ffc05d/);
+  assert.match(cockpitTabs, /--tab-solid:\s*#52e6a5/);
+  assert.match(cockpitTabs, /\.briefing-tab small\s*{[\s\S]*?display:\s*block/);
+  assert.match(cockpitTabs, /\.briefing-tab:focus-visible/);
+  assert.match(cockpitTabs, /\.briefing-tab\[aria-pressed="true"\]/);
+  assert.match(cockpitTabs, /prefers-reduced-motion:\s*reduce/);
+});
+
 test("main pushes automatically build a short-lived production artifact", async () => {
   const workflow = await readFile(buildWorkflowUrl, "utf8");
 

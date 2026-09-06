@@ -17100,6 +17100,218 @@ function renderUlmNearbyItem(item) {
     outline-offset: 2px;
   }
 
+  /* COCKPIT MODE SELECTOR: four tactile, colour-coded briefing controls. */
+  .nesdz-premium-ui .tool-page .briefing-tabs {
+    gap: 7px;
+    min-height: 0;
+    padding: 7px;
+    overflow: visible;
+    border: 1px solid #29475c;
+    border-radius: 12px;
+    background: #020811;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.06),
+      inset 0 -8px 18px rgba(0,0,0,.28),
+      0 10px 26px rgba(0,0,0,.24);
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab[data-briefing-tab="metar"] {
+    --tab-rgb: 64, 205, 255;
+    --tab-solid: #58d5ff;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab[data-briefing-tab="taf"] {
+    --tab-rgb: 154, 126, 255;
+    --tab-solid: #ab91ff;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab[data-briefing-tab="notam"] {
+    --tab-rgb: 255, 183, 77;
+    --tab-solid: #ffc05d;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab[data-briefing-tab="terrain"] {
+    --tab-rgb: 70, 224, 155;
+    --tab-solid: #52e6a5;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab {
+    position: relative;
+    min-width: 0;
+    min-height: 58px;
+    display: grid;
+    grid-template-rows: auto auto;
+    place-items: initial;
+    align-content: center;
+    justify-items: start;
+    gap: 2px;
+    padding: 8px 10px 8px 28px;
+    overflow: hidden;
+    border: 1px solid rgba(var(--tab-rgb), .36);
+    border-radius: 8px;
+    color: #d8e5ef;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.055), transparent 42%),
+      #081421;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.07),
+      inset 0 -3px 0 rgba(0,0,0,.46),
+      0 3px 7px rgba(0,0,0,.34);
+    text-align: left;
+    transform: translateY(0);
+    transition: border-color .16s ease, background .16s ease, box-shadow .16s ease, transform .16s ease;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab::before {
+    content: "";
+    position: absolute;
+    top: 12px;
+    left: 10px;
+    width: 8px;
+    height: 8px;
+    border: 1px solid rgba(var(--tab-rgb), .62);
+    border-radius: 50%;
+    background: rgba(var(--tab-rgb), .2);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.6);
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab::after {
+    content: "";
+    position: absolute;
+    inset: auto 9px 5px;
+    width: auto;
+    height: 2px;
+    border-radius: 999px;
+    background: rgba(var(--tab-rgb), .24);
+    box-shadow: none;
+    transform: none;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab strong {
+    color: var(--tab-solid);
+    font-size: .78rem;
+    font-weight: 950;
+    line-height: 1.05;
+    letter-spacing: .085em;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab small {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    color: #91a7b8;
+    font-size: .59rem;
+    font-weight: 750;
+    line-height: 1.05;
+    letter-spacing: .025em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab:hover {
+    border-color: rgba(var(--tab-rgb), .76);
+    background:
+      linear-gradient(180deg, rgba(var(--tab-rgb), .13), transparent 55%),
+      #0a1928;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.1),
+      inset 0 -3px 0 rgba(0,0,0,.4),
+      0 4px 10px rgba(0,0,0,.38);
+    transform: translateY(-1px);
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab:focus-visible {
+    z-index: 1;
+    outline: 3px solid #ffffff;
+    outline-offset: 2px;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab.is-active,
+  .nesdz-premium-ui .tool-page .briefing-tab[aria-pressed="true"] {
+    border-color: var(--tab-solid);
+    color: #ffffff;
+    background:
+      linear-gradient(180deg, rgba(var(--tab-rgb), .34), rgba(var(--tab-rgb), .11) 72%),
+      #07131f;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.22),
+      inset 0 -2px 0 rgba(var(--tab-rgb), .28),
+      0 0 0 1px rgba(var(--tab-rgb), .13),
+      0 0 17px rgba(var(--tab-rgb), .27);
+    transform: translateY(1px);
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab.is-active::before,
+  .nesdz-premium-ui .tool-page .briefing-tab[aria-pressed="true"]::before {
+    border-color: #ffffff;
+    background: #ffffff;
+    box-shadow:
+      0 0 4px #ffffff,
+      0 0 11px rgba(var(--tab-rgb), .95),
+      0 0 18px rgba(var(--tab-rgb), .58);
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab.is-active::after,
+  .nesdz-premium-ui .tool-page .briefing-tab[aria-pressed="true"]::after {
+    background: var(--tab-solid);
+    box-shadow: 0 0 8px rgba(var(--tab-rgb), .8);
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab.is-active strong,
+  .nesdz-premium-ui .tool-page .briefing-tab[aria-pressed="true"] strong {
+    color: #ffffff;
+    text-shadow: 0 0 9px rgba(var(--tab-rgb), .9);
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab.is-active small,
+  .nesdz-premium-ui .tool-page .briefing-tab[aria-pressed="true"] small {
+    color: #f4f9fc;
+  }
+
+  @media (max-width: 520px) {
+    .nesdz-premium-ui .tool-page .briefing-tabs {
+      grid-template-columns: repeat(4, minmax(70px, 1fr));
+      gap: 4px;
+      padding: 5px;
+      overflow-x: auto;
+      border-radius: 10px;
+    }
+
+    .nesdz-premium-ui .tool-page .briefing-tab {
+      min-height: 54px;
+      padding: 7px 4px 7px 19px;
+      border-radius: 7px;
+    }
+
+    .nesdz-premium-ui .tool-page .briefing-tab::before {
+      top: 10px;
+      left: 7px;
+      width: 6px;
+      height: 6px;
+    }
+
+    .nesdz-premium-ui .tool-page .briefing-tab::after {
+      right: 5px;
+      left: 5px;
+    }
+
+    .nesdz-premium-ui .tool-page .briefing-tab strong {
+      font-size: .66rem;
+      letter-spacing: .045em;
+    }
+
+    .nesdz-premium-ui .tool-page .briefing-tab small {
+      font-size: .52rem;
+      letter-spacing: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nesdz-premium-ui .tool-page .briefing-tab {
+      transition: none;
+    }
+  }
+
 </style>
 
 </BaseLayout>
