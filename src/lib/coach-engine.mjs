@@ -1,4 +1,10 @@
-import { COACH_SOURCES, CURATED_QUESTIONS } from "../data/coach-questions.mjs";
+import {
+  COACH_BANK_REVIEWED_AT,
+  COACH_BANK_VERSION,
+  COACH_SOURCES,
+  CURATED_QUESTIONS,
+  SYLLABUS_REFERENCES,
+} from "../data/coach-questions.mjs";
 
 export const THEMES = [
   { id: "aeronef", label: "Connaissance aéronef", short: "Aéronef", icon: "ENGINE", color: "cyan" },
@@ -17,10 +23,33 @@ export const EXAM_RULES = {
   passingPercent: 75,
 };
 
-export const ALGORITHMIC_VARIANTS = 8000;
+// Répartition éditoriale NESDZ pour assurer la couverture de tous les thèmes.
+// Elle ne prétend pas reproduire une pondération confidentielle de la DGAC.
+export const EXAM_BLUEPRINT = {
+  aeronef: 8,
+  aerodynamique: 8,
+  meteo: 8,
+  reglementation: 8,
+  navigation: 8,
+  "facteurs-humains": 7,
+  performances: 7,
+  operations: 6,
+};
+
+export const COACH_QUALITY = {
+  bankVersion: COACH_BANK_VERSION,
+  reviewedAt: COACH_BANK_REVIEWED_AT,
+  status: "Revue interne — non agréé DGAC",
+};
+
+export const ALGORITHMIC_VARIANTS = 12000;
 
 export function normalizeHeading(value) {
   return ((Math.round(value) % 360) + 360) % 360;
+}
+
+function normalizeAngle(value) {
+  return ((value % 360) + 360) % 360;
 }
 
 export function formatHeading(value) {
@@ -35,6 +64,45 @@ export function windComponents(courseDeg, windFromDeg, windSpeedKt) {
     headwindKt: windSpeedKt * Math.cos(radians),
     crosswindKt: windSpeedKt * Math.sin(radians),
   };
+}
+
+export function solveWindTriangle(trackDeg, trueAirspeedKt, windFromDeg, windSpeedKt) {
+  if (![trackDeg, trueAirspeedKt, windFromDeg, windSpeedKt].every(Number.isFinite)) {
+    throw new TypeError("Les données du triangle des vitesses doivent être numériques.");
+  }
+  if (trueAirspeedKt <= 0 || windSpeedKt < 0) {
+    throw new RangeError("La vitesse air doit être positive et le vent ne peut pas être négatif.");
+  }
+
+  const track = (normalizeHeading(trackDeg) * Math.PI) / 180;
+  const windTo = (normalizeHeading(windFromDeg + 180) * Math.PI) / 180;
+  const trackVector = { x: Math.sin(track), y: Math.cos(track) };
+  const rightVector = { x: Math.cos(track), y: -Math.sin(track) };
+  const windVector = {
+    x: windSpeedKt * Math.sin(windTo),
+    y: windSpeedKt * Math.cos(windTo),
+  };
+  const windAlongKt = windVector.x * trackVector.x + windVector.y * trackVector.y;
+  const windCrossKt = windVector.x * rightVector.x + windVector.y * rightVector.y;
+
+  if (Math.abs(windCrossKt) >= trueAirspeedKt) {
+    throw new RangeError("Le vent traversier ne permet pas de maintenir cette route avec la vitesse air donnée.");
+  }
+
+  const airAlongKt = Math.sqrt((trueAirspeedKt ** 2) - (windCrossKt ** 2));
+  const groundspeedKt = airAlongKt + windAlongKt;
+  if (groundspeedKt <= 0) {
+    throw new RangeError("La vitesse sol calculée n’est pas positive.");
+  }
+
+  const airVector = {
+    x: groundspeedKt * trackVector.x - windVector.x,
+    y: groundspeedKt * trackVector.y - windVector.y,
+  };
+  const headingDeg = normalizeAngle((Math.atan2(airVector.x, airVector.y) * 180) / Math.PI);
+  const correctionDeg = ((((headingDeg - normalizeAngle(trackDeg)) % 360) + 540) % 360) - 180;
+
+  return { headingDeg, groundspeedKt, correctionDeg, windAlongKt, windCrossKt };
 }
 
 export function magneticFromTrue(trueDeg, variationDeg, direction) {
@@ -100,12 +168,23 @@ function uniqueNumericOptions(answer, candidates, formatter, rng) {
 }
 
 function generatedQuestion(base) {
+  const explanation = base.explanation;
+  const feedback = base.feedback ?? base.options.map((option, index) => index === base.correct
+    ? explanation
+    : `Le résultat « ${option} » ne satisfait pas les données du calcul. ${explanation}`);
   return {
     ...base,
     id: `generated-${base.kind}-${base.seedPart}`,
     theme: base.theme ?? "navigation",
     difficulty: base.difficulty ?? 2,
     source: COACH_SOURCES.programme,
+    feedback,
+    editorial: {
+      status: "calcul-verifie",
+      reviewedAt: COACH_BANK_REVIEWED_AT,
+      bankVersion: COACH_BANK_VERSION,
+      syllabusReference: SYLLABUS_REFERENCES[base.theme ?? "navigation"],
+    },
     generated: true,
   };
 }
@@ -136,6 +215,46 @@ function generateWindQuestion(rng) {
     explanation: `Écart angulaire : ${Math.abs(components.relativeDeg)}°. Composante de face = V × cos(écart), composante traversière = V × sin(écart). On obtient environ ${Math.round(Math.abs(components.headwindKt))} kt de face et ${Math.round(Math.abs(components.crosswindKt))} kt traversiers ${sideLabel}.`,
     hint: `Décomposez le vent avec le cosinus pour la composante axiale et le sinus pour la composante traversière.`,
     visual: { type: "wind", course, windFrom, windSpeed, side: sideLabel },
+  });
+}
+
+export function generateWindTriangleQuestion(rng = Math.random) {
+  const track = pick(Array.from({ length: 36 }, (_, index) => index * 10), rng);
+  const angle = pick([30, 45, 60, 75, 90], rng);
+  const side = pick([-1, 1], rng);
+  const trueAirspeed = pick([70, 80, 90, 100, 110, 120, 130, 140], rng);
+  const windSpeed = pick([8, 10, 12, 15, 18, 20, 22, 25], rng);
+  const windFrom = normalizeHeading(track + side * angle);
+  const solution = solveWindTriangle(track, trueAirspeed, windFrom, windSpeed);
+  const answer = normalizeHeading(solution.headingDeg);
+  const mirror = normalizeHeading(track - solution.correctionDeg);
+  const overCorrection = normalizeHeading(track + (solution.correctionDeg * 2));
+  const candidates = [answer, normalizeHeading(track), mirror, overCorrection, normalizeHeading(answer + 5), normalizeHeading(answer - 5)];
+  const headings = shuffle(Array.from(new Set(candidates)).slice(0, 4), rng);
+  const crosswind = Math.abs(solution.windCrossKt);
+  const correction = Math.abs(solution.correctionDeg);
+  const windSide = side > 0 ? "droite" : "gauche";
+  const correctionSide = solution.correctionDeg > 0 ? "droite" : "gauche";
+
+  return generatedQuestion({
+    kind: "wind-triangle",
+    seedPart: `${track}-${trueAirspeed}-${windFrom}-${windSpeed}`,
+    difficulty: 3,
+    prompt: `Vous voulez maintenir la route vraie ${formatHeading(track)} avec une vitesse air vraie de ${trueAirspeed} kt. Le vent vient du ${formatHeading(windFrom)} pour ${windSpeed} kt. Quel cap vrai faut-il prendre, au degré près ?`,
+    options: headings.map(formatHeading),
+    correct: headings.indexOf(answer),
+    explanation: `Le vent arrive de la ${windSide}. Sa composante traversière vaut environ ${crosswind.toFixed(1).replace(".", ",")} kt. La correction de dérive est arcsin(${crosswind.toFixed(1).replace(".", ",")} / ${trueAirspeed}) ≈ ${correction.toFixed(1).replace(".", ",")}° vers la ${correctionSide}. Il faut donc prendre le cap ${formatHeading(answer)} pour conserver la route ${formatHeading(track)}. La vitesse sol calculée est d’environ ${Math.round(solution.groundspeedKt)} kt.`,
+    hint: "Calculez la composante traversière, puis la correction de dérive. Corrigez le cap vers le côté d’où vient le vent.",
+    visual: {
+      type: "wind-triangle",
+      track,
+      heading: answer,
+      trueAirspeed,
+      windFrom,
+      windSpeed,
+      groundspeed: Math.round(solution.groundspeedKt),
+      correction: Math.round(solution.correctionDeg * 10) / 10,
+    },
   });
 }
 
@@ -256,6 +375,7 @@ function generateConversionQuestion(rng) {
 
 const GENERATORS = [
   generateWindQuestion,
+  generateWindTriangleQuestion,
   generateScaleQuestion,
   generateTimeQuestion,
   generateFuelQuestion,
@@ -273,11 +393,16 @@ export function generateAlgorithmicQuestion(rng = Math.random, theme) {
 }
 
 export function prepareQuestion(question, rng) {
-  const indexed = question.options.map((label, index) => ({ label, originalIndex: index }));
+  const indexed = question.options.map((label, index) => ({
+    label,
+    feedback: question.feedback?.[index] ?? question.explanation,
+    originalIndex: index,
+  }));
   const mixed = shuffle(indexed, rng);
   return {
     ...question,
     options: mixed.map((option) => option.label),
+    feedback: mixed.map((option) => option.feedback),
     correct: mixed.findIndex((option) => option.originalIndex === question.correct),
   };
 }
@@ -299,8 +424,28 @@ function generateUniqueQuestions(total, rng, theme) {
   return questions;
 }
 
+function createBlueprintExam(rng) {
+  const dynamicTargets = { navigation: 4, performances: 3 };
+  const questions = [];
+
+  for (const [theme, target] of Object.entries(EXAM_BLUEPRINT)) {
+    const dynamicCount = dynamicTargets[theme] ?? 0;
+    const curatedCount = target - dynamicCount;
+    const curated = shuffle(CURATED_QUESTIONS.filter((question) => question.theme === theme), rng).slice(0, curatedCount);
+    if (curated.length !== curatedCount) {
+      throw new Error(`Banque insuffisante pour le thème ${theme} : ${curated.length}/${curatedCount}.`);
+    }
+    questions.push(...curated, ...generateUniqueQuestions(dynamicCount, rng, theme));
+  }
+
+  return shuffle(questions, rng).map((question) => prepareQuestion(question, rng));
+}
+
 export function createSession({ mode = "quick", theme = "all", count, seed = Date.now() } = {}) {
   const rng = createRng(seed);
+  if (mode === "exam" && (count === undefined || count === EXAM_RULES.questionCount)) {
+    return createBlueprintExam(rng);
+  }
   if (mode === "navigation") {
     const total = count ?? 12;
     return generateUniqueQuestions(total, rng, "navigation").map((question) => prepareQuestion(question, rng));
