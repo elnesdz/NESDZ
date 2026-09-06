@@ -106,7 +106,9 @@ function main() {
       lighted: toBool(runway.lighted),
       closed: toBool(runway.closed),
       le_ident: cleanText(runway.le_ident),
+      le_heading_degT: toNumber(runway.le_heading_degT),
       he_ident: cleanText(runway.he_ident),
+      he_heading_degT: toNumber(runway.he_heading_degT),
     };
 
     if (!runwaysByAirport.has(airportRef)) {
