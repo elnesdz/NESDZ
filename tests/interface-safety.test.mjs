@@ -70,6 +70,16 @@ test("NOTAM uses the official SOFIA handoff without a redistribution proxy", asy
   assert.doesNotMatch(source, /Autorouter/);
 });
 
+test("terrain tab keeps the panel hook required by VAC and AIP controls", async () => {
+  const source = await readFile(toolsPageUrl, "utf8");
+
+  assert.match(source, /aria-controls="platformBlock"/);
+  assert.match(source, /id="platformBlock"[^>]*data-tool-panel="terrain"/);
+  assert.match(source, /getElementById\("platformBlock"\)/);
+  assert.match(source, /id="platformVacBtn"/);
+  assert.match(source, /id="platformAipBtn"/);
+});
+
 test("main pushes automatically build a short-lived production artifact", async () => {
   const workflow = await readFile(buildWorkflowUrl, "utf8");
 
