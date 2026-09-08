@@ -14,7 +14,7 @@ test("briefing starts without inventing a selected terrain", async () => {
   assert.doesNotMatch(source, /sourceIcao\?\.value \|\| "LFQQ"/);
   assert.match(source, /id="briefingContextIcao"[^>]*>—<\/span>/);
   assert.match(source, /id="briefingContextName">Aucun terrain sélectionné<\/strong>/);
-  assert.match(source, /aria-busy="false"/);
+  assert.match(source, /id="notamSelectedIcao">NON SÉLECTIONNÉ<\/strong>/);
 });
 
 test("briefing exposes its operational limits and accessible search state", async () => {
@@ -38,22 +38,36 @@ test("site provides keyboard navigation and reduced-motion support", async () =>
   assert.match(styles, /prefers-reduced-motion: reduce/);
 });
 
-test("briefing tabs use distinct cockpit controls with a non-colour active state", async () => {
+test("briefing tabs use accessible avionics controls with a non-colour active state", async () => {
   const source = await readFile(toolsPageUrl, "utf8");
-  const cockpitTabs = source.split("COCKPIT MODE SELECTOR")[1] ?? "";
+  const cockpitTabs = source.split("AVIONICS MODE DECK")[1] ?? "";
 
   for (const tab of ["metar", "taf", "notam", "terrain"]) {
     assert.match(source, new RegExp(`data-briefing-tab="${tab}"`));
   }
 
-  assert.match(cockpitTabs, /--tab-solid:\s*#58d5ff/);
-  assert.match(cockpitTabs, /--tab-solid:\s*#ab91ff/);
-  assert.match(cockpitTabs, /--tab-solid:\s*#ffc05d/);
-  assert.match(cockpitTabs, /--tab-solid:\s*#52e6a5/);
+  assert.match(source, /role="tablist"/);
+  assert.match(source, /role="tab"/);
+  assert.match(source, /role="tabpanel"/);
+  assert.match(source, /aria-controls="briefingPanelMetar"/);
+  assert.match(cockpitTabs, /--tab-signal:\s*#64d8ff/);
+  assert.match(cockpitTabs, /--tab-signal:\s*#ffc857/);
   assert.match(cockpitTabs, /\.briefing-tab small\s*{[\s\S]*?display:\s*block/);
   assert.match(cockpitTabs, /\.briefing-tab:focus-visible/);
-  assert.match(cockpitTabs, /\.briefing-tab\[aria-pressed="true"\]/);
+  assert.match(cockpitTabs, /\.briefing-tab\[aria-selected="true"\]/);
+  assert.match(source, /button\.tabIndex = active \? 0 : -1/);
   assert.match(cockpitTabs, /prefers-reduced-motion:\s*reduce/);
+});
+
+test("NOTAM uses the official SOFIA handoff without a redistribution proxy", async () => {
+  const source = await readFile(toolsPageUrl, "utf8");
+
+  assert.match(source, /SOFIA-Briefing est la référence officielle/);
+  assert.match(source, /https:\/\/sofia-briefing\.aviation-civile\.gouv\.fr\/sofia\/pages\/prepavol\.html/);
+  assert.match(source, /NESDZ ne diffuse plus de données NOTAM/);
+  assert.doesNotMatch(source, /notam-proxy-nesdz/);
+  assert.doesNotMatch(source, /AUTOROUTER_(?:USER|PASS)/);
+  assert.doesNotMatch(source, /Autorouter/);
 });
 
 test("main pushes automatically build a short-lived production artifact", async () => {
