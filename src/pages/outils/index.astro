@@ -101,26 +101,74 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           </div>
         </div>
 
-        <nav class="briefing-tabs" aria-label="Sections du briefing">
-          <button class="briefing-tab is-active" type="button" data-briefing-tab="metar" aria-pressed="true">
-            <strong>METAR</strong>
-            <small>Observations</small>
+        <nav class="briefing-tabs" aria-label="Modes du briefing" role="tablist">
+          <button
+            id="briefingTabMetar"
+            class="briefing-tab is-active"
+            type="button"
+            data-briefing-tab="metar"
+            role="tab"
+            aria-selected="true"
+            aria-controls="briefingPanelMetar"
+            tabindex="0"
+          >
+            <span class="briefing-tab-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false"><path d="M3 13h11a3 3 0 1 0-.7-5.9A5 5 0 0 0 4 9"/><path d="M5 17h13M9 20h9"/></svg>
+            </span>
+            <span class="briefing-tab-copy"><strong>METAR</strong><small>Observation</small></span>
+            <span class="briefing-tab-state">LIVE</span>
           </button>
-          <button class="briefing-tab" type="button" data-briefing-tab="taf" aria-pressed="false">
-            <strong>TAF</strong>
-            <small>Prévisions</small>
+          <button
+            id="briefingTabTaf"
+            class="briefing-tab"
+            type="button"
+            data-briefing-tab="taf"
+            role="tab"
+            aria-selected="false"
+            aria-controls="briefingPanelTaf"
+            tabindex="-1"
+          >
+            <span class="briefing-tab-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>
+            </span>
+            <span class="briefing-tab-copy"><strong>TAF</strong><small>Prévision</small></span>
+            <span class="briefing-tab-state">F/CST</span>
           </button>
-          <button class="briefing-tab" type="button" data-briefing-tab="notam" aria-pressed="false">
-            <strong>NOTAM</strong>
-            <small>Opérations</small>
+          <button
+            id="briefingTabNotam"
+            class="briefing-tab"
+            type="button"
+            data-briefing-tab="notam"
+            role="tab"
+            aria-selected="false"
+            aria-controls="briefingPanelNotam"
+            tabindex="-1"
+          >
+            <span class="briefing-tab-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3 2.8 20h18.4L12 3Z"/><path d="M12 9v5M12 17h.01"/></svg>
+            </span>
+            <span class="briefing-tab-copy"><strong>NOTAM</strong><small>Briefing officiel</small></span>
+            <span class="briefing-tab-state">SOFIA</span>
           </button>
-          <button class="briefing-tab" type="button" data-briefing-tab="terrain" aria-pressed="false">
-            <strong>TERRAIN</strong>
-            <small>Pistes & radio</small>
+          <button
+            id="briefingTabTerrain"
+            class="briefing-tab"
+            type="button"
+            data-briefing-tab="terrain"
+            role="tab"
+            aria-selected="false"
+            aria-controls="briefingPanelTerrain"
+            tabindex="-1"
+          >
+            <span class="briefing-tab-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false"><path d="M5 21 9 3h6l4 18"/><path d="M8 15h8M10 8h4M12 3v18"/></svg>
+            </span>
+            <span class="briefing-tab-copy"><strong>TERRAIN</strong><small>Pistes & radio</small></span>
+            <span class="briefing-tab-state">AD</span>
           </button>
         </nav>
 
-        <div class="tool-block" data-tool-panel="metar">
+        <div id="briefingPanelMetar" class="tool-block" data-tool-panel="metar" role="tabpanel" aria-labelledby="briefingTabMetar">
           <h2>METAR · Conditions observées</h2>
 
           <div class="decoded-grid decoded-grid--summary">
@@ -186,81 +234,57 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
         </div>
 
-        <div class="tool-block notam-block notam-cockpit-block" data-tool-panel="notam" aria-labelledby="notamCockpitTitle">
+        <div id="briefingPanelNotam" class="tool-block notam-block notam-cockpit-block notam-official-block" data-tool-panel="notam" role="tabpanel" aria-labelledby="briefingTabNotam">
           <div class="notam-cockpit-head">
             <div>
-              <span class="notam-kicker">Informations opérationnelles</span>
+              <span class="notam-kicker">Briefing réglementaire</span>
               <div class="notam-title-row">
                 <h2 id="notamCockpitTitle">NOTAM</h2>
-                <span id="notamActiveCount" class="notam-count-badge">—</span>
-                <span id="notamImportantCount" class="notam-count-badge notam-count-badge--important">—</span>
+                <span class="notam-count-badge notam-count-badge--official">SOFIA · DGAC</span>
               </div>
               <p class="notam-note">
-                <span id="notamStatusText">Sélectionne un terrain pour afficher les NOTAM. Le briefing officiel SOFIA reste prioritaire.</span>
+                <span id="notamStatusText">Consultation directe sur le portail officiel, sans copie ni retransmission par NESDZ.</span>
               </p>
             </div>
+          </div>
 
+          <section class="sofia-gateway" aria-labelledby="sofiaGatewayTitle">
+            <div class="sofia-gateway-symbol" aria-hidden="true">
+              <svg viewBox="0 0 48 48" focusable="false"><path d="M24 5 5 40h38L24 5Z"/><path d="M24 17v11M24 34h.01"/></svg>
+            </div>
+            <div class="sofia-gateway-copy">
+              <span class="sofia-gateway-eyebrow">SOURCE OFFICIELLE FRANCE</span>
+              <h3 id="sofiaGatewayTitle">Consulter les NOTAM sur SOFIA-Briefing</h3>
+              <p>Recherchez le terrain ou la route, vérifiez les NOTAM et SUP AIP applicables, puis conservez votre PIB.</p>
+              <div class="sofia-airfield-context" aria-live="polite">
+                <span>Terrain préparé dans NESDZ</span>
+                <strong id="notamSelectedIcao">NON SÉLECTIONNÉ</strong>
+              </div>
+            </div>
             <a
-              class="notam-source-link"
-              href="https://sofia-briefing.aviation-civile.gouv.fr/"
+              class="sofia-gateway-action"
+              href="https://sofia-briefing.aviation-civile.gouv.fr/sofia/pages/prepavol.html"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Source : SOFIA ↗
+              <span>OUVRIR SOFIA</span>
+              <small>Nouvel onglet</small>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 16 16 8M10 8h6v6"/><path d="M18 13v5H6V6h5"/></svg>
             </a>
-          </div>
+          </section>
 
-          <div
-            id="notamCockpitGrid"
-            class="notam-cockpit-grid"
-            aria-label="NOTAM actifs"
-            aria-live="polite"
-            aria-busy="false"
-          >
-            <article class="notam-item notam-item--info notam-item--empty">
-              <div class="notam-item-trigger notam-item-trigger--static">
-                <span class="notam-item-icon notam-item-icon--activity" aria-hidden="true">⌁</span>
-                <span class="notam-item-main">
-                  <span class="notam-item-topline">
-                    <span class="notam-level notam-level--info">Info</span>
-                    <span class="notam-tag">NOTAM</span>
-                  </span>
-                  <strong>Aucun terrain sélectionné</strong>
-                  <span class="notam-item-period">Entre un code OACI pour afficher les NOTAM.</span>
-                </span>
-              </div>
-            </article>
-
-            <aside class="notam-sofia-card" aria-label="Source officielle SOFIA">
-              <div class="notam-sofia-icon" aria-hidden="true">▤</div>
-              <div class="notam-sofia-main">
-                <span class="decoded-label">SOFIA — Source officielle</span>
-                <strong>Consulter le PIB complet avant le vol.</strong>
-                <p>NESDZ facilite la lecture, mais le briefing officiel reste la référence réglementaire.</p>
-                <a
-                  class="notam-assisted-link notam-sofia-link"
-                  href="https://sofia-briefing.aviation-civile.gouv.fr/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Ouvrir SOFIA-Briefing
-                </a>
-              </div>
-            </aside>
-          </div>
-
-          <div id="notamDetailDock" class="notam-detail-dock" aria-live="polite"></div>
-
-          <button id="notamAllBtn" class="notam-all-link" type="button" aria-label="Afficher tous les NOTAM actifs">
-            Voir tous les NOTAM <span aria-hidden="true">›</span>
-          </button>
+          <ol class="sofia-checklist" aria-label="Étapes du briefing NOTAM officiel">
+            <li><span>01</span><strong>Terrain / route</strong><small>Renseigner le trajet</small></li>
+            <li><span>02</span><strong>NOTAM + SUP AIP</strong><small>Lire les restrictions</small></li>
+            <li><span>03</span><strong>PIB</strong><small>Valider et conserver</small></li>
+          </ol>
 
           <div class="notam-safety-strip">
-            Les informations présentées sont fournies à titre indicatif et n’ont pas valeur réglementaire. Les services officiels restent la référence pour la préparation du vol.
+            NESDZ ne diffuse plus de données NOTAM. SOFIA-Briefing est la référence officielle à consulter avant chaque vol.
           </div>
         </div>
 
-        <div id="platformBlock" class="tool-block tool-block--compact" data-tool-panel="terrain" hidden>
+        <div id="briefingPanelTerrain" class="tool-block tool-block--compact" data-tool-panel="terrain" role="tabpanel" aria-labelledby="briefingTabTerrain" hidden>
           <div class="terrain-info-head">
             <h2>Infos terrain</h2>
             <span id="platformSourceValue" class="terrain-source-badge">—</span>
@@ -399,7 +423,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           </p>
         </div>
 
-        <div class="tool-block taf-panel" data-tool-panel="taf">
+        <div id="briefingPanelTaf" class="tool-block taf-panel" data-tool-panel="taf" role="tabpanel" aria-labelledby="briefingTabTaf">
           <div class="taf-panel-title-row">
             <h2>TAF décodé</h2>
             <strong id="tafSummaryValue" class="taf-summary-status">Aucune donnée</strong>
@@ -548,7 +572,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     } from "../../lib/runway-wind.mjs";
 
     const WORKER_URL = "https://metar-proxy-nesdz.elnesdz.workers.dev/";
-    const NOTAM_WORKER_URL = "https://notam-proxy-nesdz.elnesdz.workers.dev/";
     const AIRPORTS_FR_URL = "/data/airports-fr-full.json";
     const AIRPORTS_WORLD_URL = "/data/airports-world-lite.json";
     const ULM_URL = "/data/ulm-fr.json";
@@ -557,7 +580,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const WEATHER_REFERENCE_MAX_KM = 50 * 1.852;
     const LOCATION_ENTRY_RADIUS_KM = 120;
     const WEATHER_TIMEOUT_MS = 15000;
-    const NOTAM_TIMEOUT_MS = 12000;
 
     const SIA_VAC_AD_BASE_URL = "/docs/sia/vac/ad/";
     const SIA_AIP_AD_BASE_URL = "/docs/sia/aip-ad/";
@@ -630,12 +652,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     const tafVisualCards = document.getElementById("tafVisualCards");
     const weatherFreshnessNote = document.getElementById("weatherFreshnessNote");
     const forecastFreshnessNote = document.getElementById("forecastFreshnessNote");
-    const notamCockpitGrid = document.getElementById("notamCockpitGrid");
-    const notamDetailDock = document.getElementById("notamDetailDock");
-    const notamActiveCount = document.getElementById("notamActiveCount");
-    const notamImportantCount = document.getElementById("notamImportantCount");
-    const notamStatusText = document.getElementById("notamStatusText");
-    const notamAllBtn = document.getElementById("notamAllBtn");
+    const notamSelectedIcao = document.getElementById("notamSelectedIcao");
 
     const weatherRefsBlock = document.getElementById("weatherRefsBlock");
     const weatherRefsList = document.getElementById("weatherRefsList");
@@ -700,13 +717,11 @@ let ulmDetailsPromise = null;
 
     function startBriefingRequest(icao) {
       activeBriefingRequest?.weatherController.abort();
-      activeBriefingRequest?.notamController.abort();
 
       const request = {
         id: ++briefingRequestSequence,
         icao,
         weatherController: new AbortController(),
-        notamController: new AbortController(),
       };
 
       activeBriefingRequest = request;
@@ -5191,15 +5206,12 @@ function renderUlmNearbyItem(item) {
         syncIcaoInUrl("");
         metarOutput.textContent = "Entre un terrain, une ville ou un code OACI.";
         tafOutput.textContent = "Entre un terrain, une ville ou un code OACI.";
-        renderNotamUnavailable(
-          "Aucun terrain sélectionné",
-          "Entre un code OACI pour afficher les NOTAM."
-        );
+        renderSofiaGateway("");
         return;
       }
 
       syncIcaoInUrl(icao);
-      void loadNotams(icao, request);
+      renderSofiaGateway(icao);
 
       metarOutput.textContent = "Chargement...";
       tafOutput.textContent = "Chargement...";
@@ -5707,1116 +5719,13 @@ function renderUlmNearbyItem(item) {
     loadMetar();
 
 
-    function renderSofiaCardHtml() {
-      return `
-        <aside class="notam-sofia-card" aria-label="Source officielle SOFIA">
-          <div class="notam-sofia-icon" aria-hidden="true">${renderNotamIconHtml({ icon: "document" })}</div>
-          <div class="notam-sofia-main">
-            <span class="decoded-label">SOFIA — référence officielle</span>
-            <strong>PIB complet avant le vol</strong>
-            <a class="notam-assisted-link notam-sofia-link" href="https://sofia-briefing.aviation-civile.gouv.fr/" target="_blank" rel="noopener noreferrer">Ouvrir SOFIA-Briefing</a>
-          </div>
-        </aside>
-      `;
-    }
-
-    function setNotamHeader({ active = "—", important = "—", status = "" } = {}) {
-      if (notamActiveCount) notamActiveCount.textContent = active;
-      if (notamImportantCount) notamImportantCount.textContent = important;
-      if (notamStatusText && status) notamStatusText.textContent = status;
-    }
-
-    function renderNotamUnavailable(
-      title = "NOTAM indisponibles",
-      message = "Impossible de charger les NOTAM pour le moment.",
-      retryCode = ""
-    ) {
-      setNotamHeader({
-        active: "—",
-        important: "—",
-        status: `${message} Le briefing officiel SOFIA reste prioritaire.`,
-      });
-      if (notamDetailDock) notamDetailDock.innerHTML = "";
-      if (notamCockpitGrid) {
-        notamCockpitGrid.setAttribute("aria-busy", "false");
-        notamCockpitGrid.innerHTML = `
-          <article class="notam-item notam-item--info notam-item--empty">
-            <div class="notam-item-trigger notam-item-trigger--static">
-              <span class="notam-item-icon notam-item-icon--activity" aria-hidden="true">⌁</span>
-              <span class="notam-item-main">
-                <span class="notam-item-topline">
-                  <span class="notam-level notam-level--info">Info</span>
-                  <span class="notam-tag">NOTAM</span>
-                </span>
-                <strong>${escapeHtml(title)}</strong>
-                <span class="notam-item-period">${escapeHtml(message)}</span>
-                ${retryCode ? `<button type="button" class="notam-retry-button" data-notam-retry="${escapeHtml(retryCode)}">Réessayer maintenant</button>` : ""}
-              </span>
-            </div>
-          </article>
-          ${renderSofiaCardHtml()}
-        `;
-
-        const retryButton = notamCockpitGrid.querySelector("[data-notam-retry]");
-        retryButton?.addEventListener("click", () => {
-          const code = normalizeCode(retryButton.getAttribute("data-notam-retry"));
-          if (!isValidWeatherCode(code) || normalizeCode(icaoInput?.value) !== code) return;
-          const activeRequest = activeBriefingRequest?.icao === code
-            ? activeBriefingRequest
-            : null;
-          if (activeRequest) activeRequest.notamController = new AbortController();
-          void loadNotams(code, activeRequest);
-        });
-      }
-    }
-
-    function getNotamUnavailableMessage(status) {
-      if (status === 403) {
-        return "Accès à la source NOTAM indisponible. Consulte SOFIA-Briefing avant le vol.";
-      }
-      if (status === 429) {
-        return "Limite temporaire du service NOTAM atteinte. Réessaie plus tard et consulte SOFIA-Briefing.";
-      }
-      if (status >= 500) {
-        return "Le service NOTAM est momentanément indisponible. Consulte SOFIA-Briefing avant le vol.";
-      }
-      return "Les NOTAM ne peuvent pas être affichés actuellement. Consulte SOFIA-Briefing avant le vol.";
-    }
-
-    async function loadNotams(icao, request = null) {
+    function renderSofiaGateway(icao = "") {
       const code = normalizeCode(icao);
-      if (!isValidWeatherCode(code)) {
-        renderNotamUnavailable("Aucun terrain sélectionné", "Entre un code OACI pour afficher les NOTAM.");
-        return;
-      }
-
-      setNotamHeader({
-        active: "Chargement",
-        important: "—",
-        status: `Chargement des NOTAM ${code} via Autorouter. Le texte officiel et les services officiels restent prioritaires.`,
-      });
-      if (notamDetailDock) notamDetailDock.innerHTML = "";
-      if (notamCockpitGrid) {
-        notamCockpitGrid.setAttribute("aria-busy", "true");
-        notamCockpitGrid.innerHTML = `
-          <article class="notam-item notam-item--info notam-item--loading">
-            <div class="notam-item-trigger notam-item-trigger--static">
-              <span class="notam-item-icon notam-item-icon--activity" aria-hidden="true">⌁</span>
-              <span class="notam-item-main">
-                <span class="notam-item-topline">
-                  <span class="notam-level notam-level--info">Connexion</span>
-                  <span class="notam-tag">Autorouter</span>
-                </span>
-                <strong>Chargement des NOTAM ${escapeHtml(code)}…</strong>
-                <span class="notam-item-period">Source technique : Autorouter / Eurocontrol EAD</span>
-              </span>
-            </div>
-          </article>
-          ${renderSofiaCardHtml()}
-        `;
-      }
-
-      let notamTimedOut = false;
-      const notamController = request?.notamController || new AbortController();
-      const notamTimeoutId = window.setTimeout(() => {
-        notamTimedOut = true;
-        notamController.abort();
-      }, NOTAM_TIMEOUT_MS);
-
-      try {
-        const response = await fetch(`${NOTAM_WORKER_URL}?icao=${encodeURIComponent(code)}`, {
-          headers: { Accept: "application/json" },
-          signal: notamController.signal,
-        });
-        const data = await response.json().catch(() => null);
-
-        if (
-          request
-            ? !isCurrentBriefingRequest(request)
-            : normalizeCode(icaoInput?.value) !== code
-        ) return;
-
-        if (!response.ok || !data?.ok) {
-          renderNotamUnavailable(
-            `NOTAM ${code} indisponibles`,
-            getNotamUnavailableMessage(response.status),
-            code
-          );
-          return;
-        }
-
-        const rows = Array.isArray(data.rows) ? data.rows : [];
-        const decoded = rows.map((row, index) => decodeAutorouterNotam(row, index, code));
-        renderNotamCockpit(decoded, data);
-      } catch (error) {
-        if (
-          request
-            ? !isCurrentBriefingRequest(request)
-            : normalizeCode(icaoInput?.value) !== code
-        ) return;
-        if (!isAbortError(error)) console.error("Erreur NOTAM", error);
-        renderNotamUnavailable(
-          `NOTAM ${code} indisponibles`,
-          notamTimedOut
-            ? "Le service NOTAM n’a pas répondu à temps. Consulte SOFIA-Briefing avant le vol."
-            : "Impossible de joindre le service NOTAM. Consulte SOFIA-Briefing avant le vol.",
-          code
-        );
-      } finally {
-        window.clearTimeout(notamTimeoutId);
-      }
+      if (!notamSelectedIcao) return;
+      notamSelectedIcao.textContent = isValidWeatherCode(code)
+        ? code
+        : "NON SÉLECTIONNÉ";
     }
-
-    function renderNotamCockpit(items, meta = {}) {
-      notamCockpitGrid?.setAttribute("aria-busy", "false");
-      const activeItems = Array.isArray(items) ? items : [];
-      const total = Number.isFinite(Number(meta.total)) ? Number(meta.total) : activeItems.length;
-      const fetchedAt = meta.fetchedAt ? formatNotamFetchedAt(meta.fetchedAt) : "";
-
-      function getNotamPriorityRank(item = {}) {
-        const level = String(item.level || "info").toLowerCase();
-        const category = String(item.category || item.categoryLabel || "").toLowerCase();
-        const title = String(item.title || "").toLowerCase();
-        const line = String(item.line || item.brief || "").toLowerCase();
-        const joined = `${category} ${title} ${line}`;
-
-        if (level === "important") return 1;
-        if (level === "moderate") return 2;
-        if (/piste|runway|rwy|taxiway|twy|obstacle|radio|nav|ils|vor|dme|atis|twr|service|travaux|fermeture|indisponible|hors service/.test(joined)) return 2;
-        if (/procédure|procedure|aip|iac|sid|star|rnp|rnav/.test(joined)) return 3;
-        return 4;
-      }
-
-      const sortedItems = [...activeItems].sort((a, b) => getNotamPriorityRank(a) - getNotamPriorityRank(b));
-      const priorityItems = sortedItems.filter((item) => getNotamPriorityRank(item) <= 2);
-      const importantCount = priorityItems.length;
-      const visibleItems = (priorityItems.length ? priorityItems : sortedItems).slice(0, 3);
-      const hiddenCount = Math.max(0, sortedItems.length - visibleItems.length);
-
-      setNotamHeader({
-        active: `${total} actif${total > 1 ? "s" : ""}`,
-        important: importantCount
-          ? `${importantCount} à vérifier${importantCount > 1 ? "" : ""}`
-          : "Lecture normale",
-        status: priorityItems.length
-          ? `Affichage prioritaire des NOTAM à vérifier avant vol${fetchedAt ? ` · ${fetchedAt}` : ""}. Les autres restent disponibles via “Voir tous”.`
-          : `Aucun NOTAM prioritaire détecté automatiquement${fetchedAt ? ` · ${fetchedAt}` : ""}. Voir le détail et SOFIA avant le vol.`,
-      });
-
-      if (!visibleItems.length) {
-        renderNotamUnavailable(
-          `Aucun NOTAM retourné pour ${escapeHtml(meta.icao || "ce terrain")}`,
-          "Vérifier tout de même le briefing officiel SOFIA avant le vol."
-        );
-        return;
-      }
-
-      function shouldUseInlineNotamDetails() {
-        return window.matchMedia && window.matchMedia("(max-width: 980px)").matches;
-      }
-
-      function paintNotamGrid(cards, expanded = false) {
-        const inlineDetails = shouldUseInlineNotamDetails();
-
-        if (notamCockpitGrid) {
-          notamCockpitGrid.innerHTML = `
-            ${cards.map(inlineDetails ? renderNotamCardWithInlineDetailHtml : renderNotamCardHtml).join("")}
-            ${renderSofiaCardHtml()}
-          `;
-        }
-
-        if (notamDetailDock) {
-          notamDetailDock.hidden = inlineDetails;
-          notamDetailDock.innerHTML = inlineDetails
-            ? ""
-            : cards.map(renderNotamDetailHtml).join("");
-        }
-
-        if (notamAllBtn) {
-          notamAllBtn.hidden = hiddenCount <= 0;
-          notamAllBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
-          notamAllBtn.innerHTML = expanded
-            ? `Réduire aux NOTAM prioritaires <span aria-hidden="true">›</span>`
-            : `Voir tous les NOTAM (${sortedItems.length}) <span aria-hidden="true">›</span>`;
-        }
-
-        initNotamCockpitInteractions();
-      }
-
-      paintNotamGrid(visibleItems, false);
-
-      if (notamAllBtn) {
-        notamAllBtn.onclick = () => {
-          const alreadyExpanded = notamAllBtn.getAttribute("aria-expanded") === "true";
-          paintNotamGrid(alreadyExpanded ? visibleItems : sortedItems, !alreadyExpanded);
-        };
-      }
-    }
-
-    function renderNotamCardWithInlineDetailHtml(item) {
-      return `${renderNotamCardHtml(item)}${renderNotamDetailHtml(item)}`;
-    }
-
-    function renderNotamIconHtml(item = {}, extraClass = "") {
-      const icon = String(item.icon || "activity");
-      const classes = `notam-svg-icon ${extraClass}`.trim();
-
-      const paths = {
-        runway: `<path d="M12 3v18"/><path d="M8.5 6.5h7"/><path d="M9 11h6"/><path d="M8.5 15.5h7"/><path d="M10 21l2-3 2 3"/>`,
-        radio: `<path d="M12 19V9"/><path d="M8 19h8"/><path d="M9 9l3-6 3 6"/><path d="M6.5 11.5a7.8 7.8 0 0 0 0 5"/><path d="M17.5 11.5a7.8 7.8 0 0 1 0 5"/><path d="M4 9a11 11 0 0 0 0 10"/><path d="M20 9a11 11 0 0 1 0 10"/>`,
-        procedure: `<path d="M7 3h7l3 3v15H7z"/><path d="M14 3v4h4"/><path d="M9 11h6"/><path d="M9 15h6"/><path d="M9 18h4"/>`,
-        obstacle: `<path d="M12 3l8 18H4z"/><path d="M12 9v5"/><path d="M12 17h.01"/>`,
-        service: `<path d="M12 2v20"/><path d="M5 8h14"/><path d="M7 14h10"/><path d="M9 20h6"/>`,
-        activity: `<path d="M12 3l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/>`,
-        document: `<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h4"/>`,
-      };
-
-      const svg = paths[icon] || paths.activity;
-
-      return `
-        <svg
-          class="${classes}"
-          viewBox="0 0 24 24"
-          width="18"
-          height="18"
-          aria-hidden="true"
-          focusable="false"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.9"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          style="display:block;width:1.08rem;height:1.08rem;max-width:1.08rem;max-height:1.08rem;overflow:visible;"
-        >
-          ${svg}
-        </svg>
-      `;
-    }
-
-    function renderNotamCardHtml(item) {
-      const metaLine = item.cardMeta || item.periodLabel;
-      return `
-        <article class="notam-item notam-item--${escapeHtml(item.level)}" data-notam-card="${escapeHtml(item.id)}">
-          <button class="notam-item-trigger" type="button" aria-expanded="false" aria-controls="${escapeHtml(item.detailId)}" data-notam-target="${escapeHtml(item.detailId)}">
-            <span class="notam-item-icon notam-item-icon--${escapeHtml(item.icon)}" aria-hidden="true">${renderNotamIconHtml(item)}</span>
-            <span class="notam-item-main">
-              <span class="notam-item-topline">
-                <span class="notam-level notam-level--${escapeHtml(item.level)}">${escapeHtml(item.levelLabel)}</span>
-                <span class="notam-tag">${escapeHtml(item.categoryLabel)}</span>
-              </span>
-              <strong>${escapeHtml(item.title)}</strong>
-              <span class="notam-item-period">${escapeHtml(metaLine)}</span>
-            </span>
-            <span class="notam-item-action" aria-hidden="true">Détail ›</span>
-          </button>
-        </article>
-      `;
-    }
-
-    function renderNotamDetailHtml(item) {
-      const essentialsHtml = renderNotamEssentialsHtml(item.essentials || []);
-      const technicalHtml = renderNotamFactsHtml(item.technicalFacts || []);
-      const rawPreview = item.rawText || "Texte officiel indisponible dans la réponse Autorouter.";
-
-      return `
-        <section id="${escapeHtml(item.detailId)}" class="notam-inline-detail notam-inline-detail--${escapeHtml(item.level)}" hidden>
-          <div class="notam-briefline">
-            <div class="notam-briefline-icon" aria-hidden="true">${renderNotamIconHtml(item)}</div>
-            <div class="notam-briefline-main">
-              <span class="notam-detail-label">Ce que dit le NOTAM</span>
-              <strong>${escapeHtml(item.operationalTitle || item.title)}</strong>
-              ${item.operationalLine ? `<p>${escapeHtml(item.operationalLine)}</p>` : ""}
-            </div>
-          </div>
-
-          <div class="notam-compact-grid">
-            <div class="notam-detail-panel notam-detail-panel--pilot-main">
-              <span class="notam-detail-label">Éléments publiés</span>
-              ${essentialsHtml}
-            </div>
-
-            <div class="notam-detail-panel notam-detail-panel--pilot-side">
-              <span class="notam-detail-label">Validité</span>
-              <strong>${escapeHtml(item.periodLabel)}</strong>
-              ${item.volumeLabel ? `<span class="notam-detail-label notam-detail-label--spaced">Portée verticale</span><strong>${escapeHtml(item.volumeLabel)}</strong>` : ""}
-            </div>
-          </div>
-
-          <details class="notam-raw-disclosure">
-            <summary>Texte officiel NOTAM</summary>
-            <pre>${escapeHtml(rawPreview)}</pre>
-          </details>
-
-          <details class="notam-technical-disclosure">
-            <summary>Détails techniques / codes</summary>
-            <div class="notam-technical-content">${technicalHtml}</div>
-          </details>
-
-          <a class="notam-detail-official-link" href="https://sofia-briefing.aviation-civile.gouv.fr/" target="_blank" rel="noopener noreferrer">Ouvrir SOFIA-Briefing</a>
-        </section>
-      `;
-    }
-
-    function renderNotamOperationalHtml(item) {
-      return "";
-    }
-
-    function renderNotamLearningHtml(item = {}) {
-      return "";
-    }
-
-    function renderNotamEssentialsHtml(facts = []) {
-      const visibleFacts = Array.isArray(facts) ? facts.filter((fact) => fact?.label && fact?.value) : [];
-      const compactFacts = visibleFacts
-        .filter((fact) => !["Champs techniques", "Abréviations traduites"].includes(fact.label))
-        .slice(0, 5);
-
-      if (!compactFacts.length) {
-        return `<p>Pas d’élément exploitable automatiquement. Consulter le texte officiel ci-dessous.</p>`;
-      }
-
-      return `
-        <dl class="notam-essentials-list">
-          ${compactFacts.map((fact) => `
-            <div class="notam-essential-row">
-              <dt>${escapeHtml(fact.label)}</dt>
-              <dd>${escapeHtml(fact.value)}</dd>
-            </div>
-          `).join("")}
-        </dl>
-      `;
-    }
-
-    function renderNotamFactsHtml(facts = []) {
-      const visibleFacts = Array.isArray(facts) ? facts.filter((fact) => fact?.label && fact?.value) : [];
-      if (!visibleFacts.length) {
-        return `<p>Lecture technique indisponible. Consulter le texte officiel ci-dessous.</p>`;
-      }
-
-      return `
-        <dl class="notam-facts-list notam-facts-list--technical">
-          ${visibleFacts.map((fact) => `
-            <div class="notam-fact-row">
-              <dt>${escapeHtml(fact.label)}</dt>
-              <dd>${escapeHtml(fact.value)}</dd>
-            </div>
-          `).join("")}
-        </dl>
-      `;
-    }
-
-    function decodeAutorouterNotam(row, index, icao) {
-      const itemText = String(row?.iteme || row?.item || row?.text || "").replace(/\\n/g, "\n").trim();
-      const normalized = itemText.toUpperCase();
-      const category = classifyNotamCategory(normalized, row);
-      const operation = decodeNotamOperation(row, itemText, category, icao);
-      const level = scoreNotamLevel(normalized, category, row, operation);
-      const facts = buildNotamFacts(row, itemText, category, icao, operation);
-      const title = operation.title || buildNotamTitle(itemText, category, row, icao, facts);
-      const periodLabel = formatNotamPeriod(row);
-      const volumeLabel = formatNotamVolume(row);
-      const id = `notam-live-${index}-${String(row?.id || row?.number || index).replace(/[^a-zA-Z0-9_-]/g, "")}`;
-      const pilotChips = [operation.entityLabel, operation.causeLabel, operation.statusLabel]
-        .filter(Boolean)
-        .filter((value, idx, arr) => arr.indexOf(value) === idx);
-
-      return {
-        id,
-        detailId: `${id}-detail`,
-        level,
-        levelLabel: level === "important" ? "Prioritaire" : level === "moderate" ? "À vérifier" : "Info",
-        categoryLabel: category.label,
-        impactLabel: category.impact,
-        icon: category.icon,
-        iconGlyph: category.glyph,
-        title,
-        operationalTitle: operation.title || title,
-        operationalLine: operation.line,
-        cardMeta: operation.cardMeta || periodLabel,
-        periodLabel,
-        volumeLabel,
-        facts,
-        essentials: operation.essentials || [],
-        technicalFacts: facts,
-        pilotChips,
-        learningNotes: operation.learningNotes || [],
-        summary: facts.map((fact) => `${fact.label} : ${fact.value}`).join(" · "),
-        rawText: buildNotamRawText(row, itemText, icao),
-      };
-    }
-
-    function decodeNotamOperation(row = {}, itemText = "", category = {}, icao = "") {
-      const clean = String(itemText || "").replace(/\s+/g, " ").trim();
-      const upper = clean.toUpperCase();
-      const periodLabel = formatNotamPeriod(row);
-      const volumeLabel = formatNotamVolume(row);
-      const essentials = [];
-      const addEssential = (label, value) => {
-        const text = String(value || "").replace(/\s+/g, " ").trim();
-        if (label && text && !essentials.some((fact) => fact.label === label && fact.value === text)) {
-          essentials.push({ label, value: text });
-        }
-      };
-      const learningNotes = [];
-      const addLearning = (value) => {
-        const text = String(value || "").replace(/\s+/g, " ").trim();
-        if (text && !learningNotes.includes(text)) learningNotes.push(text);
-      };
-
-      const runway = extractPrimaryRunway(clean);
-      const taxiway = extractPrimaryTaxiway(clean);
-      const apron = extractPrimaryApron(clean);
-      const frequency = extractNotamFrequency(clean);
-      const coordinates = extractNotamCoordinates(clean);
-      const height = extractNotamHeight(clean);
-      const reference = extractNotamReference(clean);
-      const navAid = extractPrimaryNavAid(clean);
-      const object = extractNotamObject(clean, category);
-      const status = detectNotamStatus(upper);
-      const cause = detectNotamCause(upper);
-      const procedure = detectNotamProcedure(upper, runway);
-      const action = detectNotamDocumentAction(upper);
-
-      const subjectLabel = runway
-        ? `Piste ${runway}`
-        : taxiway
-          ? `Taxiway ${taxiway}`
-          : apron
-            ? apron
-            : procedure.label || navAid || object;
-
-      let title = "NOTAM publié";
-      let line = "Lecture automatique limitée : consulter le texte officiel NOTAM ci-dessous.";
-      let entityLabel = category.label || "NOTAM";
-      let statusLabel = status.label;
-      let cardMeta = periodLabel;
-
-      if (procedure.label) {
-        entityLabel = procedure.shortLabel || "Procédure";
-        title = procedure.title;
-        statusLabel = action.label || status.label || "Information documentaire";
-        line = action.label
-          ? `${action.label} · ${procedure.label}${reference ? ` · Référence : ${reference}` : ""}`
-          : `${procedure.label}${reference ? ` · Référence : ${reference}` : ""}`;
-        addEssential("Nature", action.label || "Information documentaire");
-        addEssential("Procédure concernée", procedure.label);
-        if (runway) addEssential("Piste", runway);
-        if (reference) addEssential("Référence officielle", reference);
-        addLearning("Ce NOTAM est lu comme une information documentaire/procédure : il ne publie pas automatiquement une fermeture ni un danger. Il indique qu’une référence officielle doit être consultée.");
-      } else if (runway) {
-        entityLabel = `Piste ${runway}`;
-        if (status.key === "closed") {
-          title = `Piste ${runway} fermée`;
-          line = `Fermeture publiée pour la piste ${runway}${cause.label ? ` · Cause : ${cause.label.toLowerCase()}` : ""}`;
-        } else if (status.key === "unserviceable") {
-          title = `Piste ${runway} indisponible`;
-          line = `Indisponibilité publiée pour la piste ${runway}${cause.label ? ` · Cause : ${cause.label.toLowerCase()}` : ""}`;
-        } else if (cause.key === "work") {
-          title = `Travaux piste ${runway}`;
-          line = `Travaux/maintenance publiés sur ou autour de la piste ${runway}`;
-        } else if (/LIGHT|PAPI|VASI|BALISAGE|APCH LIGHT|LGT/i.test(upper)) {
-          title = `Balisage / aide visuelle piste ${runway}`;
-          line = `Information publiée concernant le balisage ou une aide visuelle de la piste ${runway}`;
-        } else {
-          title = `Information piste ${runway}`;
-          line = `Information publiée concernant la piste ${runway}`;
-        }
-      } else if (taxiway) {
-        entityLabel = `Taxiway ${taxiway}`;
-        if (status.key === "closed") {
-          title = `Taxiway ${taxiway} fermé`;
-          line = `Fermeture publiée pour le taxiway ${taxiway}`;
-        } else if (cause.key === "work") {
-          title = `Travaux taxiway ${taxiway}`;
-          line = `Travaux/maintenance publiés sur le taxiway ${taxiway}`;
-        } else {
-          title = `Information taxiway ${taxiway}`;
-          line = `Information publiée concernant le taxiway ${taxiway}`;
-        }
-      } else if (navAid) {
-        entityLabel = navAid;
-        if (status.key === "unserviceable") {
-          title = `${navAid} hors service`;
-          line = `Indisponibilité publiée pour ${navAid}`;
-        } else if (frequency) {
-          title = `${navAid} — fréquence publiée`;
-          line = `Fréquence publiée : ${frequency}`;
-        } else {
-          title = `${navAid} — information publiée`;
-          line = `Information publiée concernant ${navAid}`;
-        }
-      } else if (category.label === "Obstacle") {
-        title = object && object !== "Obstacle / hauteur publiée" ? `Obstacle — ${object}` : "Obstacle publié";
-        entityLabel = "Obstacle";
-        line = [object && object !== "Obstacle / hauteur publiée" ? object : "Obstacle", coordinates ? `Position : ${coordinates}` : "", height ? `Hauteur : ${height}` : ""].filter(Boolean).join(" · ");
-      } else if (category.label === "Service") {
-        title = object && object !== "Service terrain publié" ? `Service — ${object}` : "Service terrain publié";
-        entityLabel = "Service";
-        line = status.label && status.key !== "info" ? status.label : "Information publiée concernant un service terrain";
-      } else if (category.label === "Activité") {
-        title = object && object !== "Activité aérienne" ? object : "Activité aérienne publiée";
-        entityLabel = "Activité";
-        line = volumeLabel ? `Activité/zone publiée · Portée verticale : ${volumeLabel}` : "Activité aérienne publiée";
-      } else if (frequency) {
-        title = "Fréquence publiée";
-        entityLabel = "Radio";
-        line = `Fréquence publiée : ${frequency}`;
-      } else if (status.key === "closed") {
-        title = `${icao || "Terrain"} — fermeture publiée`;
-        line = "Fermeture publiée dans le NOTAM";
-      } else if (action.label) {
-        title = action.title || "Modification documentaire publiée";
-        line = `${action.label}${reference ? ` · Référence : ${reference}` : ""}`;
-      }
-
-      addEssential("Ce que dit le NOTAM", line);
-      addEssential("Élément concerné", subjectLabel || category.impact || category.label);
-      if (status.label && status.key !== "info") addEssential("État publié", status.label);
-      if (cause.label) addEssential("Cause publiée", cause.label);
-      if (runway) addEssential("Piste", runway);
-      if (taxiway) addEssential("Taxiway", taxiway);
-      if (apron) addEssential("Aire / parking", apron);
-      if (frequency) addEssential("Fréquence", frequency);
-      if (coordinates) addEssential("Position", coordinates);
-      if (height) addEssential("Hauteur / altitude", height);
-      if (volumeLabel) addEssential("Portée verticale", volumeLabel);
-      if (reference) addEssential("Référence officielle", reference);
-
-      buildNotamLearningNotes({ text: upper, status, cause, runway, taxiway, apron, navAid, category, volumeLabel, reference, frequency, coordinates, height, procedure, action }).forEach(addLearning);
-
-      cardMeta = [statusLabel && status.key !== "info" ? statusLabel : "", procedure.shortLabel || subjectLabel || category.label].filter(Boolean).join(" · ") || periodLabel;
-
-      return {
-        title,
-        line,
-        cardMeta,
-        essentials,
-        entityLabel,
-        statusLabel,
-        causeLabel: cause.label,
-        learningNotes,
-      };
-    }
-
-    function detectNotamProcedure(text = "", runway = "") {
-      const upper = String(text || "").toUpperCase();
-      const refMatch = upper.match(/\bAD\s*2\s+([A-Z]{4})\s+([A-Z0-9\s./-]+)/);
-      const refTail = refMatch ? refMatch[2].replace(/\s+/g, " ").trim() : "";
-      const detectedRunway = runway || (upper.match(/\bRWY\s*([0-9]{2}[LCR]?)\b/) || [])[1] || "";
-
-      if (/\bIAC\b/.test(upper)) {
-        const navType = /\bRNP\b/.test(upper) ? "RNP" : /\bRNAV\b/.test(upper) ? "RNAV" : /\bILS\b/.test(upper) ? "ILS" : /\bLOC\b/.test(upper) ? "LOC" : "";
-        const runwayPart = detectedRunway ? ` piste ${detectedRunway}` : "";
-        return {
-          key: "iac",
-          shortLabel: "Procédure approche",
-          label: `Procédure d’approche${navType ? ` ${navType}` : ""}${runwayPart}`,
-          title: `Procédure d’approche${navType ? ` ${navType}` : ""}${runwayPart} publiée`,
-          referenceTail: refTail,
-        };
-      }
-
-      if (/\bSID\b/.test(upper)) {
-        return {
-          key: "sid",
-          shortLabel: "Départ IFR",
-          label: `Procédure de départ SID${detectedRunway ? ` piste ${detectedRunway}` : ""}`,
-          title: `Procédure de départ SID${detectedRunway ? ` piste ${detectedRunway}` : ""} publiée`,
-          referenceTail: refTail,
-        };
-      }
-
-      if (/\bSTAR\b/.test(upper)) {
-        return {
-          key: "star",
-          shortLabel: "Arrivée IFR",
-          label: "Procédure d’arrivée STAR",
-          title: "Procédure d’arrivée STAR publiée",
-          referenceTail: refTail,
-        };
-      }
-
-      if (/\b(AIP|AD\s*2|VAC|IAC|SID|STAR)\b/.test(upper) && /\b(REF|READ|AMDT|AMENDED|MODIFIED|CHANGED|CORRECTION)\b/.test(upper)) {
-        return {
-          key: "document",
-          shortLabel: "Document officiel",
-          label: refTail ? `Document officiel ${refTail}` : "Document officiel aéronautique",
-          title: "Référence documentaire publiée",
-          referenceTail: refTail,
-        };
-      }
-
-      return { key: "", shortLabel: "", label: "", title: "", referenceTail: "" };
-    }
-
-    function detectNotamDocumentAction(text = "") {
-      const upper = String(text || "").toUpperCase();
-      if (/\bCANCELLED|CANCEL\b/.test(upper)) return { key: "cancelled", label: "Annulation publiée", title: "Annulation documentaire publiée" };
-      if (/\b(REPLACE|REPLACED|SUPERSEDED)\b/.test(upper)) return { key: "replaced", label: "Remplacement publié", title: "Remplacement documentaire publié" };
-      if (/\b(AMDT|AMENDED|MODIFIED|CHANGED|CHANGE|CORRECTION|READ|REF)\b/.test(upper)) return { key: "modified", label: "Modification documentaire publiée", title: "Modification documentaire publiée" };
-      return { key: "", label: "", title: "" };
-    }
-
-    const NOTAM_CODE_EXPLANATIONS = {
-      RWY: "RWY = piste",
-      TWY: "TWY = voie de circulation / taxiway",
-      APRON: "APRON = aire de trafic / parking",
-      AD: "AD = aérodrome",
-      ARP: "ARP = point de référence de l’aérodrome",
-      PSN: "PSN = position publiée",
-      RDL: "RDL = radial publié",
-      HGT: "HGT = hauteur au-dessus du sol",
-      ELEV: "ELEV = altitude publiée",
-      SFC: "SFC = surface / sol",
-      UNL: "UNL = unlimited / sans limite supérieure publiée",
-      AGL: "AGL = au-dessus du sol",
-      AMSL: "AMSL = au-dessus du niveau moyen de la mer",
-      FT: "FT = pieds",
-      REF: "REF = référence documentaire publiée",
-      AIP: "AIP = publication d’information aéronautique",
-      AMDT: "AMDT = amendement / modification",
-      IAC: "IAC = carte/procédure d’approche aux instruments",
-      SID: "SID = départ normalisé aux instruments",
-      STAR: "STAR = arrivée normalisée aux instruments",
-      VAC: "VAC = carte d’approche et d’atterrissage à vue",
-      NIL: "NIL = néant / absent",
-      CLSD: "CLSD = fermé",
-      CLOSED: "CLOSED = fermé",
-      WIP: "WIP = travaux en cours",
-      MAINT: "MAINT = maintenance",
-      U_S: "U/S = hors service / indisponible",
-      UNSERVICEABLE: "UNSERVICEABLE = hors service / indisponible",
-      AVBL: "AVBL = disponible",
-      LTD: "LTD = limité",
-      BTN: "BTN = entre",
-      FM: "FM = à partir de",
-      TO: "TO = jusqu’à / vers",
-      DLY: "DLY = quotidiennement",
-      H24: "H24 = 24 h/24",
-      HR: "HR = heures",
-      PROC: "PROC = procédure",
-      APCH: "APCH = approche",
-      DEP: "DEP = départ",
-      ARR: "ARR = arrivée",
-      ILS: "ILS = système d’atterrissage aux instruments",
-      LOC: "LOC = localizer",
-      GP: "GP = glide path / plan de descente ILS",
-      DME: "DME = équipement de mesure de distance",
-      VOR: "VOR = radio-navigation VHF",
-      NDB: "NDB = radiophare non directionnel",
-      RNP: "RNP = navigation basée sur performance requise",
-      RNAV: "RNAV = navigation de surface",
-      TWR: "TWR = tour de contrôle",
-      ATIS: "ATIS = information automatique de terrain",
-      FREQ: "FREQ = fréquence",
-      RFFS: "RFFS = sauvetage et lutte incendie d’aérodrome",
-      OBST: "OBST = obstacle",
-      LGT: "LGT = feux / balisage lumineux",
-      PAPI: "PAPI = indicateur visuel de pente d’approche",
-      THR: "THR = seuil de piste",
-      TORA: "TORA = distance de roulement utilisable au décollage",
-      TODA: "TODA = distance utilisable au décollage",
-      ASDA: "ASDA = distance utilisable pour accélération-arrêt",
-      LDA: "LDA = distance utilisable à l’atterrissage",
-      CTR: "CTR = zone de contrôle",
-      TMA: "TMA = région de contrôle terminale",
-      ATZ: "ATZ = zone de trafic d’aérodrome",
-      DANGER: "DANGER = zone dangereuse",
-      RESTRICTED: "RESTRICTED = zone réglementée",
-      PROHIBITED: "PROHIBITED = zone interdite",
-    };
-
-    function explainDetectedNotamCodes(text = "") {
-      const upper = String(text || "").toUpperCase();
-      const explanations = [];
-      const add = (value) => {
-        if (value && !explanations.includes(value)) explanations.push(value);
-      };
-
-      Object.entries(NOTAM_CODE_EXPLANATIONS).forEach(([code, explanation]) => {
-        if (code === "U_S") {
-          if (/\bU\/S\b/.test(upper)) add(explanation);
-          return;
-        }
-        const pattern = new RegExp(`\\b${code.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")}\\b`, "i");
-        if (pattern.test(upper)) add(explanation);
-      });
-
-      return explanations;
-    }
-
-    function buildNotamLearningNotes({ text = "", status = {}, cause = {}, runway = "", taxiway = "", apron = "", navAid = "", category = {}, volumeLabel = "", reference = "", frequency = "", coordinates = "", height = "", procedure = {}, action = {} } = {}) {
-      const notes = [];
-      const add = (value) => {
-        const text = String(value || "").replace(/\s+/g, " ").trim();
-        if (text && !notes.includes(text)) notes.push(text);
-      };
-
-      if (status?.key === "closed") add("Le NOTAM publie une fermeture : l’élément indiqué ne doit pas être considéré utilisable sans vérification officielle.");
-      if (status?.key === "unserviceable") add("Le NOTAM publie une indisponibilité : l’équipement, service ou élément mentionné est hors service selon le texte publié.");
-      if (procedure?.label) add(`${procedure.label} : le NOTAM indique une information de procédure/document. Il faut consulter la carte ou la référence officielle concernée avant utilisation.`);
-      if (action?.key) add(`${action.label} : la modification porte sur la publication/référence indiquée. NESDZ ne remplace pas la lecture de cette référence.`);
-      if (status?.key === "modified") add("Le NOTAM publie une modification documentaire : il faut consulter la référence indiquée, le texte ne décrit pas forcément un danger immédiat.");
-      if (cause?.key === "work") add("La cause publiée est liée à des travaux ou une maintenance.");
-      if (runway) add(`Élément principal reconnu : piste ${runway}.`);
-      if (taxiway) add(`Élément principal reconnu : taxiway ${taxiway}.`);
-      if (apron) add(`Élément principal reconnu : aire de trafic / parking.`);
-      if (navAid) add(`Élément radio-navigation reconnu : ${navAid}.`);
-      if (frequency) add(`Fréquence publiée : ${frequency}.`);
-      if (coordinates) add(`Position publiée dans le NOTAM : ${coordinates}.`);
-      if (height) add(`Hauteur ou altitude publiée : ${height}.`);
-      if (reference) add("Le NOTAM renvoie à une référence officielle : cette référence doit être consultée dans le briefing officiel.");
-      if (volumeLabel) add(explainNotamVolume(volumeLabel));
-
-      const codeExplanations = explainDetectedNotamCodes(text);
-      if (codeExplanations.length) add(`Codes reconnus : ${codeExplanations.slice(0, 8).join(" · ")}.`);
-
-      if (!notes.length) add("Lecture automatique limitée : conserver le texte officiel NOTAM comme référence principale.");
-      return notes;
-    }
-
-    function explainNotamVolume(volumeLabel = "") {
-      const upper = String(volumeLabel || "").toUpperCase();
-      if (upper.includes("SFC") && upper.includes("UNL")) {
-        return "Limites verticales SFC / UNL : du sol jusqu’à une limite supérieure non publiée. Pour certains NOTAM administratifs ou documentaires, cela décrit la portée du message, pas forcément un obstacle réel vertical.";
-      }
-      if (upper.includes("SFC")) return "Limite basse SFC : le NOTAM commence au niveau du sol / de la surface.";
-      if (upper.includes("UNL")) return "Limite haute UNL : pas de limite supérieure publiée dans ce champ.";
-      return `Limites verticales publiées : ${volumeLabel}.`;
-    }
-
-    function detectNotamStatus(text) {
-      if (/\b(CLSD|CLOSED|CLOSURE)\b/.test(text)) return { key: "closed", label: "Fermeture publiée" };
-      if (/\b(U\/S|UNSERVICEABLE|OUT OF SERVICE|INDISPONIBLE)\b/.test(text)) return { key: "unserviceable", label: "Indisponible / hors service" };
-      if (/\b(SUSPENDED|SUSPENSION)\b/.test(text)) return { key: "suspended", label: "Suspendu" };
-      if (/\b(AVBL|AVAILABLE)\b/.test(text)) return { key: "available", label: "Disponible publié" };
-      if (/\b(MODIFIED|CHANGED|AMENDED|READ)\b/.test(text)) return { key: "modified", label: "Modification publiée" };
-      if (/\b(ACTIVATED|ACTIVE)\b/.test(text)) return { key: "active", label: "Activité active / activée" };
-      return { key: "info", label: "Information publiée" };
-    }
-
-    function detectNotamCause(text) {
-      if (/\b(WIP|WORK IN PROGRESS|WORKS?|MAINT|MAINTENANCE)\b/.test(text)) return { key: "work", label: "Travaux" };
-      if (/\b(SNOW|ICE|FROST|WATER|FLOOD)\b/.test(text)) return { key: "weather", label: "État météo / contamination" };
-      if (/\b(OBST|CRANE|MAST|TOWER|ANTENNA|ANTENNAS)\b/.test(text)) return { key: "obstacle", label: "Obstacle" };
-      if (/\b(EXERCISE|MIL|PARAGLID|PJE|PARACHUTE|DRONE|UAS)\b/.test(text)) return { key: "activity", label: "Activité aérienne" };
-      return { key: "", label: "" };
-    }
-
-    function extractPrimaryRunway(text) {
-      const match = String(text || "").match(/\bRWY\s*([0-9]{2}[LCR]?(?:\/[0-9]{2}[LCR]?)?)\b/i);
-      return match ? match[1].toUpperCase() : "";
-    }
-
-    function extractPrimaryTaxiway(text) {
-      const match = String(text || "").match(/\bTWY\s*([A-Z0-9]+)\b/i);
-      return match ? match[1].toUpperCase() : "";
-    }
-
-    function extractPrimaryApron(text) {
-      const match = String(text || "").match(/\b(APRON|PARKING|STAND\s*[A-Z0-9]+)\b/i);
-      return match ? match[1].replace(/\s+/g, " ").toUpperCase() : "";
-    }
-
-    function extractPrimaryNavAid(text) {
-      const clean = String(text || "").replace(/\s+/g, " ").trim();
-      const ndb = clean.match(/\bNDB\s+([A-Z0-9]{2,6})?\s*(\d{3})?\s*KHZ/i);
-      if (ndb) return ["NDB", ndb[1], ndb[2] ? `${ndb[2]} kHz` : ""].filter(Boolean).join(" ");
-      const vor = clean.match(/\b(VOR|DME|ILS|LOC|GNSS|RNAV|RNP|TWR|ATIS)\b(?:\s+([A-Z0-9]{2,8}))?/i);
-      return vor ? [vor[1], vor[2]].filter(Boolean).join(" ").toUpperCase() : "";
-    }
-
-    function classifyNotamCategory(text, row = {}) {
-      const purpose = String(row?.purpose || "").trim().toUpperCase();
-      if (/(IAC|SID|STAR|AIP|AD\s*2|VAC)/.test(text)) {
-        return { label: "Procédure", impact: "Procédure / publication officielle", icon: "procedure", glyph: "▧" };
-      }
-      if (/\b(RFFS|FIRE FIGHTING|RESCUE|SSLIA|LEVEL\s+[0-9])\b/.test(text)) {
-        return { label: "Service", impact: "Service terrain publié", icon: "service", glyph: "▥" };
-      }
-      if (/\b(RWY|RUNWAY|THR|TORA|TODA|ASDA|LDA|MARKING|LIGHT|BALISAGE|APCH LIGHT|PAPI|VASI)\b/.test(text)) {
-        return { label: "Piste", impact: "Opérations piste", icon: "runway", glyph: "⇥" };
-      }
-      if (/\b(TWY|TAXIWAY|APRON|PARKING|STAND)\b/.test(text)) {
-        return { label: "Sol", impact: "Roulage / parking", icon: "runway", glyph: "⇥" };
-      }
-      if (/\b(WATER TOWER|TOWER AND ANTENNAS|ANTENNAS|MAST|CRANE|OBST|OBSTACLE|WIND TURBINE)\b/.test(text)) {
-        return { label: "Obstacle", impact: "Obstacle / hauteur publiée", icon: "obstacle", glyph: "⌁" };
-      }
-      if (/\b(NDB|VOR|DME|ILS|LOC|GLIDE|GNSS|RNAV|RNP|TACAN|FREQ|FREQUENCY|FREQUENCIES|RADIO|ATIS|TWR)\b/.test(text)) {
-        return { label: "Radio/Nav", impact: "Radio-navigation / fréquence / procédure", icon: "radio", glyph: "⌁" };
-      }
-      if (/\b(PARAGLID|GLIDER|AEROBATIC|AEROBATICS|MODEL FLYING|UAS|DRONE|PJE|PARACHUTE|ACTIVITY|EXERCISE|MIL)\b/.test(text)) {
-        return { label: "Activité", impact: "Activité aérienne", icon: "activity", glyph: "⌁" };
-      }
-      if (/\b(CTR|TMA|ATZ|DANGER|PROHIBITED|RESTRICTED|AIRSPACE|AREA|ZONE|SFC)\b/.test(text) || purpose === "NBO") {
-        return { label: "Espace", impact: "Espace aérien / volume", icon: "activity", glyph: "⌁" };
-      }
-      return { label: "NOTAM", impact: "Information aéronautique", icon: "activity", glyph: "⌁" };
-    }
-
-    function scoreNotamLevel(text, category, row = {}, operation = {}) {
-      const upper = String(text || "").toUpperCase();
-
-      // Rouge uniquement quand le NOTAM publie une indisponibilité, fermeture,
-      // interdiction ou un obstacle clairement identifié. Une modification
-      // documentaire/procédure ne devient pas rouge par défaut.
-      if (/\b(AD|AERODROME)\s+(CLSD|CLOSED)\b/.test(upper)) return "important";
-      if (/\b(RWY|RUNWAY|TWY|TAXIWAY|APRON)\s*[A-Z0-9\/]*\s*(CLSD|CLOSED|CLOSURE)\b/.test(upper)) return "important";
-      if (/\b(U\/S|UNSERVICEABLE|OUT OF SERVICE|SUSPENDED|PROHIBITED|FORBIDDEN)\b/.test(upper)) return "important";
-      if (category.label === "Obstacle") return "important";
-
-      // À vérifier : information opérationnelle utile, mais non bloquante
-      // automatiquement sans lecture du texte officiel.
-      if (/\b(WIP|WORK IN PROGRESS|MAINT|LIMITED|RESTRICTED|CRANE|OBST|ACTIVITY|PARACHUTE|PJE|DRONE|UAS|RFFS)\b/.test(upper)) {
-        return "moderate";
-      }
-      if (/\b(IAC|SID|STAR|AIP|AD\s*2|VAC|RNP|RNAV|ILS|LOC|VOR|DME|NDB|FREQ|FREQUENCY|TWR|ATIS)\b/.test(upper)) {
-        return "moderate";
-      }
-      if (["Piste", "Radio/Nav", "Service", "Procédure", "Sol", "Espace"].includes(category.label)) return "moderate";
-      return "info";
-    }
-
-    function buildNotamTitle(text, category, row = {}, icao = "", facts = []) {
-      const clean = String(text || "").replace(/\s+/g, " ").trim();
-      const objectFact = facts.find((fact) => fact.label === "Objet")?.value || "";
-      const rwy = clean.match(/\bRWY\s*([0-9]{2}[LCR]?(?:\/[0-9]{2}[LCR]?)?)\b/i);
-      const isProcedure = /\b(IAC|SID|STAR|RNP|RNAV|AIP|AD\s*2|VAC)\b/i.test(clean);
-      const isDocumentary = /\b(REF|AMDT|AMEND|AIP|SUP|AIRAC|CHART|IAC|VAC|AD\s*2)\b/i.test(clean);
-      const isClosed = /\b(CLSD|CLOSED|CLOSURE)\b/i.test(clean);
-      const isWork = /\b(WIP|WORK|MAINT)\b/i.test(clean);
-
-      if (rwy) {
-        if (isClosed) return `Piste ${rwy[1]} fermée`;
-        if (isWork) return `Travaux piste ${rwy[1]}`;
-        if (isProcedure) return `Procédure piste ${rwy[1]} publiée`;
-        if (isDocumentary) return `Document piste ${rwy[1]} mis à jour`;
-        if (/LIGHT|BALISAGE|PAPI|VASI/i.test(clean)) return `Piste ${rwy[1]} — balisage / aides visuelles`;
-        return `Piste ${rwy[1]} — information publiée`;
-      }
-
-      if (isProcedure) {
-        if (/\bRNP\b/i.test(clean)) return "Procédure RNP publiée";
-        if (/\bRNAV\b/i.test(clean)) return "Procédure RNAV publiée";
-        if (/\bIAC\b/i.test(clean)) return "Carte d’approche publiée";
-        if (/\bSID\b/i.test(clean)) return "Départ publié";
-        if (/\bSTAR\b/i.test(clean)) return "Arrivée publiée";
-        return "Procédure publiée";
-      }
-
-      const nav = clean.match(/\b(ILS|LOC|NDB|VOR|DME|GNSS|RNAV|RNP|TWR|ATIS)\b(?:\s+([A-Z0-9]{2,6}))?/i);
-      if (nav && category.label === "Radio/Nav") {
-        const name = [nav[1], nav[2]].filter(Boolean).join(" ");
-        if (/U\/S|UNSERVICEABLE|OUT OF SERVICE|INDISPONIBLE/i.test(clean)) return `${name} — hors service`;
-        if (/FREQ|FREQUENCY|FREQUENCIES/i.test(clean)) return `${name} — fréquence publiée`;
-        return `${name} — information publiée`;
-      }
-
-      if (category.label === "Obstacle") return objectFact ? `Obstacle — ${objectFact}` : "Obstacle publié";
-      if (category.label === "Service") return objectFact ? `Service — ${objectFact}` : "Service terrain publié";
-      if (/PARAGLID/i.test(clean)) return "Activité parapente publiée";
-      if (/DRONE|UAS/i.test(clean)) return "Activité drone / UAS publiée";
-      if (/CLSD|CLOSED/i.test(clean)) return `${icao || "Terrain"} — fermeture publiée`;
-
-      return clean.length > 64 ? `${clean.slice(0, 61)}…` : clean || `${icao || "Terrain"} — NOTAM publié`;
-    }
-
-    function buildNotamFacts(row = {}, itemText = "", category = {}, icao = "", operation = {}) {
-      const clean = String(itemText || "").replace(/\s+/g, " ").trim();
-      const facts = [];
-      const addFact = (label, value) => {
-        const text = String(value || "").replace(/\s+/g, " ").trim();
-        if (label && text && !facts.some((fact) => fact.label === label && fact.value === text)) {
-          facts.push({ label, value: text });
-        }
-      };
-
-      addFact("Famille NOTAM", category?.label || "NOTAM");
-      addFact("Élément concerné", extractNotamObject(clean, category));
-      addFact("Terrain / zone", Array.isArray(row?.itema) ? row.itema.join(", ") : icao);
-      addFact("Validité", formatNotamPeriod(row));
-      addFact("Portée verticale", formatNotamVolume(row));
-      addFact("Position", extractNotamCoordinates(clean));
-      addFact("Hauteur / altitude", extractNotamHeight(clean));
-      addFact("Fréquence", extractNotamFrequency(clean));
-      addFact("Piste", extractNotamRunway(clean));
-      addFact("Référence officielle", extractNotamReference(clean));
-      addFact("Champs techniques", formatNotamCodeFields(row));
-      addFact("Abréviations traduites", translateNotamTextLiteral(clean));
-
-      return facts;
-    }
-
-    function extractNotamObject(text, category = {}) {
-      const upper = String(text || "").toUpperCase();
-      if (/WATER TOWER/.test(upper) && /ANTENNA/.test(upper)) return "Château d’eau et antennes";
-      if (/WATER TOWER/.test(upper)) return "Château d’eau";
-      if (/ANTENNA|ANTENNAS/.test(upper)) return "Antenne(s)";
-      if (/CRANE/.test(upper)) return "Grue";
-      if (/MAST/.test(upper)) return "Mât";
-      if (/RFFS|FIRE FIGHTING|RESCUE/.test(upper)) return "Sauvetage et lutte incendie";
-      if (/TWR/.test(upper) && /FREQ/.test(upper)) return "Fréquence tour";
-      if (/NDB/.test(upper)) return "NDB";
-      if (/VOR/.test(upper)) return "VOR";
-      if (/DME/.test(upper)) return "DME";
-      if (/ILS|LOC/.test(upper)) return "ILS / LOC";
-      if (/PARAGLID/.test(upper)) return "Activité parapente";
-      if (/DRONE|UAS/.test(upper)) return "Activité drone / UAS";
-      if (/APRON|PARKING/.test(upper)) return "Parking / aire de trafic";
-      if (/TWY|TAXIWAY/.test(upper)) return "Taxiway";
-      if (/RWY|RUNWAY/.test(upper)) return "Piste";
-      return category?.impact || "Information publiée";
-    }
-
-    function extractNotamCoordinates(text) {
-      const matches = String(text || "").match(/\b\d{4,6}[NS]\s*\d{5,7}[EW]\b/g);
-      return matches?.length ? matches.join(" · ") : "";
-    }
-
-    function extractNotamHeight(text) {
-      const values = [];
-      const hgt = String(text || "").match(/\bHGT\s*:?\s*([0-9]{1,5}\s*FT)\b/i);
-      const elev = String(text || "").match(/\bELEV\s*:?\s*([0-9]{1,5}\s*FT)\b/i);
-      if (hgt) values.push(`HGT ${hgt[1].replace(/\s+/g, " ")}`);
-      if (elev) values.push(`ELEV ${elev[1].replace(/\s+/g, " ")}`);
-      return values.join(" · ");
-    }
-
-    function extractNotamFrequency(text) {
-      const matches = String(text || "").match(/\b\d{3}\.\d{3}\s*MHZ\b|\b\d{3}\s*KHZ\b/gi);
-      return matches?.length ? matches.map((item) => item.replace(/\s+/g, " ").toUpperCase()).join(" · ") : "";
-    }
-
-    function extractNotamRunway(text) {
-      const matches = String(text || "").match(/\bRWY\s*[0-9]{2}[LCR]?(?:\/[0-9]{2}[LCR]?)?\b/gi);
-      return matches?.length ? matches.map((item) => item.replace(/\s+/g, " ").toUpperCase()).join(" · ") : "";
-    }
-
-    function extractNotamReference(text) {
-      const matches = String(text || "").match(/\bREF\s*:?\s*[^.]+/i);
-      return matches ? matches[0].replace(/\s+/g, " ").trim() : "";
-    }
-
-    function formatNotamCodeFields(row = {}) {
-      const parts = [];
-      if (row?.fir) parts.push(`FIR ${row.fir}`);
-      if (row?.code23) parts.push(`Q-code ${row.code23}`);
-      if (row?.traffic) parts.push(`Trafic ${row.traffic}`);
-      if (row?.purpose) parts.push(`Objet ${row.purpose}`);
-      if (row?.scope) parts.push(`Portée ${row.scope}`);
-      return parts.join(" · ");
-    }
-
-    function translateNotamTextLiteral(text) {
-      const clean = String(text || "").replace(/\s+/g, " ").trim();
-      if (!clean) return "";
-      const translations = explainDetectedNotamCodes(clean);
-      const upper = clean.toUpperCase();
-
-      if (/WATER TOWER/.test(upper) && !translations.includes("WATER TOWER = château d’eau")) translations.push("WATER TOWER = château d’eau");
-      if (/ANTENNA|ANTENNAS/.test(upper) && !translations.includes("ANTENNA(S) = antenne(s)")) translations.push("ANTENNA(S) = antenne(s)");
-
-      return translations.join(" · ");
-    }
-
-    function formatNotamPeriod(row = {}) {
-      const start = unixToDate(row?.startvalidity);
-      const end = unixToDate(row?.endvalidity);
-      if (start && end) return `${formatNotamDate(start)} → ${formatNotamDate(end)}`;
-      if (end) return `Jusqu’au ${formatNotamDate(end)}`;
-      if (start) return `Depuis le ${formatNotamDate(start)}`;
-      return "Validité à vérifier";
-    }
-
-    function formatNotamVolume(row = {}) {
-      const lower = Number(row?.lower);
-      const upper = Number(row?.upper);
-      if (!Number.isFinite(lower) && !Number.isFinite(upper)) return "";
-      const lowerLabel = Number.isFinite(lower) ? (lower <= 0 ? "SFC" : `${lower} ft`) : "—";
-      const upperLabel = Number.isFinite(upper) ? (upper >= 999 ? "UNL" : `${upper} ft`) : "—";
-      return `${lowerLabel} / ${upperLabel}`;
-    }
-
-    function unixToDate(value) {
-      const num = Number(value);
-      if (!Number.isFinite(num) || num <= 0 || num >= 2147483647) return null;
-      return new Date(num * 1000);
-    }
-
-    function formatNotamDate(date) {
-      if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "—";
-      const day = String(date.getUTCDate()).padStart(2, "0");
-      const month = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"][date.getUTCMonth()];
-      const hour = String(date.getUTCHours()).padStart(2, "0");
-      const min = String(date.getUTCMinutes()).padStart(2, "0");
-      return `${day} ${month} ${hour}:${min} UTC`;
-    }
-
-    function formatNotamFetchedAt(value) {
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return "";
-      return `maj ${formatUtcClock(date)}`;
-    }
-
-    function buildNotamRawText(row = {}, itemText = "", icao = "") {
-      const number = `${row?.series || ""}${row?.number || ""}/${row?.year || ""}`.replace(/^\//, "").trim();
-      const qLine = [row?.fir, row?.code23, row?.traffic, row?.purpose, row?.scope, row?.lower, row?.upper]
-        .filter((value) => value !== null && value !== undefined && String(value).trim() !== "")
-        .join(" /");
-      const aLine = Array.isArray(row?.itema) ? row.itema.join(", ") : (icao || "");
-      const bLine = formatNotamPeriod(row);
-      const fLine = row?.lower !== null && row?.lower !== undefined ? `F) ${Number(row.lower) <= 0 ? "SFC" : `${row.lower}FT`}` : "";
-      const gLine = row?.upper !== null && row?.upper !== undefined ? `G) ${Number(row.upper) >= 999 ? "UNL" : `${row.upper}FT`}` : "";
-      return [
-        number ? `${number} NOTAM` : "NOTAM",
-        qLine ? `Q) ${qLine}` : "",
-        aLine ? `A) ${aLine}` : "",
-        bLine ? `B/C) ${bLine}` : "",
-        itemText ? `E) ${itemText}` : "E) Texte officiel indisponible dans la réponse Autorouter.",
-        fLine,
-        gLine,
-      ].filter(Boolean).join("\n");
-    }
-
-
-    function initNotamCockpitInteractions() {
-      const triggers = Array.from(document.querySelectorAll(".notam-item-trigger"));
-      const detailPanels = Array.from(document.querySelectorAll(".notam-inline-detail"));
-      if (!triggers.length || !detailPanels.length) return;
-
-      triggers.forEach((trigger) => {
-        if (!(trigger instanceof HTMLButtonElement)) return;
-        trigger.onclick = () => {
-          const card = trigger.closest(".notam-item");
-          const detailId = trigger.dataset.notamTarget || trigger.getAttribute("aria-controls");
-          const detail = detailId ? document.getElementById(detailId) : null;
-          const isOpen = trigger.getAttribute("aria-expanded") === "true";
-
-          triggers.forEach((otherTrigger) => {
-            const otherCard = otherTrigger.closest(".notam-item");
-            otherTrigger.setAttribute("aria-expanded", "false");
-            if (otherCard) otherCard.classList.remove("is-open");
-          });
-
-          detailPanels.forEach((panel) => {
-            panel.hidden = true;
-            panel.classList.remove("is-visible");
-          });
-
-          if (notamAllBtn) notamAllBtn.setAttribute("aria-expanded", "false");
-
-          if (!isOpen && detail) {
-            trigger.setAttribute("aria-expanded", "true");
-            if (card) card.classList.add("is-open");
-            detail.hidden = false;
-            requestAnimationFrame(() => detail.classList.add("is-visible"));
-          }
-        };
-      });
-    }
-
-    initNotamCockpitInteractions();
   </script>
 
   <style is:global>
@@ -14651,7 +13560,8 @@ function renderUlmNearbyItem(item) {
       tabs.forEach((button) => {
         const active = button.dataset.briefingTab === tab;
         button.classList.toggle("is-active", active);
-        button.setAttribute("aria-pressed", active ? "true" : "false");
+        button.setAttribute("aria-selected", active ? "true" : "false");
+        button.tabIndex = active ? 0 : -1;
       });
 
       if (updateUrl) {
@@ -14660,17 +13570,24 @@ function renderUlmNearbyItem(item) {
         history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
       }
 
-      window.scrollTo({ top: Math.max(0, page.getBoundingClientRect().top + window.scrollY - 92), behavior: "smooth" });
     };
 
     tabs.forEach((button, index) => {
       button.addEventListener("click", () => setBriefingTab(button.dataset.briefingTab));
 
       button.addEventListener("keydown", (event) => {
-        if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+        const forward = event.key === "ArrowRight" || event.key === "ArrowDown";
+        const backward = event.key === "ArrowLeft" || event.key === "ArrowUp";
+        const first = event.key === "Home";
+        const last = event.key === "End";
+        if (!forward && !backward && !first && !last) return;
         event.preventDefault();
-        const direction = event.key === "ArrowRight" ? 1 : -1;
-        const next = tabs[(index + direction + tabs.length) % tabs.length];
+        const nextIndex = first
+          ? 0
+          : last
+            ? tabs.length - 1
+            : (index + (forward ? 1 : -1) + tabs.length) % tabs.length;
+        const next = tabs[nextIndex];
         next.focus();
         setBriefingTab(next.dataset.briefingTab);
       });
@@ -17100,124 +16017,143 @@ function renderUlmNearbyItem(item) {
     outline-offset: 2px;
   }
 
-  /* COCKPIT MODE SELECTOR: four tactile, colour-coded briefing controls. */
+  /* AVIONICS MODE DECK: dense, sunlight-readable and state-led. */
   .nesdz-premium-ui .tool-page .briefing-tabs {
-    gap: 7px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 5px;
     min-height: 0;
-    padding: 7px;
+    padding: 5px;
     overflow: visible;
-    border: 1px solid #29475c;
-    border-radius: 12px;
-    background: #020811;
+    border: 1px solid #344653;
+    border-radius: 8px;
+    background: #03070a;
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.06),
-      inset 0 -8px 18px rgba(0,0,0,.28),
-      0 10px 26px rgba(0,0,0,.24);
-  }
-
-  .nesdz-premium-ui .tool-page .briefing-tab[data-briefing-tab="metar"] {
-    --tab-rgb: 64, 205, 255;
-    --tab-solid: #58d5ff;
-  }
-
-  .nesdz-premium-ui .tool-page .briefing-tab[data-briefing-tab="taf"] {
-    --tab-rgb: 154, 126, 255;
-    --tab-solid: #ab91ff;
-  }
-
-  .nesdz-premium-ui .tool-page .briefing-tab[data-briefing-tab="notam"] {
-    --tab-rgb: 255, 183, 77;
-    --tab-solid: #ffc05d;
-  }
-
-  .nesdz-premium-ui .tool-page .briefing-tab[data-briefing-tab="terrain"] {
-    --tab-rgb: 70, 224, 155;
-    --tab-solid: #52e6a5;
+      inset 0 1px 0 rgba(255, 255, 255, .07),
+      0 8px 22px rgba(0, 0, 0, .3);
   }
 
   .nesdz-premium-ui .tool-page .briefing-tab {
+    --tab-signal: #64d8ff;
     position: relative;
     min-width: 0;
-    min-height: 58px;
+    min-height: 70px;
     display: grid;
-    grid-template-rows: auto auto;
-    place-items: initial;
-    align-content: center;
-    justify-items: start;
-    gap: 2px;
-    padding: 8px 10px 8px 28px;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 11px;
     overflow: hidden;
-    border: 1px solid rgba(var(--tab-rgb), .36);
-    border-radius: 8px;
-    color: #d8e5ef;
-    background:
-      linear-gradient(180deg, rgba(255,255,255,.055), transparent 42%),
-      #081421;
+    border: 1px solid #334754;
+    border-radius: 5px;
+    color: #aebbc5;
+    background: #0a1117;
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.07),
-      inset 0 -3px 0 rgba(0,0,0,.46),
-      0 3px 7px rgba(0,0,0,.34);
+      inset 0 1px 0 rgba(255, 255, 255, .045),
+      inset 0 -2px 0 rgba(0, 0, 0, .5);
     text-align: left;
-    transform: translateY(0);
-    transition: border-color .16s ease, background .16s ease, box-shadow .16s ease, transform .16s ease;
+    transition:
+      border-color .14s ease,
+      background-color .14s ease,
+      color .14s ease;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab[data-briefing-tab="taf"] {
+    --tab-signal: #91b9ff;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab[data-briefing-tab="notam"] {
+    --tab-signal: #ffc857;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab[data-briefing-tab="terrain"] {
+    --tab-signal: #75e2a5;
   }
 
   .nesdz-premium-ui .tool-page .briefing-tab::before {
     content: "";
     position: absolute;
-    top: 12px;
-    left: 10px;
-    width: 8px;
-    height: 8px;
-    border: 1px solid rgba(var(--tab-rgb), .62);
-    border-radius: 50%;
-    background: rgba(var(--tab-rgb), .2);
-    box-shadow: inset 0 1px 2px rgba(0,0,0,.6);
+    inset: 0 0 auto;
+    height: 3px;
+    background: #263641;
   }
 
   .nesdz-premium-ui .tool-page .briefing-tab::after {
     content: "";
     position: absolute;
-    inset: auto 9px 5px;
-    width: auto;
-    height: 2px;
-    border-radius: 999px;
-    background: rgba(var(--tab-rgb), .24);
-    box-shadow: none;
+    inset: auto 10px 7px 53px;
+    height: 1px;
+    background: transparent;
     transform: none;
   }
 
+  .nesdz-premium-ui .tool-page .briefing-tab-icon {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #3d515e;
+    border-radius: 4px;
+    color: #9fb0ba;
+    background: #050b10;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab-icon svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab-copy {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+  }
+
   .nesdz-premium-ui .tool-page .briefing-tab strong {
-    color: var(--tab-solid);
-    font-size: .78rem;
-    font-weight: 950;
-    line-height: 1.05;
-    letter-spacing: .085em;
+    color: #f2f7fa;
+    font-family: var(--font-mono, "SFMono-Regular", Consolas, monospace);
+    font-size: .83rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: .08em;
   }
 
   .nesdz-premium-ui .tool-page .briefing-tab small {
     display: block;
-    max-width: 100%;
     overflow: hidden;
-    color: #91a7b8;
-    font-size: .59rem;
-    font-weight: 750;
-    line-height: 1.05;
-    letter-spacing: .025em;
+    color: #93a5b1;
+    font-size: .63rem;
+    font-weight: 650;
+    line-height: 1.1;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
+  .nesdz-premium-ui .tool-page .briefing-tab-state {
+    align-self: start;
+    margin-top: 1px;
+    padding: 3px 5px;
+    border: 1px solid #3c4d58;
+    border-radius: 3px;
+    color: #9bacb7;
+    background: #050b10;
+    font-family: var(--font-mono, "SFMono-Regular", Consolas, monospace);
+    font-size: .5rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: .06em;
+  }
+
   .nesdz-premium-ui .tool-page .briefing-tab:hover {
-    border-color: rgba(var(--tab-rgb), .76);
-    background:
-      linear-gradient(180deg, rgba(var(--tab-rgb), .13), transparent 55%),
-      #0a1928;
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.1),
-      inset 0 -3px 0 rgba(0,0,0,.4),
-      0 4px 10px rgba(0,0,0,.38);
-    transform: translateY(-1px);
+    border-color: #667b88;
+    color: #ffffff;
+    background: #0e1820;
+    transform: none;
   }
 
   .nesdz-premium-ui .tool-page .briefing-tab:focus-visible {
@@ -17227,82 +16163,339 @@ function renderUlmNearbyItem(item) {
   }
 
   .nesdz-premium-ui .tool-page .briefing-tab.is-active,
-  .nesdz-premium-ui .tool-page .briefing-tab[aria-pressed="true"] {
-    border-color: var(--tab-solid);
+  .nesdz-premium-ui .tool-page .briefing-tab[aria-selected="true"] {
+    border-color: var(--tab-signal);
     color: #ffffff;
-    background:
-      linear-gradient(180deg, rgba(var(--tab-rgb), .34), rgba(var(--tab-rgb), .11) 72%),
-      #07131f;
+    background: #101a21;
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.22),
-      inset 0 -2px 0 rgba(var(--tab-rgb), .28),
-      0 0 0 1px rgba(var(--tab-rgb), .13),
-      0 0 17px rgba(var(--tab-rgb), .27);
-    transform: translateY(1px);
+      inset 0 0 0 1px color-mix(in srgb, var(--tab-signal) 18%, transparent),
+      inset 0 -2px 0 rgba(0, 0, 0, .5);
   }
 
   .nesdz-premium-ui .tool-page .briefing-tab.is-active::before,
-  .nesdz-premium-ui .tool-page .briefing-tab[aria-pressed="true"]::before {
-    border-color: #ffffff;
-    background: #ffffff;
-    box-shadow:
-      0 0 4px #ffffff,
-      0 0 11px rgba(var(--tab-rgb), .95),
-      0 0 18px rgba(var(--tab-rgb), .58);
-  }
-
+  .nesdz-premium-ui .tool-page .briefing-tab[aria-selected="true"]::before,
   .nesdz-premium-ui .tool-page .briefing-tab.is-active::after,
-  .nesdz-premium-ui .tool-page .briefing-tab[aria-pressed="true"]::after {
-    background: var(--tab-solid);
-    box-shadow: 0 0 8px rgba(var(--tab-rgb), .8);
+  .nesdz-premium-ui .tool-page .briefing-tab[aria-selected="true"]::after {
+    background: var(--tab-signal);
   }
 
-  .nesdz-premium-ui .tool-page .briefing-tab.is-active strong,
-  .nesdz-premium-ui .tool-page .briefing-tab[aria-pressed="true"] strong {
+  .nesdz-premium-ui .tool-page .briefing-tab.is-active .briefing-tab-icon,
+  .nesdz-premium-ui .tool-page .briefing-tab[aria-selected="true"] .briefing-tab-icon {
+    border-color: var(--tab-signal);
+    color: var(--tab-signal);
+    background: #071016;
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-tab.is-active .briefing-tab-state,
+  .nesdz-premium-ui .tool-page .briefing-tab[aria-selected="true"] .briefing-tab-state {
+    border-color: var(--tab-signal);
+    color: #071014;
+    background: var(--tab-signal);
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-context-bar {
+    border-color: #314754;
+    border-radius: 8px;
+    background: #050b10;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
+  }
+
+  .nesdz-premium-ui .tool-page .briefing-context-cell strong {
+    font-family: var(--font-mono, "SFMono-Regular", Consolas, monospace);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .nesdz-premium-ui .tool-page .notam-official-block {
+    overflow: hidden;
+    border-color: #4b5151;
+    border-radius: 9px;
+    background: #070c10;
+  }
+
+  .nesdz-premium-ui .tool-page .notam-official-block .notam-cockpit-head {
+    align-items: center;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #344047;
+  }
+
+  .nesdz-premium-ui .tool-page .notam-official-block .notam-kicker {
+    color: #ffc857;
+    font-family: var(--font-mono, "SFMono-Regular", Consolas, monospace);
+    letter-spacing: .11em;
+  }
+
+  .nesdz-premium-ui .tool-page .notam-count-badge--official {
+    border-color: #8a6b2e;
+    color: #ffd77f;
+    background: #211a0c;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-gateway {
+    display: grid;
+    grid-template-columns: 62px minmax(0, 1fr) minmax(172px, 210px);
+    align-items: stretch;
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid #65542f;
+    border-left: 4px solid #ffc857;
+    border-radius: 6px;
+    background: #0c1115;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-gateway-symbol {
+    width: 58px;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    align-self: start;
+    border: 1px solid #8a6b2e;
+    border-radius: 5px;
+    color: #ffc857;
+    background: #181307;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-gateway-symbol svg {
+    width: 35px;
+    height: 35px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2.1;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-gateway-copy {
+    min-width: 0;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-gateway-eyebrow {
+    display: block;
+    margin-bottom: 5px;
+    color: #ffc857;
+    font-family: var(--font-mono, "SFMono-Regular", Consolas, monospace);
+    font-size: .61rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-gateway h3 {
+    margin: 0;
+    color: #f6f8f9;
+    font-size: clamp(1rem, 1.7vw, 1.18rem);
+    line-height: 1.22;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-gateway p {
+    max-width: 680px;
+    margin: 7px 0 12px;
+    color: #aebbc3;
+    font-size: .78rem;
+    line-height: 1.5;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-airfield-context {
+    width: fit-content;
+    max-width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 8px;
+    border: 1px solid #35454e;
+    border-radius: 4px;
+    background: #05090c;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-airfield-context span {
+    color: #8fa0aa;
+    font-size: .61rem;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-airfield-context strong {
     color: #ffffff;
-    text-shadow: 0 0 9px rgba(var(--tab-rgb), .9);
+    font-family: var(--font-mono, "SFMono-Regular", Consolas, monospace);
+    font-size: .7rem;
+    letter-spacing: .08em;
   }
 
-  .nesdz-premium-ui .tool-page .briefing-tab.is-active small,
-  .nesdz-premium-ui .tool-page .briefing-tab[aria-pressed="true"] small {
-    color: #f4f9fc;
+  .nesdz-premium-ui .tool-page .sofia-gateway-action {
+    min-height: 96px;
+    display: grid;
+    grid-template-columns: 1fr 22px;
+    align-content: center;
+    gap: 4px 10px;
+    padding: 13px 14px;
+    border: 1px solid #ffc857;
+    border-radius: 5px;
+    color: #111417;
+    background: #ffc857;
+    box-shadow: inset 0 -3px 0 rgba(91, 59, 0, .28);
+    text-decoration: none;
   }
 
-  @media (max-width: 520px) {
+  .nesdz-premium-ui .tool-page .sofia-gateway-action span {
+    font-family: var(--font-mono, "SFMono-Regular", Consolas, monospace);
+    font-size: .78rem;
+    font-weight: 900;
+    letter-spacing: .06em;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-gateway-action small {
+    color: #4d3a13;
+    font-size: .61rem;
+    font-weight: 700;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-gateway-action svg {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-gateway-action:hover {
+    color: #030506;
+    background: #ffda81;
+    transform: none;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-gateway-action:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 3px;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-checklist {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    margin: 12px 0 0;
+    padding: 1px;
+    list-style: none;
+    border: 1px solid #34434b;
+    border-radius: 6px;
+    background: #34434b;
+    overflow: hidden;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-checklist li {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2px 9px;
+    padding: 10px 11px;
+    background: #0a1116;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-checklist li > span {
+    grid-row: 1 / span 2;
+    color: #ffc857;
+    font-family: var(--font-mono, "SFMono-Regular", Consolas, monospace);
+    font-size: .65rem;
+    font-weight: 800;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-checklist strong {
+    color: #eaf0f3;
+    font-size: .7rem;
+    line-height: 1.15;
+  }
+
+  .nesdz-premium-ui .tool-page .sofia-checklist small {
+    overflow: hidden;
+    color: #8fa0aa;
+    font-size: .61rem;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nesdz-premium-ui .tool-page .notam-official-block .notam-safety-strip {
+    margin-top: 12px;
+    border-color: #514526;
+    color: #c8b987;
+    background: #151207;
+  }
+
+  @media (max-width: 760px) {
     .nesdz-premium-ui .tool-page .briefing-tabs {
-      grid-template-columns: repeat(4, minmax(70px, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 4px;
-      padding: 5px;
-      overflow-x: auto;
-      border-radius: 10px;
+      padding: 4px;
+      overflow: visible;
     }
 
     .nesdz-premium-ui .tool-page .briefing-tab {
-      min-height: 54px;
-      padding: 7px 4px 7px 19px;
-      border-radius: 7px;
+      min-height: 64px;
+      grid-template-columns: 30px minmax(0, 1fr) auto;
+      gap: 8px;
+      padding: 8px;
     }
 
-    .nesdz-premium-ui .tool-page .briefing-tab::before {
-      top: 10px;
-      left: 7px;
-      width: 6px;
-      height: 6px;
+    .nesdz-premium-ui .tool-page .briefing-tab-icon {
+      width: 30px;
+      height: 30px;
     }
 
-    .nesdz-premium-ui .tool-page .briefing-tab::after {
-      right: 5px;
-      left: 5px;
+    .nesdz-premium-ui .tool-page .briefing-tab-icon svg {
+      width: 18px;
+      height: 18px;
     }
 
     .nesdz-premium-ui .tool-page .briefing-tab strong {
-      font-size: .66rem;
-      letter-spacing: .045em;
+      font-size: .72rem;
     }
 
     .nesdz-premium-ui .tool-page .briefing-tab small {
-      font-size: .52rem;
-      letter-spacing: 0;
+      font-size: .58rem;
+    }
+
+    .nesdz-premium-ui .tool-page .briefing-tab-state {
+      font-size: .46rem;
+    }
+
+    .nesdz-premium-ui .tool-page .sofia-gateway {
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 11px;
+      padding: 12px;
+    }
+
+    .nesdz-premium-ui .tool-page .sofia-gateway-symbol {
+      width: 44px;
+      height: 44px;
+    }
+
+    .nesdz-premium-ui .tool-page .sofia-gateway-symbol svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    .nesdz-premium-ui .tool-page .sofia-gateway-action {
+      grid-column: 1 / -1;
+      min-height: 58px;
+    }
+
+    .nesdz-premium-ui .tool-page .sofia-checklist {
+      grid-template-columns: 1fr;
+    }
+
+    .nesdz-premium-ui .tool-page .sofia-checklist small {
+      white-space: normal;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .nesdz-premium-ui .tool-page .briefing-tab {
+      grid-template-columns: 28px minmax(0, 1fr);
+    }
+
+    .nesdz-premium-ui .tool-page .briefing-tab-state {
+      display: none;
     }
   }
 
