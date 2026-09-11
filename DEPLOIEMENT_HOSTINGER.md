@@ -23,8 +23,10 @@ Avant tout remplacement, créer une archive ou télécharger une copie du dossie
 3. Remplacer les anciens fichiers par **le contenu** du ZIP `dist`.
 4. Vérifier que `index.html`, `_astro`, `data`, `outils` et `.htaccess` sont
    directement dans `public_html` — pas dans un sous-dossier `dist`.
-5. Conserver les fichiers propres à Hostinger qui ne font pas partie du site,
-   sauf si leur remplacement est volontaire.
+5. **Ne jamais supprimer `public_html/docs`** : ce dossier persistant contient
+   les cartes VAC/AIP et n'est volontairement pas inclus dans `dist`.
+6. Conserver les autres fichiers propres à Hostinger qui ne font pas partie du
+   site, sauf si leur remplacement est volontaire.
 
 Le fichier `.htaccess` est caché par son nom, mais le gestionnaire Hostinger
 affiche normalement les fichiers cachés. Il contient les en-têtes de sécurité,
@@ -46,3 +48,23 @@ rechargement forcé du navigateur.
 
 En cas de problème, restaurer la sauvegarde de `public_html` et conserver le ZIP
 défectueux pour permettre l’analyse.
+
+## Socle PHP/MySQL
+
+Les scripts PHP servis par Hostinger sont inclus dans `dist/api`. Le fichier qui
+contient les identifiants MySQL n'est jamais inclus dans GitHub ni dans `dist`.
+Il doit être placé dans le dossier `nesdz-private`, à côté de `public_html` :
+
+```text
+racine du site/
+├── nesdz-private/
+│   └── config.php
+└── public_html/
+    ├── api/
+    ├── docs/
+    └── index.html
+```
+
+La procédure initiale est décrite dans `server/README.md`. Après installation,
+`https://nesdz.com/api/v1/health.php` doit répondre avec le statut `ready` sans
+divulguer la configuration de la base.

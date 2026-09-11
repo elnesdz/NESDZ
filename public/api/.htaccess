@@ -1,0 +1,10 @@
+Options -Indexes
+
+<IfModule mod_headers.c>
+  Header always set Cache-Control "no-store, private"
+  Header always set X-Robots-Tag "noindex, nofollow"
+</IfModule>
+
+<FilesMatch "\.(?:bak|conf|dist|env|ini|log|sql|sqlite|ya?ml)$">
+  Require all denied
+</FilesMatch>

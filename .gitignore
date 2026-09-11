@@ -5,3 +5,8 @@ src/env.d.ts
 __pycache__/
 *.py[cod]
 .codex-tmp/
+.env
+.env.*
+!.env.example
+server/config/config.php
+nesdz-private/
