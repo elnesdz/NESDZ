@@ -172,18 +172,30 @@ function generatedQuestion(base) {
   const feedback = base.feedback ?? base.options.map((option, index) => index === base.correct
     ? explanation
     : `Le résultat « ${option} » ne satisfait pas les données du calcul. ${explanation}`);
+  const isFuelPlanning = base.kind === "fuel";
+  const source = isFuelPlanning
+    ? {
+        ...COACH_SOURCES.ulmOps,
+        reference: "Annexe, §4.1.1 — carburant et marge acceptable de sécurité",
+      }
+    : {
+        ...COACH_SOURCES.faa,
+        reference: "Chapitre 16 — Navigation ; données chiffrées propres au scénario",
+      };
   return {
     ...base,
     id: `generated-${base.kind}-${base.seedPart}`,
     theme: base.theme ?? "navigation",
     difficulty: base.difficulty ?? 2,
-    source: COACH_SOURCES.programme,
+    source,
     feedback,
     editorial: {
       status: "calcul-verifie",
       reviewedAt: COACH_BANK_REVIEWED_AT,
       bankVersion: COACH_BANK_VERSION,
       syllabusReference: SYLLABUS_REFERENCES[base.theme ?? "navigation"],
+      evidenceRole: "methode-de-calcul",
+      feedbackMode: "calcul-detaille",
     },
     generated: true,
   };

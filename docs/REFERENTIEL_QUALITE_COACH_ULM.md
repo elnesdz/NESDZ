@@ -1,7 +1,9 @@
 # Référentiel qualité — Coach théorique ULM NESDZ
 
-Version du document : 2.0.0  
-Date de revue interne : 6 septembre 2026  
+Version du document : 2.1.0
+
+Date de revue interne : 11 septembre 2026
+
 Statut : préparation à un audit, non agréé et non homologué par la DGAC
 
 ## 1. Objet et limites
@@ -12,7 +14,7 @@ Seules la DGAC/DSAC et les entités qu’elle habilite peuvent définir les cond
 
 ## 2. Référentiel réglementaire suivi
 
-Source primaire : arrêté du 4 mai 2000 relatif aux programmes et au régime des examens du brevet et de la licence de pilote d’aéronef ultraléger motorisé, version consolidée consultée le 6 septembre 2026 :
+Source primaire : arrêté du 4 mai 2000 relatif aux programmes et au régime des examens du brevet et de la licence de pilote d’aéronef ultraléger motorisé, version consolidée consultée le 11 septembre 2026 :
 
 - [Texte consolidé sur Légifrance](https://www.legifrance.gouv.fr/loda/id/JORFTEXT000000401045/)
 - format de référence de l’épreuve commune : 60 questions à choix multiple ;
@@ -20,6 +22,8 @@ Source primaire : arrêté du 4 mai 2000 relatif aux programmes et au régime de
 - seuil de réussite de référence : 75 % ;
 - validité du certificat d’aptitude : 24 mois ;
 - programme couvert : connaissances aéronef, principes du vol, météorologie, réglementation, performance humaine, navigation, performances et préparation du vol, procédures opérationnelles.
+
+Les questions d’exploitation et de préparation du vol doivent aussi être comparées à l’[arrêté du 17 février 2025 relatif aux conditions d’utilisation des ULM](https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000051234453). Ses dispositions générales sont entrées en vigueur le 1er juillet 2025 ; l’article 9 énumère les dispositions différées au 1er avril 2026. Une ancienne grille de correction n’est donc jamais considérée comme une source réglementaire actuelle.
 
 Les paramètres affichés par l’application doivent être revérifiés à chaque évolution réglementaire. La répartition thématique NESDZ sert à garantir une couverture pédagogique équilibrée ; elle ne prétend pas reproduire une pondération officielle ou confidentielle.
 
@@ -51,6 +55,11 @@ Chaque question publiée doit comporter :
 8. un retour associé à chacune des quatre propositions ;
 9. une source traçable, prioritairement réglementaire ou institutionnelle ;
 10. une version de banque, une date de revue et un statut éditorial.
+
+Le champ de traçabilité distingue désormais deux rôles :
+
+- `preuve-du-corrige` lorsque la référence citée soutient directement la réponse ;
+- `couverture-du-programme` lorsque le texte prouve seulement que la notion appartient au programme. Dans ce second cas, une source technique reste à ajouter avant validation externe.
 
 Une question réglementaire doit être suspendue dès que sa source primaire est modifiée, jusqu’à nouvelle validation. Une question calculée doit être contrôlée par des tests automatiques et par des cas de référence calculés indépendamment.
 
@@ -128,7 +137,7 @@ Les données, leur durée de conservation, la base légale, les droits des perso
 
 ## 9. Conditions restant à satisfaire avant une démarche DGAC/DSAC
 
-La version 2.0.0 améliore fortement la simulation, mais les points suivants restent obligatoires avant de présenter le produit comme candidat sérieux à une reconnaissance :
+La version 2.1.0 améliore fortement la simulation, mais les points suivants restent obligatoires avant de présenter le produit comme candidat sérieux à une reconnaissance :
 
 1. obtenir de la DGAC/DSAC une confirmation écrite de la procédure et du périmètre applicables ;
 2. nommer des instructeurs ULM et experts responsables de la validation ;
@@ -141,6 +150,6 @@ La version 2.0.0 améliore fortement la simulation, mais les points suivants res
 
 ## 10. Décision de publication actuelle
 
-Le Coach peut être publié comme **simulation pédagogique indépendante alignée sur le format réglementaire public**. Il ne peut pas être présenté comme examen officiel, banque DGAC, préparation garantie, centre agréé ou outil homologué.
+Le Coach peut être publié comme **simulation pédagogique indépendante alignée sur le format réglementaire public**. Il ne peut pas être présenté comme examen officiel, banque DGAC, préparation garantie, centre agréé ou outil homologué. L’inventaire et les limites des documents de travail sont consignés dans [`AUDIT_CORPUS_QCM_ULM.md`](./AUDIT_CORPUS_QCM_ULM.md).
 
 La prochaine étape qualité recommandée est une revue nominative complète par au moins deux professionnels compétents, suivie d’un échange formel avec la DSAC sur la recevabilité et le processus attendu.
