@@ -511,6 +511,7 @@ const questionCounts = getQuestionCounts();
         </div>
         <p>${escapeHtml(question.feedback?.[selected] || question.explanation)}</p>
         <div class="coach-method"><span>MÉTHODE ET RAISONNEMENT</span><p>${escapeHtml(question.explanation)}</p></div>
+        ${optionAnalysis(question)}
         ${editorialTrace(question)}`;
       feedbackNode.hidden = false;
     }
@@ -603,6 +604,7 @@ const questionCounts = getQuestionCounts();
           </div>
           <p>${escapeHtml(selected === undefined ? `Cette question est restée sans réponse. ${question.explanation}` : question.feedback?.[selected] || question.explanation)}</p>
           <div class="coach-method"><span>MÉTHODE ET RAISONNEMENT</span><p>${escapeHtml(question.explanation)}</p></div>
+          ${optionAnalysis(question)}
           ${editorialTrace(question)}
         </article>
       `).join("");
@@ -610,7 +612,10 @@ const questionCounts = getQuestionCounts();
 
     function reviewVisual(question) {
       const visual = question.visual;
-      if (!visual || (visual.type !== "wind" && visual.type !== "wind-triangle")) return "";
+      if (!visual) return "";
+      const conceptMarkup = conceptVisualMarkup(visual, true);
+      if (conceptMarkup) return `<div class="coach-review-visual coach-review-visual--concept">${conceptMarkup}</div>`;
+      if (visual.type !== "wind" && visual.type !== "wind-triangle") return "";
       const track = visual.track ?? visual.course;
       return `<div class="coach-review-visual" aria-label="Schéma corrigé de la route et du vent">
         <div class="coach-compass-ring"><span class="north">N</span><span class="east">E</span><span class="south">S</span><span class="west">W</span>
@@ -628,6 +633,11 @@ const questionCounts = getQuestionCounts();
       const visual = question.visual;
       if (!visual) {
         node.innerHTML = `<div class="coach-reference-panel"><span>MODULE</span><strong>${escapeHtml(themeById[question.theme]?.icon || "ULM")}</strong><small>Analysez chaque proposition avant de répondre.</small></div>`;
+        return;
+      }
+      const conceptMarkup = conceptVisualMarkup(visual, revealSolution);
+      if (conceptMarkup) {
+        node.innerHTML = conceptMarkup;
         return;
       }
       if (visual.type === "wind") {
@@ -663,6 +673,83 @@ const questionCounts = getQuestionCounts();
       node.innerHTML = `<div class="coach-reference-panel"><span>DONNÉES DE VOL</span>${rows.map(([label, value]) => `<div><small>${label}</small><strong>${value}</strong></div>`).join("")}</div>`;
     }
 
+    function conceptVisualMarkup(visual, revealSolution = false) {
+      if (visual.type === "balance") {
+        return `<figure class="coach-concept-visual">
+          <figcaption>CENTRAGE LONGITUDINAL</figcaption>
+          <svg viewBox="0 0 320 220" role="img" aria-label="Schéma original d’une plage de centrage et d’un centre de gravité arrière">
+            <path class="concept-aircraft" d="M34 112 L121 96 L151 48 L171 48 L164 96 L272 105 L291 114 L164 123 L171 172 L151 172 L121 124 Z" />
+            <line class="concept-axis" x1="56" y1="190" x2="270" y2="190" />
+            <rect class="concept-safe" x="126" y="181" width="72" height="18" rx="9" />
+            <circle class="concept-point" cx="216" cy="190" r="9" />
+            <text x="127" y="174">PLAGE AUTORISÉE</text><text class="concept-alert" x="205" y="216">CG ARRIÈRE</text>
+          </svg>
+          <p>${revealSolution ? "Un CG trop arrière réduit la marge de stabilité." : "Situez le CG par rapport à la plage autorisée."}</p>
+        </figure>`;
+      }
+      if (visual.type === "bank") {
+        return `<figure class="coach-concept-visual">
+          <figcaption>VIRAGE HORIZONTAL</figcaption>
+          <svg viewBox="0 0 320 220" role="img" aria-label="Schéma original d’un aéronef incliné à 60 degrés">
+            <line class="concept-horizon" x1="28" y1="153" x2="292" y2="153" />
+            <g transform="rotate(${visual.bankDeg} 160 126)"><line class="concept-wing" x1="77" y1="126" x2="243" y2="126" /><path class="concept-aircraft" d="M154 74 L166 74 L170 118 L201 131 L199 139 L165 131 L164 164 L156 164 L155 131 L121 139 L119 131 L150 118 Z" /></g>
+            <path class="concept-arc" d="M160 88 A40 40 0 0 1 195 108" /><text x="190" y="89">60°</text>
+            <line class="concept-force" x1="160" y1="128" x2="160" y2="48" /><polygon class="concept-force" points="160,38 153,52 167,52" />
+            <text x="174" y="48">PORTANCE</text>
+          </svg>
+          <p>${revealSolution ? "n = 1 / cos 60° = 2 g" : "Calculez n = 1 / cos φ."}</p>
+        </figure>`;
+      }
+      if (visual.type === "isobars") {
+        return `<figure class="coach-concept-visual">
+          <figcaption>CARTE DE PRESSION</figcaption>
+          <svg viewBox="0 0 320 220" role="img" aria-label="Schéma original d’isobares rapprochées">
+            <path class="concept-isobar" d="M28 188 C94 139 78 74 148 29" /><path class="concept-isobar" d="M72 205 C138 151 116 79 184 25" /><path class="concept-isobar" d="M121 211 C186 157 163 83 224 32" /><path class="concept-isobar" d="M171 213 C235 161 213 91 272 49" />
+            <text x="33" y="168">1004</text><text x="84" y="185">1008</text><text x="135" y="190">1012</text><text x="188" y="191">1016</text>
+            ${revealSolution ? '<path class="concept-wind" d="M76 72 L236 72" /><polygon class="concept-wind" points="248,72 231,63 231,81" /><text class="concept-answer" x="92" y="57">GRADIENT MARQUÉ</text>' : ""}
+          </svg>
+          <p>${revealSolution ? "Peu de distance entre les lignes : la pression varie rapidement." : "Comparez l’écart entre les lignes de même pression."}</p>
+        </figure>`;
+      }
+      if (visual.type === "heading-track") {
+        return `<figure class="coach-concept-visual">
+          <figcaption>CAP ET ROUTE</figcaption>
+          <svg viewBox="0 0 320 220" role="img" aria-label="Schéma original montrant un cap et une route différents sous l’effet du vent">
+            <circle class="concept-dial" cx="160" cy="108" r="82" /><text x="153" y="20">N</text>
+            <g transform="rotate(${visual.headingDeg} 160 108)"><line class="concept-heading" x1="160" y1="108" x2="160" y2="42" /><polygon class="concept-heading" points="160,31 152,47 168,47" /></g>
+            <g transform="rotate(${visual.trackDeg} 160 108)"><line class="concept-track" x1="160" y1="108" x2="160" y2="28" /></g>
+            <text class="concept-heading-label" x="30" y="192">CAP : axe de l’ULM</text><text class="concept-track-label" x="174" y="208">ROUTE : trajectoire sol</text>
+          </svg>
+          <p>${revealSolution ? "Le vent peut séparer le cap suivi de la route réellement parcourue." : "Deux directions peuvent différer lorsqu’il y a du vent."}</p>
+        </figure>`;
+      }
+      if (visual.type === "density-altitude") {
+        return `<figure class="coach-concept-visual">
+          <figcaption>ALTITUDE-DENSITÉ</figcaption>
+          <svg viewBox="0 0 320 220" role="img" aria-label="Schéma original de conditions chaudes et élevées">
+            <path class="concept-mountain" d="M14 187 L83 105 L119 148 L174 64 L299 187 Z" />
+            <line class="concept-runway" x1="71" y1="181" x2="264" y2="181" /><line class="concept-runway-dash" x1="105" y1="175" x2="230" y2="175" />
+            <g class="concept-air-dots"><circle cx="42" cy="51" r="3"/><circle cx="99" cy="74" r="3"/><circle cx="160" cy="35" r="3"/><circle cx="231" cy="69" r="3"/><circle cx="282" cy="40" r="3"/></g>
+            <rect class="concept-thermo" x="270" y="92" width="12" height="58" rx="6"/><circle class="concept-thermo" cx="276" cy="158" r="11"/><text x="246" y="83">${visual.temperatureC} °C</text><text x="29" y="207">TERRAIN ${visual.elevationFt} FT</text>
+          </svg>
+          <p>${revealSolution ? "Chaleur et altitude élevée diminuent la densité de l’air et les performances." : "Évaluez l’effet combiné de la chaleur et de l’altitude."}</p>
+        </figure>`;
+      }
+      if (visual.type === "wake-vortices") {
+        return `<figure class="coach-concept-visual">
+          <figcaption>TURBULENCE DE SILLAGE</figcaption>
+          <svg viewBox="0 0 320 220" role="img" aria-label="Schéma original de tourbillons marginaux derrière un aéronef">
+            <path class="concept-aircraft" d="M151 23 L169 23 L174 89 L276 112 L272 126 L171 111 L168 177 L152 177 L149 111 L48 126 L44 112 L146 89 Z" />
+            <path class="concept-vortex" d="M104 128 C66 143 68 181 103 185 C132 188 137 160 116 151 C100 144 89 155 94 168" />
+            <path class="concept-vortex" d="M216 128 C254 143 252 181 217 185 C188 188 183 160 204 151 C220 144 231 155 226 168" />
+            <text x="101" y="211">TOURBILLONS MARGINAUX</text>
+          </svg>
+          <p>${revealSolution ? "Les vortex sont les plus intenses quand l’aéronef est lourd, lent et lisse." : "Identifiez les conditions qui renforcent ces tourbillons."}</p>
+        </figure>`;
+      }
+      return "";
+    }
+
     function visualRows(visual) {
       if (visual.type === "scale") return [["ÉCHELLE", `1/${visual.scale.toLocaleString("fr-FR")}`], ["MESURE", `${visual.centimetres} cm`]];
       if (visual.type === "route") return [["DISTANCE", `${visual.distance} NM`], ["VITESSE SOL", `${visual.groundspeed} kt`]];
@@ -686,10 +773,22 @@ const questionCounts = getQuestionCounts();
       return String(value).replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);
     }
 
+    function optionAnalysis(question) {
+      return `<details class="coach-option-analysis">
+        <summary>Comprendre chaque proposition</summary>
+        <ol>${question.options.map((option, index) => `<li class="${index === question.correct ? "is-answer" : ""}">
+          <strong>${letters[index]} — ${escapeHtml(option)}</strong>
+          <span>${index === question.correct ? "JUSTE" : "À ÉCARTER"}</span>
+          <p>${escapeHtml(question.feedback?.[index] || question.explanation)}</p>
+        </li>`).join("")}</ol>
+      </details>`;
+    }
+
     function editorialTrace(question) {
       const editorial = question.editorial || {};
       return `<footer class="coach-traceability">
         <a href="${escapeHtml(question.source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(question.source.label)} ↗</a>
+        <span>${escapeHtml(question.source.reference || "Référence générale")}</span>
         <span>${escapeHtml(editorial.syllabusReference || "Programme théorique ULM")}</span>
         <small>Banque v${escapeHtml(editorial.bankVersion || "—")} · revue ${escapeHtml(editorial.reviewedAt || "—")} · ${escapeHtml(editorial.status || "revue interne")}</small>
       </footer>`;
@@ -851,6 +950,32 @@ const questionCounts = getQuestionCounts();
     .coach-reference-panel > div small, .coach-reference-panel > div strong { display: block; }
     .coach-reference-panel > div small { color: #8297b1; font: 700 .64rem var(--mono); }
     .coach-reference-panel > div strong { margin-top: 4px; color: #f5f9ff; font: 800 1.05rem var(--mono); }
+    .coach-concept-visual { width: min(100%, 330px); margin: 0; text-align: center; }
+    .coach-concept-visual figcaption { margin-bottom: 10px; color: #6bdcff; font: 800 .67rem var(--mono); letter-spacing: .12em; }
+    .coach-concept-visual svg { width: 100%; height: auto; overflow: visible; border: 1px solid rgba(131,215,255,.15); border-radius: 17px; background: radial-gradient(circle at 50% 45%, rgba(40,136,181,.13), rgba(4,15,29,.92)); }
+    .coach-concept-visual p { min-height: 42px; margin: 12px 0 0; color: #a9bdd2; font-size: .78rem; line-height: 1.45; }
+    .coach-concept-visual text { fill: #9db6cf; font: 700 10px var(--mono); letter-spacing: .04em; }
+    .concept-aircraft { fill: rgba(102,218,255,.24); stroke: #75ddff; stroke-width: 2; }
+    .concept-axis, .concept-horizon { stroke: #7288a2; stroke-width: 2; stroke-dasharray: 6 6; }
+    .concept-safe { fill: rgba(78,224,164,.28); stroke: #56e1a8; }
+    .concept-point { fill: #ffb85f; stroke: #ffe0a7; stroke-width: 2; }
+    .concept-alert, .concept-answer { fill: #ffcb76 !important; }
+    .concept-wing { stroke: #d6efff; stroke-width: 7; stroke-linecap: round; }
+    .concept-arc { fill: none; stroke: #ffbe63; stroke-width: 3; stroke-dasharray: 4 4; }
+    .concept-force { fill: #59e1ad; stroke: #59e1ad; stroke-width: 3; }
+    .concept-isobar { fill: none; stroke: #72d8ff; stroke-width: 3; }
+    .concept-wind { fill: #ffb85f; stroke: #ffb85f; stroke-width: 4; }
+    .concept-dial { fill: none; stroke: #6b829d; stroke-width: 2; stroke-dasharray: 3 6; }
+    .concept-heading { fill: #58e3ac; stroke: #58e3ac; stroke-width: 5; }
+    .concept-track { stroke: #71d8ff; stroke-width: 4; stroke-dasharray: 7 5; }
+    .concept-heading-label { fill: #58e3ac !important; }
+    .concept-track-label { fill: #71d8ff !important; }
+    .concept-mountain { fill: rgba(104,133,163,.28); stroke: #819ab4; stroke-width: 2; }
+    .concept-runway { stroke: #dceaff; stroke-width: 15; }
+    .concept-runway-dash { stroke: #253a51; stroke-width: 2; stroke-dasharray: 13 10; }
+    .concept-air-dots { fill: #77dfff; }
+    .concept-thermo { fill: #ff826f; stroke: #ffc0b7; stroke-width: 2; }
+    .concept-vortex { fill: none; stroke: #b598ff; stroke-width: 3; stroke-dasharray: 7 5; }
     .coach-nav-dial { width: min(100%, 300px); }
     .coach-compass-ring { width: 100%; aspect-ratio: 1; position: relative; border-radius: 50%; border: 2px solid rgba(109,213,255,.32); background: repeating-conic-gradient(from -1deg, rgba(138,214,255,.38) 0 1deg, transparent 1deg 10deg), radial-gradient(circle, #0b1c32 0 66%, #061221 67%); box-shadow: inset 0 0 34px rgba(55,175,225,.15), 0 0 30px rgba(55,175,225,.08); }
     .coach-compass-ring > span { position: absolute; color: #83dfff; font: 800 .75rem var(--mono); z-index: 3; }
@@ -903,6 +1028,15 @@ const questionCounts = getQuestionCounts();
     .coach-answer-comparison b { display: block; color: #f0f6ff; font-size: .8rem; line-height: 1.4; }
     .coach-method { margin: 12px 0; padding: 12px 14px; border-left: 3px solid #69d9ff; background: rgba(35,150,203,.08); }
     .coach-method p { margin: 0; }
+    .coach-option-analysis { margin: 13px 0; border: 1px solid rgba(151,210,255,.13); border-radius: 12px; background: rgba(5,15,29,.48); }
+    .coach-option-analysis summary { padding: 12px 14px; color: #c7d8eb; cursor: pointer; font-weight: 760; }
+    .coach-option-analysis ol { display: grid; gap: 8px; margin: 0; padding: 0 12px 12px; list-style: none; }
+    .coach-option-analysis li { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 10px; border-radius: 9px; border: 1px solid rgba(151,210,255,.1); background: rgba(8,22,40,.72); }
+    .coach-option-analysis li.is-answer { border-color: rgba(77,226,164,.32); background: rgba(24,121,84,.15); }
+    .coach-option-analysis li > strong { color: #eaf3ff; font-size: .78rem; line-height: 1.4; }
+    .coach-option-analysis li > span { color: #ffbd72; font: 750 .58rem var(--mono); }
+    .coach-option-analysis li.is-answer > span { color: #64e3b0; }
+    .coach-option-analysis li > p { grid-column: 1 / -1; margin: 2px 0 0; color: #9fb2c8; font-size: .75rem; line-height: 1.45; }
     .coach-traceability { display: grid; gap: 4px; margin-top: 12px; padding-top: 11px; border-top: 1px solid rgba(151,210,255,.12); }
     .coach-traceability span, .coach-traceability small { color: #91a5bd; font-size: .7rem; }
     .coach-traceability small { font-family: var(--mono); }
@@ -924,6 +1058,8 @@ const questionCounts = getQuestionCounts();
     .coach-review-visual { display: grid; grid-template-columns: 120px 1fr; align-items: center; gap: 15px; margin: 13px 0; padding: 12px; border: 1px solid rgba(151,210,255,.12); border-radius: 12px; background: rgba(3,12,24,.68); }
     .coach-review-visual .coach-compass-ring { width: 120px; }
     .coach-review-visual > p { color: #b8c9db; font: 700 .74rem/1.5 var(--mono); }
+    .coach-review-visual--concept { display: block; }
+    .coach-review-visual--concept .coach-concept-visual { width: min(100%, 280px); margin: 0 auto; }
     @media (max-width: 980px) {
       .coach-hero { grid-template-columns: 1fr; padding: 34px; }
       .coach-radar { min-height: 280px; }

@@ -2,27 +2,49 @@ export const COACH_SOURCES = {
   programme: {
     label: "Programme officiel ULM — annexe I",
     url: "https://www.legifrance.gouv.fr/loda/id/JORFTEXT000000401045/",
+    authority: "Légifrance",
+    role: "couverture-programme",
+  },
+  dgacExam: {
+    label: "DGAC — examens théoriques ULM",
+    url: "https://www.ecologie.gouv.fr/politiques-publiques/pilotes-dulm",
+    authority: "Direction générale de l’aviation civile",
+    role: "source-primaire",
+  },
+  ulmOps: {
+    label: "Arrêté ULM du 17 février 2025",
+    url: "https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000051234453",
+    authority: "Légifrance",
+    role: "source-primaire",
   },
   sera: {
     label: "Règles de l’air européennes SERA",
     url: "https://eur-lex.europa.eu/legal-content/FR/TXT/?uri=CELEX:32012R0923",
+    authority: "EUR-Lex",
+    role: "source-primaire",
   },
   meteo: {
     label: "Météo-France Aviation",
     url: "https://aviation.meteo.fr/",
+    authority: "Météo-France",
+    role: "source-institutionnelle",
   },
   ffplum: {
     label: "FFPLUM — sécurité des vols",
     url: "https://ffplum.fr/securite/quiz-ulm",
+    authority: "FFPLUM",
+    role: "source-federale",
   },
   faa: {
     label: "FAA — Pilot’s Handbook of Aeronautical Knowledge",
     url: "https://www.faa.gov/regulations_policies/handbooks_manuals/aviation/phak",
+    authority: "Federal Aviation Administration",
+    role: "source-technique",
   },
 };
 
-export const COACH_BANK_VERSION = "2.0.0";
-export const COACH_BANK_REVIEWED_AT = "2026-09-06";
+export const COACH_BANK_VERSION = "2.1.0";
+export const COACH_BANK_REVIEWED_AT = "2026-09-11";
 
 export const SYLLABUS_REFERENCES = {
   aeronef: "Annexe I · §1 — Connaissances des aéronefs",
@@ -35,6 +57,89 @@ export const SYLLABUS_REFERENCES = {
   operations: "Annexe I · §7 — Procédures opérationnelles",
 };
 
+const QUESTION_EVIDENCE = {
+  "aircraft-aft-cg": { source: COACH_SOURCES.faa, reference: "Chapitre 10 — Weight and Balance" },
+  "aero-load-factor-60": { source: COACH_SOURCES.faa, reference: "Chapitre 5 — Aerodynamics of Flight" },
+  "meteo-isobars": { source: COACH_SOURCES.meteo, reference: "Météorologie générale — gradient horizontal de pression" },
+  "reg-exam-format": { source: COACH_SOURCES.dgacExam, reference: "Examens théoriques — caractéristiques, points 1 à 3" },
+  "reg-exam-pass": { source: COACH_SOURCES.dgacExam, reference: "Examens théoriques — caractéristiques, point 4" },
+  "reg-certificate-validity": { source: COACH_SOURCES.dgacExam, reference: "Certificat d’aptitude théorique — validité" },
+  "reg-pic-responsibility": { source: COACH_SOURCES.ulmOps, reference: "Annexe, §2.1.2 et §2.1.3 — responsabilités du pilote" },
+  "reg-preflight-information": { source: COACH_SOURCES.ulmOps, reference: "Annexe, §2.1.3 — décision, site et météorologie" },
+  "nav-heading-track": { source: COACH_SOURCES.faa, reference: "Chapitre 16 — Navigation" },
+  "performance-manual": { source: COACH_SOURCES.ulmOps, reference: "Annexe, §2.5 — masse, centrage et performances" },
+  "performance-fuel-monitoring": { source: COACH_SOURCES.ulmOps, reference: "Annexe, §4.1.1 à §4.1.4 — carburant et marge de sécurité" },
+  "performance-density-altitude": { source: COACH_SOURCES.faa, reference: "Chapitre 11 — Aircraft Performance" },
+  "ops-passenger-brief": { source: COACH_SOURCES.ulmOps, reference: "Annexe, §2.4.3 et §2.4.4 — information du passager" },
+  "ops-wake": { source: COACH_SOURCES.faa, reference: "Chapitre 14 — Airport Operations, wake turbulence" },
+};
+
+const CURATED_VISUALS = {
+  "aircraft-aft-cg": { type: "balance", cgPosition: "aft" },
+  "aero-load-factor-60": { type: "bank", bankDeg: 60 },
+  "meteo-isobars": { type: "isobars", spacing: "tight" },
+  "nav-heading-track": { type: "heading-track", headingDeg: 340, trackDeg: 350 },
+  "performance-density-altitude": { type: "density-altitude", temperatureC: 32, elevationFt: 2500 },
+  "ops-wake": { type: "wake-vortices" },
+};
+
+const OPTION_FEEDBACK = {
+  "aircraft-aft-cg": [
+    "Un centrage arrière réduit la marge statique : il ne rend donc pas l’ULM plus stable longitudinalement.",
+    "Exact. En reculant, le centre de gravité réduit généralement la stabilité longitudinale et peut rendre la récupération plus délicate.",
+    "Le centrage ne supprime jamais le décrochage. Il peut au contraire rendre certaines sorties de décrochage plus difficiles.",
+    "La masse et le centrage doivent tous deux rester dans leurs limites ; respecter l’un ne compense pas le dépassement de l’autre.",
+  ],
+  "aero-load-factor-60": [
+    "1 g correspond au vol horizontal sans inclinaison. À 60°, la portance doit augmenter pour conserver l’altitude.",
+    "Environ 1,4 g correspond à 45° d’inclinaison, car 1 / cos 45° ≈ 1,41.",
+    "Exact. En virage horizontal coordonné, n = 1 / cos 60° = 1 / 0,5 = 2 g.",
+    "3 g demanderait une inclinaison d’environ 70,5° en virage horizontal coordonné, pas 60°.",
+  ],
+  "meteo-isobars": [
+    "Exact. Une forte variation de pression sur une courte distance crée un gradient marqué, généralement associé à davantage de vent.",
+    "C’est l’inverse : des isobares rapprochées signalent un gradient de pression plus fort, pas une absence certaine de vent.",
+    "Les isobares relient des points de même pression. Les lignes de même température sont des isothermes.",
+    "L’espacement des isobares ne suffit pas à prévoir l’absence de nuages ; humidité, stabilité et mouvements verticaux comptent aussi.",
+  ],
+  "reg-pic-responsibility": [
+    "L’expérience d’un passager peut aider, mais elle ne transfère pas les responsabilités réglementaires du pilote aux commandes.",
+    "Exact. Le pilote aux commandes décide d’entreprendre, poursuivre, interrompre ou dérouter le vol dans l’intérêt de la sécurité.",
+    "Le gestionnaire ou propriétaire du terrain fournit des informations utiles, mais ne prend pas la décision opérationnelle à la place du pilote.",
+    "Le GPS est une aide. Son fabricant ne peut ni évaluer les conditions du jour ni assumer la décision de départ.",
+  ],
+  "reg-preflight-information": [
+    "Exact. Le pilote vérifie l’aptitude de l’ULM, ses limitations, l’adéquation du site, l’accessibilité de l’espace et la météo récente.",
+    "La seule observation du parking ne décrit ni toute la route, ni l’heure d’arrivée, ni l’accessibilité de l’espace aérien.",
+    "Un GPS chargé ne prouve pas que l’ULM est apte au vol et ne remplace pas les informations météo et opérationnelles.",
+    "L’expérience passée ne remplace pas les dernières informations disponibles ni les limitations propres au vol du jour.",
+  ],
+  "nav-heading-track": [
+    "Exact. Le cap décrit l’orientation de l’axe de l’aéronef ; la route décrit sa trajectoire au-dessus du sol.",
+    "Le cap et la route sont des directions angulaires, pas des distances ni des vitesses.",
+    "Ils peuvent être identiques sans vent, mais un vent traversier crée généralement une différence appelée dérive.",
+    "La manche à air renseigne sur le vent local ; elle ne donne pas directement le cap ni la route suivie sur toute la navigation.",
+  ],
+  "performance-density-altitude": [
+    "Exact. Une altitude-densité élevée correspond à un air moins dense, ce qui dégrade généralement décollage et montée.",
+    "Un air plus dense correspond au contraire à une altitude-densité plus faible et favorise généralement les performances.",
+    "L’altitude-densité ne modifie pas la masse réelle chargée ; elle modifie les performances disponibles dans la masse d’air.",
+    "L’air moins dense affecte l’aile, l’hélice et souvent la puissance moteur : son effet ne se limite pas à l’altimètre.",
+  ],
+  "ops-passenger-brief": [
+    "Exact. Le passager doit recevoir les consignes de sécurité utiles, notamment sur le tabac, les retenues et les équipements propres à l’ULM.",
+    "La marque du moteur n’est pas une consigne permettant au passager d’éviter un risque ou de réagir en cas d’urgence.",
+    "Le prix du carburant ne fait pas partie des informations de sécurité à communiquer au passager avant le vol.",
+    "Le balisage peut être utile au pilote, mais il ne remplace pas le briefing individuel sur les retenues et les équipements de secours.",
+  ],
+  "ops-wake": [
+    "Exact. La turbulence de sillage est la plus marquée derrière un aéronef lourd, lent et en configuration lisse.",
+    "Un aéronef léger et rapide produit généralement des tourbillons moins intenses que la situation lourde, lente et lisse.",
+    "Un aéronef immobilisé moteur coupé depuis plusieurs heures ne génère plus de turbulence de sillage aérodynamique.",
+    "La pluie n’est pas la condition nécessaire : les tourbillons proviennent de la portance et existent aussi par temps sec.",
+  ],
+};
+
 const q = (id, theme, difficulty, prompt, options, correct, explanation, hint, source) => ({
   id,
   theme,
@@ -43,16 +148,23 @@ const q = (id, theme, difficulty, prompt, options, correct, explanation, hint, s
   options,
   correct,
   explanation,
-  feedback: options.map((option, index) => index === correct
+  feedback: (OPTION_FEEDBACK[id] ?? options.map((option, index) => index === correct
     ? explanation
-    : `La proposition « ${option} » ne correspond pas à la notion ou au calcul demandé. ${explanation}`),
+    : `La proposition « ${option} » ne correspond pas à la notion ou au calcul demandé. ${explanation}`))
+    .map((feedback, index) => index === correct ? explanation : feedback),
   hint,
-  source,
+  source: {
+    ...(QUESTION_EVIDENCE[id]?.source ?? source),
+    reference: QUESTION_EVIDENCE[id]?.reference ?? SYLLABUS_REFERENCES[theme],
+  },
+  visual: CURATED_VISUALS[id] ?? null,
   editorial: {
-    status: "revue-interne",
+    status: QUESTION_EVIDENCE[id] ? "revue-source" : "revue-interne",
     reviewedAt: COACH_BANK_REVIEWED_AT,
     bankVersion: COACH_BANK_VERSION,
     syllabusReference: SYLLABUS_REFERENCES[theme],
+    evidenceRole: QUESTION_EVIDENCE[id] ? "preuve-du-corrige" : "couverture-du-programme",
+    feedbackMode: OPTION_FEEDBACK[id] ? "option-specifique" : "synthese",
   },
   generated: false,
 });
@@ -336,12 +448,12 @@ export const CURATED_QUESTIONS = [
     "Avant le vol, qui reste responsable de décider si le vol peut être entrepris en sécurité ?",
     [
       "Le passager le plus expérimenté",
-      "Le commandant de bord",
+      "Le pilote aux commandes",
       "Le propriétaire du terrain uniquement",
       "Le fabricant du GPS",
     ],
     1,
-    "Le commandant de bord assume la décision et les responsabilités opérationnelles du vol, en s’appuyant sur les informations et documents applicables.",
+    "Le pilote aux commandes assume la décision et les responsabilités opérationnelles du vol. Elles ne sont pas transférées à un passager qualifié, sauf au pilote instructeur lors d’un vol d’instruction ou de contrôle.",
     "La responsabilité suit la fonction opérationnelle à bord.",
     COACH_SOURCES.programme,
   ),
@@ -579,16 +691,16 @@ export const CURATED_QUESTIONS = [
     "ops-passenger-brief",
     "operations",
     1,
-    "Avant le décollage avec un passager, le briefing doit notamment préciser :",
+    "Avant le vol avec un passager, quelles informations de sécurité le pilote doit-il notamment lui communiquer ?",
     [
-      "L’usage des ceintures, les commandes à ne pas toucher et les actions d’urgence",
+      "L’interdiction de fumer, l’usage des dispositifs de retenue et les équipements de secours requis",
       "Uniquement la marque du moteur",
       "Le prix du carburant au litre",
       "La couleur des balises de roulage seulement",
     ],
     0,
-    "Un briefing utile couvre ceintures, accès et évacuation, commandes, communications et conduite à tenir en situation anormale, selon l’équipement de l’ULM.",
-    "Retenez les informations qui permettent au passager de ne pas créer de risque et d’agir en urgence.",
+    "L’arrêté ULM impose d’informer le passager en temps utile sur l’interdiction de fumer, les dispositifs de retenue et, s’ils sont requis, l’oxygène, les gilets ainsi que les autres équipements de sécurité propres à l’ULM.",
+    "Cherchez les consignes qui protègent directement le passager et l’ULM.",
     COACH_SOURCES.programme,
   ),
   q(
@@ -807,16 +919,16 @@ export const CURATED_QUESTIONS = [
     "reg-preflight-information",
     "reglementation",
     2,
-    "Pour préparer une navigation VFR, quelle combinaison documentaire est pertinente ?",
+    "Avant d’entreprendre une navigation VFR en ULM, quel ensemble de vérifications répond directement aux responsabilités du pilote ?",
     [
-      "Cartes et VAC à jour, météo, NOTAM et informations aéronautiques applicables",
-      "Une ancienne carte routière seulement",
+      "Aptitude et limitations de l’ULM, adéquation du site, accessibilité de l’espace et dernières informations météo",
       "Uniquement la météo observée depuis le parking",
-      "Le manuel d’un autre aéronef sans information de route",
+      "Seulement la charge de la tablette et du GPS",
+      "L’expérience du même trajet effectuée plusieurs mois auparavant",
     ],
     0,
-    "La préparation combine documentation de navigation à jour, données météorologiques et information aéronautique telle que NOTAM, AIP, SUP AIP ou AIC selon le vol.",
-    "Il faut couvrir simultanément la route, les terrains, la météo et les restrictions temporaires.",
+    "L’arrêté ULM impose au pilote de vérifier l’aptitude et les limitations de la machine, l’adéquation du site prévu, l’accessibilité de l’espace aérien et les dernières informations météo le long de la route et à destination.",
+    "Cherchez la réponse qui couvre à la fois machine, site, espace aérien et météorologie.",
     COACH_SOURCES.programme,
   ),
   q(

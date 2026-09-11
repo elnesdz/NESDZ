@@ -51,10 +51,29 @@ test("every curated question is a defensible four-option single answer item", ()
     assert.equal(question.feedback.length, 4, question.id);
     assert.ok(question.feedback.every((feedback) => feedback.length >= 40), question.id);
     assert.match(question.source.url, /^https:\/\//, question.id);
+    assert.ok(question.source.authority.length >= 3, question.id);
+    assert.ok(question.source.reference.length >= 8, question.id);
+    assert.match(question.source.role, /^(source-|couverture-)/, question.id);
     assert.equal(question.editorial.bankVersion, COACH_BANK_VERSION, question.id);
     assert.equal(question.editorial.reviewedAt, COACH_BANK_REVIEWED_AT, question.id);
     assert.match(question.editorial.syllabusReference, /^Annexe I/, question.id);
   }
+});
+
+test("the first enriched editorial lot has option-specific teaching and original visuals", () => {
+  const optionSpecific = CURATED_QUESTIONS.filter((question) => question.editorial.feedbackMode === "option-specifique");
+  const illustrated = CURATED_QUESTIONS.filter((question) => question.visual);
+  const sourcedAnswers = CURATED_QUESTIONS.filter((question) => question.editorial.evidenceRole === "preuve-du-corrige");
+  assert.ok(optionSpecific.length >= 8);
+  assert.ok(illustrated.length >= 6);
+  assert.ok(sourcedAnswers.length >= 12);
+  for (const question of optionSpecific) {
+    assert.ok(question.feedback.every((feedback) => !feedback.includes("ne correspond pas à la notion")), question.id);
+  }
+  assert.match(
+    CURATED_QUESTIONS.find((question) => question.id === "ops-passenger-brief").source.url,
+    /JORFTEXT000051234453/,
+  );
 });
 
 test("official exam settings remain explicit", () => {
@@ -117,6 +136,8 @@ test("algorithmic questions always contain one usable answer and four feedback m
     assert.ok(question.options[question.correct], question.id);
     assert.equal(question.feedback.length, 4, question.id);
     assert.ok(question.feedback.every(Boolean), question.id);
+    assert.ok(question.source.reference.length >= 8, question.id);
+    assert.ok(question.editorial.evidenceRole, question.id);
     assert.equal(question.editorial.status, "calcul-verifie", question.id);
     assert.equal(question.generated, true);
   }
@@ -141,6 +162,7 @@ test("coach page exposes accessible training controls and an honest disclaimer",
   const home = fs.readFileSync(new URL("../src/pages/index.astro", import.meta.url), "utf8");
   const layout = fs.readFileSync(new URL("../src/layouts/BaseLayout.astro", import.meta.url), "utf8");
   const quality = fs.readFileSync(new URL("../docs/REFERENTIEL_QUALITE_COACH_ULM.md", import.meta.url), "utf8");
+  const corpusAudit = fs.readFileSync(new URL("../docs/AUDIT_CORPUS_QCM_ULM.md", import.meta.url), "utf8");
 
   assert.match(page, /Outil d’entraînement indépendant/);
   assert.match(page, /ni la banque réelle de la DGAC/);
@@ -155,10 +177,15 @@ test("coach page exposes accessible training controls and an honest disclaimer",
   assert.match(page, /VOTRE RÉPONSE/);
   assert.match(page, /RÉPONSE ATTENDUE/);
   assert.match(page, /MÉTHODE ET RAISONNEMENT/);
+  assert.match(page, /Comprendre chaque proposition/);
+  assert.match(page, /coach-concept-visual/);
   assert.match(page, /id="print-results"/);
   assert.match(page, /<style is:global>/);
   assert.match(home, /href="\/coach\/"/);
   assert.match(layout, />Coach théorique</);
   assert.match(quality, /non agréé et non homologué par la DGAC/);
   assert.match(quality, /étude psychométrique/);
+  assert.match(quality, /arrêté du 17 février 2025/);
+  assert.match(corpusAudit, /ne doit pas être copié/);
+  assert.match(corpusAudit, /crdownload/);
 });
